@@ -1,0 +1,79 @@
+# mhost Full-Stack Ecosystem Config
+# Demonstrates: multiple processes, health checks, groups, dependencies,
+#               cron restarts, memory limits, scaling
+#
+# Run: mhost start examples/full-stack.toml
+
+# ─── React Frontend ──────────────────────────────────────────────
+[process.react-app]
+command = "node server.js"
+cwd = "examples/react-app"
+env = { PORT = "5173", NODE_ENV = "development" }
+instances = 1
+max_restarts = 10
+min_uptime = "2s"
+grace_period = "3s"
+max_memory = "256MB"
+
+[process.react-app.health.http]
+url = "http://localhost:5173/health"
+interval = "15s"
+timeout = "3s"
+retries = 2
+
+# ─── Express API ─────────────────────────────────────────────────
+[process.express-api]
+command = "node server.js"
+cwd = "examples/express-api"
+env = { PORT = "4000", NODE_ENV = "development" }
+instances = 1
+max_restarts = 10
+min_uptime = "2s"
+grace_period = "5s"
+max_memory = "512MB"
+
+[process.express-api.health.http]
+url = "http://localhost:4000/health"
+interval = "10s"
+timeout = "3s"
+retries = 3
+
+# ─── Python Background Worker ───────────────────────────────────
+[process.worker]
+command = "python3 worker.py"
+cwd = "examples/python-worker"
+instances = 2
+max_restarts = 15
+min_uptime = "1s"
+restart_delay = "500ms"
+
+# ─── System Monitor (bash script) ───────────────────────────────
+[process.sys-monitor]
+command = "sh monitor.sh"
+cwd = "examples/bash-monitor"
+instances = 1
+max_restarts = 5
+min_uptime = "5s"
+
+# ─── Cleanup Cron Job ───────────────────────────────────────────
+[process.cleanup]
+command = "sh cleanup.sh"
+cwd = "examples/cron-job"
+env = { LOG_DIR = "/tmp/mhost-cleanup-logs" }
+instances = 1
+max_restarts = 3
+cron_restart = "0 */6 * * *"
+
+# ─── Process Groups ─────────────────────────────────────────────
+# Start order: backend services first, then frontend
+[groups.backend]
+depends_on = []
+processes = ["express-api", "worker"]
+
+[groups.services]
+depends_on = []
+processes = ["sys-monitor", "cleanup"]
+
+[groups.frontend]
+depends_on = ["backend"]
+processes = ["react-app"]
