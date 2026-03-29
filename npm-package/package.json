@@ -6,7 +6,7 @@
   "scripts": { "postinstall": "node install.js" },
   "os": ["darwin", "linux", "win32"],
   "cpu": ["x64", "arm64"],
-  "repository": { "type": "git", "url": "https://github.com/maheralaqil/mhost" },
+  "repository": { "type": "git", "url": "https://github.com/maqalaqil/mhost" },
   "license": "MIT",
   "author": "Maher Al-Aqil"
 }

@@ -1,28 +1,28 @@
 class Mhost < Formula
   desc "Advanced process manager — PM2 replacement written in Rust"
-  homepage "https://github.com/maheralaqil/mhost"
+  homepage "https://github.com/maqalaqil/mhost"
   license "MIT"
 
   version "0.1.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/maheralaqil/mhost/releases/download/v#{version}/mhost-aarch64-apple-darwin"
+      url "https://github.com/maqalaqil/mhost/releases/download/v#{version}/mhost-aarch64-apple-darwin"
       sha256 "PLACEHOLDER"
     end
     on_intel do
-      url "https://github.com/maheralaqil/mhost/releases/download/v#{version}/mhost-x86_64-apple-darwin"
+      url "https://github.com/maqalaqil/mhost/releases/download/v#{version}/mhost-x86_64-apple-darwin"
       sha256 "PLACEHOLDER"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/maheralaqil/mhost/releases/download/v#{version}/mhost-aarch64-unknown-linux-musl"
+      url "https://github.com/maqalaqil/mhost/releases/download/v#{version}/mhost-aarch64-unknown-linux-musl"
       sha256 "PLACEHOLDER"
     end
     on_intel do
-      url "https://github.com/maheralaqil/mhost/releases/download/v#{version}/mhost-x86_64-unknown-linux-musl"
+      url "https://github.com/maqalaqil/mhost/releases/download/v#{version}/mhost-x86_64-unknown-linux-musl"
       sha256 "PLACEHOLDER"
     end
   end

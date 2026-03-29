@@ -52,7 +52,7 @@ Built in Rust. Single binary. Zero runtime dependencies.
 <tr><td><b>Homebrew</b></td><td>
 
 ```bash
-brew install maheralaqil/tap/mhost
+brew install maqalaqil/tap/mhost
 ```
 
 </td></tr>
@@ -94,7 +94,7 @@ scoop install mhost
 <tr><td><b>From source</b></td><td>
 
 ```bash
-git clone https://github.com/maheralaqil/mhost && cd mhost && cargo build --release
+git clone https://github.com/maqalaqil/mhost && cd mhost && cargo build --release
 ```
 
 </td></tr>
@@ -1168,4 +1168,4 @@ mhost start examples/full-stack.toml
 
 ## License
 
-MIT - [Maher Al-Aqil](https://github.com/maheralaqil)
+MIT - [Maher Al-Aqil](https://github.com/maqalaqil)

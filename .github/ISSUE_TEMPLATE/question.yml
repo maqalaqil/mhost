@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Need help with mhost? Ask here! For quick questions, also check the [README](https://github.com/maheralaqil/mhost#readme).
+        Need help with mhost? Ask here! For quick questions, also check the [README](https://github.com/maqalaqil/mhost#readme).
 
   - type: dropdown
     id: area

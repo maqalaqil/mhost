@@ -279,26 +279,26 @@ jobs:
           cat > mhost.rb << RUBY
           class Mhost < Formula
             desc "AI-powered process manager written in Rust"
-            homepage "https://github.com/maheralaqil/mhost"
+            homepage "https://github.com/maqalaqil/mhost"
             version "${VERSION}"
             license "MIT"
 
             on_macos do
               if Hardware::CPU.arm?
-                url "https://github.com/maheralaqil/mhost/releases/download/v${VERSION}/mhost-aarch64-apple-darwin.tar.gz"
+                url "https://github.com/maqalaqil/mhost/releases/download/v${VERSION}/mhost-aarch64-apple-darwin.tar.gz"
                 sha256 "${SHA_DARWIN_ARM}"
               else
-                url "https://github.com/maheralaqil/mhost/releases/download/v${VERSION}/mhost-x86_64-apple-darwin.tar.gz"
+                url "https://github.com/maqalaqil/mhost/releases/download/v${VERSION}/mhost-x86_64-apple-darwin.tar.gz"
                 sha256 "${SHA_DARWIN_X64}"
               end
             end
 
             on_linux do
               if Hardware::CPU.arm?
-                url "https://github.com/maheralaqil/mhost/releases/download/v${VERSION}/mhost-aarch64-unknown-linux-musl.tar.gz"
+                url "https://github.com/maqalaqil/mhost/releases/download/v${VERSION}/mhost-aarch64-unknown-linux-musl.tar.gz"
                 sha256 "${SHA_LINUX_ARM}"
               else
-                url "https://github.com/maheralaqil/mhost/releases/download/v${VERSION}/mhost-x86_64-unknown-linux-musl.tar.gz"
+                url "https://github.com/maqalaqil/mhost/releases/download/v${VERSION}/mhost-x86_64-unknown-linux-musl.tar.gz"
                 sha256 "${SHA_LINUX_X64}"
               end
             end
@@ -327,7 +327,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         with:
           source_file: mhost.rb
-          destination_repo: maheralaqil/homebrew-tap
+          destination_repo: maqalaqil/homebrew-tap
           destination_folder: Formula
           user_email: mhost@users.noreply.github.com
           user_name: mhost-bot
@@ -374,5 +374,5 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ghcr.io/maheralaqil/mhost:${{ needs.version.outputs.version }}
-            ghcr.io/maheralaqil/mhost:latest
+            ghcr.io/maqalaqil/mhost:${{ needs.version.outputs.version }}
+            ghcr.io/maqalaqil/mhost:latest

@@ -4,7 +4,7 @@
 
 set -e
 
-REPO="maheralaqil/mhost"
+REPO="maqalaqil/mhost"
 
 echo "Setting up GitHub repo: $REPO"
 echo "────────────────────────────────"
@@ -101,5 +101,5 @@ echo "Done! Your repo is set up."
 echo ""
 echo "Next steps:"
 echo "  1. Add secrets: NPM_TOKEN, CARGO_TOKEN, HOMEBREW_TAP_TOKEN"
-echo "  2. Create homebrew-tap repo: gh repo create maheralaqil/homebrew-tap --public"
+echo "  2. Create homebrew-tap repo: gh repo create maqalaqil/homebrew-tap --public"
 echo "  3. Push to main to trigger first release"

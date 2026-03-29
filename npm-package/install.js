@@ -5,7 +5,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 const https = require('https');
 
-const REPO = 'maheralaqil/mhost';
+const REPO = 'maqalaqil/mhost';
 const VENDOR_DIR = path.join(__dirname, 'vendor');
 
 const PLATFORM_MAP = {

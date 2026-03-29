@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$REPO = "maheralaqil/mhost"
+$REPO = "maqalaqil/mhost"
 $OS = "windows"
 
 # Detect architecture

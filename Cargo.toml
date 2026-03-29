@@ -23,7 +23,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Maher Al-Aqil"]
 license = "MIT"
-repository = "https://github.com/maheralaqil/mhost"
+repository = "https://github.com/maqalaqil/mhost"
 description = "Advanced process manager — PM2 replacement written in Rust"
 
 [workspace.dependencies]

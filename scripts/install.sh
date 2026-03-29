@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO="maheralaqil/mhost"
+REPO="maqalaqil/mhost"
 INSTALL_DIR="/usr/local/bin"
 
 # Detect OS

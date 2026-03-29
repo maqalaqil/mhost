@@ -235,7 +235,7 @@ ci: add ARM64 Linux build target
 
 ## Good First Issues
 
-Look for issues labeled [`good first issue`](https://github.com/maheralaqil/mhost/labels/good%20first%20issue). These are:
+Look for issues labeled [`good first issue`](https://github.com/maqalaqil/mhost/labels/good%20first%20issue). These are:
 
 - Well-defined scope
 - Clear acceptance criteria

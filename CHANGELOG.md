@@ -120,5 +120,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSON-RPC 2.0 over Unix socket / named pipe
 - Async runtime: tokio
 
-[Unreleased]: https://github.com/maheralaqil/mhost/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/maheralaqil/mhost/releases/tag/v0.1.0
+[Unreleased]: https://github.com/maqalaqil/mhost/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/maqalaqil/mhost/releases/tag/v0.1.0

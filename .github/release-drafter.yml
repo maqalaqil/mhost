@@ -5,7 +5,7 @@ template: |
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/maheralaqil/mhost/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/maqalaqil/mhost/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
 
 categories:
   - title: "New Features"
