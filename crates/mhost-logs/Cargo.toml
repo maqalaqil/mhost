@@ -11,6 +11,8 @@ mhost-core = { path = "../mhost-core" }
 tokio = { workspace = true }
 tracing = { workspace = true }
 chrono = { workspace = true }
+serde_json = { workspace = true }
+rusqlite = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3"
