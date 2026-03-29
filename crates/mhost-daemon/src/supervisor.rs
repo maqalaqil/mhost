@@ -24,6 +24,10 @@ pub struct ManagedProcess {
     pub log_capture: LogCapture,
     /// Handle to the exit-watcher task. Aborted when the process is stopped.
     pub watcher: Option<tokio::task::JoinHandle<()>>,
+    /// Shutdown channel for the cron-restart scheduler (Task 10).
+    pub cron_shutdown: Option<tokio::sync::oneshot::Sender<()>>,
+    /// Shutdown channel for the memory-limit monitor (Task 11).
+    pub memory_shutdown: Option<tokio::sync::oneshot::Sender<()>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +110,8 @@ impl Supervisor {
                         ring_err: RingBuffer::new(1000),
                         log_capture: LogCapture::new(64),
                         watcher: None,
+                        cron_shutdown: None,
+                        memory_shutdown: None,
                     });
                 entry.child = Some(child);
 
@@ -125,6 +131,9 @@ impl Supervisor {
                     )),
                     self.paths.clone(),
                 )
+                // Note: cron_shutdown / memory_shutdown are NOT set here
+                // because start_process (the non-Arc variant) is used without
+                // a real state store.  Use start_process_arc for full wiring.
             };
 
             // Attach the watcher handle.
@@ -197,6 +206,8 @@ impl Supervisor {
                         ring_err: RingBuffer::new(1000),
                         log_capture: LogCapture::new(64),
                         watcher: None,
+                        cron_shutdown: None,
+                        memory_shutdown: None,
                     });
                 entry.child = Some(child);
 
@@ -209,10 +220,40 @@ impl Supervisor {
                 )
             };
 
+            // --- attach watcher -------------------------------------------------
             {
                 let mut procs = self.processes.write().await;
                 if let Some(mp) = procs.get_mut(&key) {
                     mp.watcher = Some(watcher_handle);
+                }
+            }
+
+            // --- cron scheduler (Task 10) ----------------------------------------
+            if let Some(ref cron_expr) = config.cron_restart {
+                let cron_tx = crate::cron_scheduler::CronScheduler::spawn(
+                    cron_expr.clone(),
+                    config.clone(),
+                    Arc::clone(&self.processes),
+                    Arc::clone(&state),
+                    self.paths.clone(),
+                );
+                let mut procs = self.processes.write().await;
+                if let Some(mp) = procs.get_mut(&key) {
+                    mp.cron_shutdown = cron_tx;
+                }
+            }
+
+            // --- memory monitor (Task 11) ----------------------------------------
+            if let (Some(max_mb), Some(pid)) = (config.max_memory_mb, info.pid) {
+                let mem_tx = crate::memory_monitor::MemoryMonitor::spawn(
+                    pid,
+                    max_mb * 1_048_576,
+                    config.name.clone(),
+                    std::time::Duration::from_secs(5),
+                );
+                let mut procs = self.processes.write().await;
+                if let Some(mp) = procs.get_mut(&key) {
+                    mp.memory_shutdown = Some(mem_tx);
                 }
             }
 
@@ -254,6 +295,14 @@ impl Supervisor {
             let mut procs = self.processes.write().await;
             for key in &keys {
                 if let Some(mp) = procs.get_mut(key) {
+                    // Cancel cron scheduler and memory monitor before stopping.
+                    if let Some(tx) = mp.cron_shutdown.take() {
+                        let _ = tx.send(());
+                    }
+                    if let Some(tx) = mp.memory_shutdown.take() {
+                        let _ = tx.send(());
+                    }
+
                     // Abort the watcher first so it does not try to restart
                     // the process after we kill it.
                     if let Some(handle) = mp.watcher.take() {
