@@ -84,6 +84,125 @@ pub enum AiAction {
 }
 
 // ---------------------------------------------------------------------------
+// Cloud subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum CloudAction {
+    /// Add a remote server to the fleet.
+    Add {
+        /// Friendly name for the server.
+        name: String,
+        /// Hostname or IP address.
+        #[arg(long)]
+        host: String,
+        /// SSH user (default: root).
+        #[arg(long)]
+        user: Option<String>,
+        /// Path to the SSH private key.
+        #[arg(long)]
+        key: Option<String>,
+        /// SSH port (default: 22).
+        #[arg(long)]
+        port: Option<u16>,
+    },
+    /// Remove a server from the fleet.
+    Remove {
+        /// Server name.
+        name: String,
+    },
+    /// List all configured fleet servers.
+    List,
+    /// Check connectivity and mhost status on all servers.
+    Status,
+    /// Deploy a local config file to a remote server.
+    Deploy {
+        /// Target server name.
+        server: String,
+        /// Path to the local mhost.toml to deploy.
+        config: String,
+    },
+    /// Execute a shell command on a remote server.
+    Exec {
+        /// Target server name.
+        server: String,
+        /// Shell command to run.
+        command: String,
+    },
+    /// Stream recent logs from a process on a remote server.
+    Logs {
+        /// Target server name.
+        server: String,
+        /// Process name whose logs to stream.
+        app: String,
+    },
+    /// Restart a process on a server, or use "all" to restart on every server.
+    Restart {
+        /// Server name or "all".
+        server: String,
+        /// Process name to restart.
+        app: String,
+    },
+    /// Scale a process to N instances on a remote server.
+    Scale {
+        /// Target server name.
+        server: String,
+        /// Process name to scale.
+        app: String,
+        /// Desired number of instances.
+        instances: u32,
+    },
+    /// Sync a local config file to all servers in the fleet.
+    Sync {
+        /// Path to the local mhost.toml to sync.
+        config: String,
+    },
+    /// Open an interactive SSH shell to a server.
+    Ssh {
+        /// Server name.
+        server: String,
+    },
+    /// Install mhost on a remote server.
+    Install {
+        /// Target server name.
+        server: String,
+    },
+    /// Update mhost on a server (or "all" to update the entire fleet).
+    Update {
+        /// Server name or "all".
+        target: String,
+    },
+    /// Import servers from a cloud provider (aws, digitalocean, azure, railway).
+    Import {
+        /// Cloud provider name.
+        provider: String,
+        /// Filter by region (optional).
+        #[arg(long)]
+        region: Option<String>,
+        /// Filter by tag key=value (optional).
+        #[arg(long)]
+        tag: Option<String>,
+    },
+    /// AI: Plan infrastructure from a plain-English description.
+    AiSetup {
+        /// Description of the infrastructure you need.
+        description: String,
+    },
+    /// AI: Diagnose a remote server (processes, logs, system state).
+    AiDiagnose {
+        /// Target server name.
+        server: String,
+    },
+    /// AI: Plan a migration between two servers.
+    AiMigrate {
+        /// Source server name.
+        from: String,
+        /// Destination server name.
+        to: String,
+    },
+}
+
+// ---------------------------------------------------------------------------
 // Notify subcommands
 // ---------------------------------------------------------------------------
 
@@ -310,4 +429,10 @@ pub enum Commands {
 
     /// Show proxy routes.
     Proxy,
+
+    /// Remote fleet management — manage processes across cloud servers.
+    Cloud {
+        #[command(subcommand)]
+        action: CloudAction,
+    },
 }

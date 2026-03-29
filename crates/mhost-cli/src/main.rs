@@ -7,7 +7,7 @@ use clap::Parser;
 use mhost_core::paths::MhostPaths;
 use mhost_ipc::IpcClient;
 
-use cli::{AiAction, Cli, Commands, MetricsAction, NotifyAction};
+use cli::{AiAction, Cli, CloudAction, Commands, MetricsAction, NotifyAction};
 
 #[tokio::main]
 async fn main() {
@@ -90,6 +90,9 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         Commands::Ai { action: AiAction::Explain { file } } => {
             commands::ai::run_explain(paths, &file).await
         }
+
+        // ---- Cloud commands (remote SSH, no local daemon needed) ---------
+        Commands::Cloud { action } => dispatch_cloud(action, paths).await,
 
         // ---- Commands that require a running daemon ----------------------
         other => {
@@ -182,6 +185,51 @@ async fn dispatch_daemon(
         | Commands::Completion { .. }
         | Commands::History { .. }
         | Commands::Logs { .. }
-        | Commands::Notify { .. } => unreachable!(),
+        | Commands::Notify { .. }
+        | Commands::Cloud { .. } => unreachable!(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Cloud command dispatcher
+// ---------------------------------------------------------------------------
+
+async fn dispatch_cloud(action: CloudAction, paths: &MhostPaths) -> Result<(), String> {
+    use commands::cloud;
+
+    match action {
+        CloudAction::Add { name, host, user, key, port } => {
+            cloud::run_add(paths, &name, &host, user.as_deref(), key.as_deref(), port)
+        }
+        CloudAction::Remove { name } => cloud::run_remove(paths, &name),
+        CloudAction::List => cloud::run_list(paths),
+        CloudAction::Status => cloud::run_status(paths).await,
+        CloudAction::Deploy { server, config } => {
+            cloud::run_deploy(paths, &server, &config).await
+        }
+        CloudAction::Exec { server, command } => {
+            cloud::run_exec(paths, &server, &command).await
+        }
+        CloudAction::Logs { server, app } => cloud::run_logs(paths, &server, &app).await,
+        CloudAction::Restart { server, app } => {
+            cloud::run_restart(paths, &server, &app).await
+        }
+        CloudAction::Scale { server, app, instances } => {
+            cloud::run_scale(paths, &server, &app, instances).await
+        }
+        CloudAction::Sync { config } => cloud::run_sync(paths, &config).await,
+        CloudAction::Ssh { server } => cloud::run_ssh(paths, &server),
+        CloudAction::Install { server } => cloud::run_install(paths, &server).await,
+        CloudAction::Update { target } => cloud::run_update(paths, &target).await,
+        CloudAction::Import { provider, region, tag } => {
+            cloud::run_import(paths, &provider, region.as_deref(), tag.as_deref()).await
+        }
+        CloudAction::AiSetup { description } => {
+            cloud::run_ai_setup(paths, &description).await
+        }
+        CloudAction::AiDiagnose { server } => cloud::run_ai_diagnose(paths, &server).await,
+        CloudAction::AiMigrate { from, to } => {
+            cloud::run_ai_migrate(paths, &from, &to).await
+        }
     }
 }

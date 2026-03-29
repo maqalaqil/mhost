@@ -1,3 +1,4 @@
+pub mod ai_cloud;
 pub mod config;
 pub mod fleet;
 pub mod install;
