@@ -13,6 +13,7 @@ members = [
     "crates/mhost-proxy",
     "crates/mhost-deploy",
     "crates/mhost-tui",
+    "crates/mhost-ai",
 ]
 
 [workspace.package]

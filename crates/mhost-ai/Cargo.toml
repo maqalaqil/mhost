@@ -1,0 +1,19 @@
+[package]
+name = "mhost-ai"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio = { workspace = true }
+tempfile = "3"
