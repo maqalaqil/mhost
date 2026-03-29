@@ -5,6 +5,7 @@ pub mod query;
 pub mod reader;
 pub mod retention;
 pub mod ring;
+pub mod sink;
 pub mod writer;
 
 pub use capture::LogCapture;
