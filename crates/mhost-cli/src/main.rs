@@ -7,7 +7,7 @@ use clap::Parser;
 use mhost_core::paths::MhostPaths;
 use mhost_ipc::IpcClient;
 
-use cli::{Cli, Commands};
+use cli::{Cli, Commands, MetricsAction};
 
 #[tokio::main]
 async fn main() {
@@ -38,7 +38,35 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             lines,
             err,
             grep,
-        } => commands::logs::run(paths, &name, lines, err, grep.as_deref()),
+            search,
+            r#where,
+            since,
+            format,
+            count_by,
+        } => {
+            // --search and --count-by require daemon access
+            if search.is_some() || count_by.is_some() {
+                daemon_launcher::ensure_daemon_running(paths)?;
+                let client = IpcClient::new(&paths.socket());
+                if let Some(ref query) = search {
+                    commands::logs::search(
+                        &client,
+                        &name,
+                        query,
+                        r#where.as_deref(),
+                        since.as_deref(),
+                        &format,
+                    )
+                    .await
+                } else if let Some(ref field) = count_by {
+                    commands::logs::count_by(&client, &name, field, since.as_deref()).await
+                } else {
+                    unreachable!()
+                }
+            } else {
+                commands::logs::run(paths, &name, lines, err, grep.as_deref())
+            }
+        }
 
         // ---- Commands that require a running daemon ----------------------
         other => {
@@ -86,6 +114,16 @@ async fn dispatch_daemon(
         Commands::Cluster { name, instances } => {
             commands::cluster::run(client, &name, instances).await
         }
+
+        Commands::Metrics { action } => match action {
+            MetricsAction::Show { name } => commands::metrics::show(client, &name).await,
+            MetricsAction::History { name, metric, since } => {
+                commands::metrics::history(client, &name, &metric, &since).await
+            }
+            MetricsAction::Start { listen } => {
+                commands::metrics::start_prometheus(client, &listen).await
+            }
+        },
 
         // These are handled earlier; this arm is unreachable.
         Commands::Startup

@@ -1,9 +1,13 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use mhost_core::paths::MhostPaths;
+use serde_json::json;
 
-/// Tail log lines for a process.
+use mhost_core::paths::MhostPaths;
+use mhost_core::protocol::methods;
+use mhost_ipc::IpcClient;
+
+/// Tail log lines for a process (reads from file).
 ///
 /// - `name`       — process name
 /// - `lines`      — how many tail lines to show (0 = all)
@@ -41,6 +45,112 @@ pub fn run(
 
     for line in &all_lines[start..] {
         println!("{}", line);
+    }
+
+    Ok(())
+}
+
+/// Full-text search across log entries via the daemon (LOG_SEARCH RPC).
+///
+/// - `name`    — process name (or "*" for all)
+/// - `query`   — full-text search expression
+/// - `filter`  — optional SQL-style WHERE clause applied server-side
+/// - `since`   — time range, e.g. "1h", "24h", "7d"
+/// - `format`  — output format: "text" (default) or "json"
+pub async fn search(
+    client: &IpcClient,
+    name: &str,
+    query: &str,
+    filter: Option<&str>,
+    since: Option<&str>,
+    format: &str,
+) -> Result<(), String> {
+    let params = json!({
+        "name": name,
+        "query": query,
+        "filter": filter.unwrap_or(""),
+        "since": since.unwrap_or("24h"),
+        "format": format,
+    });
+
+    let resp = client
+        .call(methods::LOG_SEARCH, params)
+        .await
+        .map_err(|e| format!("IPC error: {e}"))?;
+
+    if let Some(err) = resp.error {
+        return Err(format!("Daemon error: {}", err.message));
+    }
+
+    let result = resp.result.unwrap_or(serde_json::Value::Null);
+    if format == "json" {
+        println!("{}", serde_json::to_string_pretty(&result).unwrap_or_default());
+    } else {
+        let empty = vec![];
+        let results = result
+            .get("results")
+            .and_then(|r| r.as_array())
+            .unwrap_or(&empty);
+
+        if results.is_empty() {
+            println!("No log entries found.");
+        } else {
+            for entry in results {
+                if let Some(line) = entry.as_str() {
+                    println!("{}", line);
+                } else {
+                    println!("{}", entry);
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Count log entries grouped by a field via the daemon (LOG_COUNT_BY RPC).
+///
+/// - `name`     — process name (or "*" for all)
+/// - `field`    — field to group by, e.g. "level", "hour"
+/// - `since`    — time range, e.g. "24h"
+pub async fn count_by(
+    client: &IpcClient,
+    name: &str,
+    field: &str,
+    since: Option<&str>,
+) -> Result<(), String> {
+    let params = json!({
+        "name": name,
+        "field": field,
+        "since": since.unwrap_or("24h"),
+    });
+
+    let resp = client
+        .call(methods::LOG_COUNT_BY, params)
+        .await
+        .map_err(|e| format!("IPC error: {e}"))?;
+
+    if let Some(err) = resp.error {
+        return Err(format!("Daemon error: {}", err.message));
+    }
+
+    let result = resp.result.unwrap_or(serde_json::Value::Null);
+    let empty = vec![];
+    let buckets = result
+        .get("buckets")
+        .and_then(|b| b.as_array())
+        .unwrap_or(&empty);
+
+    if buckets.is_empty() {
+        println!("No data.");
+    } else {
+        println!("{:<20} {:>10}", field, "count");
+        println!("{}", "-".repeat(32));
+        for bucket in buckets {
+            let key = bucket.get("key").and_then(|k| k.as_str()).unwrap_or("?");
+            let count = bucket.get("count").and_then(|c| c.as_u64()).unwrap_or(0);
+            println!("{:<20} {:>10}", key, count);
+        }
     }
 
     Ok(())

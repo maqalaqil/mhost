@@ -133,6 +133,13 @@ pub mod methods {
     pub const GROUP_STOP: &str = "group.stop";
     pub const GROUP_LIST: &str = "group.list";
     pub const PROCESS_CLUSTER: &str = "process.cluster";
+
+    pub const LOG_SEARCH: &str = "log.search";
+    pub const LOG_COUNT_BY: &str = "log.count_by";
+    pub const METRICS_SHOW: &str = "metrics.show";
+    pub const METRICS_HISTORY: &str = "metrics.history";
+    pub const METRICS_START_PROMETHEUS: &str = "metrics.start_prometheus";
+    pub const NOTIFY_TEST: &str = "notify.test";
 }
 
 // ---------------------------------------------------------------------------

@@ -10,6 +10,7 @@ pub mod info;
 pub mod kill;
 pub mod list;
 pub mod logs;
+pub mod metrics;
 pub mod ping;
 pub mod restart;
 pub mod resurrect;

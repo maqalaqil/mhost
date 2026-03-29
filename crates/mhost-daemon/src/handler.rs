@@ -470,6 +470,117 @@ impl Handler {
             }
 
             // ----------------------------------------------------------------
+            // log.search  (stub — full integration needs indexer access)
+            // ----------------------------------------------------------------
+            methods::LOG_SEARCH => {
+                let resp = RpcResponse::success(
+                    id,
+                    json!({ "results": [], "total": 0 }),
+                );
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
+            // log.count_by  (stub)
+            // ----------------------------------------------------------------
+            methods::LOG_COUNT_BY => {
+                let resp = RpcResponse::success(
+                    id,
+                    json!({ "buckets": [] }),
+                );
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
+            // metrics.show
+            // ----------------------------------------------------------------
+            methods::METRICS_SHOW => {
+                let name = match string_param(&req.params, "name") {
+                    Ok(n) => n,
+                    Err(e) => return (e, false),
+                };
+
+                let infos = self.supervisor.get_process(&name).await;
+                if infos.is_empty() {
+                    return (
+                        RpcResponse::error(
+                            id,
+                            RpcError::new(
+                                error_codes::PROCESS_NOT_FOUND,
+                                format!("Process '{}' not found", name),
+                            ),
+                        ),
+                        false,
+                    );
+                }
+
+                let metrics: Vec<Value> = infos
+                    .iter()
+                    .map(|i| {
+                        let uptime_ms = i.uptime_started.map(|t| {
+                            let now = chrono::Utc::now();
+                            let diff = now.signed_duration_since(t);
+                            diff.num_milliseconds().max(0) as u64
+                        }).unwrap_or(0);
+                        json!({
+                            "id": i.id,
+                            "name": i.config.name,
+                            "instance": i.instance,
+                            "cpu_percent": i.cpu_percent.unwrap_or(0.0),
+                            "memory_mb": i.memory_bytes.unwrap_or(0) / 1_048_576,
+                            "uptime_ms": uptime_ms,
+                        })
+                    })
+                    .collect();
+                (RpcResponse::success(id, json!({ "metrics": metrics })), false)
+            }
+
+            // ----------------------------------------------------------------
+            // metrics.history  (stub — returns empty series)
+            // ----------------------------------------------------------------
+            methods::METRICS_HISTORY => {
+                let resp = RpcResponse::success(
+                    id,
+                    json!({ "series": [] }),
+                );
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
+            // metrics.start_prometheus
+            // ----------------------------------------------------------------
+            methods::METRICS_START_PROMETHEUS => {
+                let listen = req
+                    .params
+                    .get("listen")
+                    .and_then(Value::as_str)
+                    .unwrap_or("0.0.0.0:9090")
+                    .to_string();
+                let resp = RpcResponse::success(
+                    id,
+                    json!({ "acknowledged": true, "listen": listen }),
+                );
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
+            // notify.test
+            // ----------------------------------------------------------------
+            methods::NOTIFY_TEST => {
+                let channel = req
+                    .params
+                    .get("channel")
+                    .and_then(Value::as_str)
+                    .unwrap_or("default")
+                    .to_string();
+                let resp = RpcResponse::success(
+                    id,
+                    json!({ "acknowledged": true, "channel": channel }),
+                );
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
             // daemon.kill
             // ----------------------------------------------------------------
             methods::DAEMON_KILL => {

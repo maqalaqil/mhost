@@ -1,6 +1,36 @@
 use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 
+// ---------------------------------------------------------------------------
+// Metrics subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum MetricsAction {
+    /// Show current CPU, memory, and uptime for a process.
+    Show {
+        /// Process name.
+        name: String,
+    },
+    /// Show metric history for a process over a time window.
+    History {
+        /// Process name.
+        name: String,
+        /// Metric to retrieve, e.g. "cpu", "memory".
+        #[arg(long)]
+        metric: String,
+        /// Time window to look back, e.g. "1h", "24h".
+        #[arg(long, default_value = "24h")]
+        since: String,
+    },
+    /// Start the Prometheus metrics exporter.
+    Start {
+        /// Address to listen on.
+        #[arg(long, default_value = "0.0.0.0:9090")]
+        listen: String,
+    },
+}
+
 #[derive(Parser)]
 #[command(
     name = "mhost",
@@ -51,19 +81,34 @@ pub enum Commands {
     #[command(alias = "ls")]
     List,
 
-    /// Tail log output for a process.
+    /// Tail log output for a process, or search/aggregate via the daemon.
     Logs {
         /// Process name.
         name: String,
-        /// Number of lines to show.
+        /// Number of lines to show (file-tail mode).
         #[arg(short = 'n', long, default_value = "50")]
         lines: usize,
-        /// Show stderr log instead of stdout.
+        /// Show stderr log instead of stdout (file-tail mode).
         #[arg(long)]
         err: bool,
-        /// Filter lines containing this substring.
+        /// Filter lines containing this substring (file-tail mode).
         #[arg(long)]
         grep: Option<String>,
+        /// Full-text search query (uses daemon LOG_SEARCH RPC).
+        #[arg(long)]
+        search: Option<String>,
+        /// SQL-style WHERE filter applied server-side when using --search.
+        #[arg(long, value_name = "EXPR")]
+        r#where: Option<String>,
+        /// Time window for --search / --count-by, e.g. "1h", "24h".
+        #[arg(long, value_name = "DURATION")]
+        since: Option<String>,
+        /// Output format for --search results: "text" or "json".
+        #[arg(long, default_value = "text")]
+        format: String,
+        /// Group log counts by a field, e.g. "level" (uses LOG_COUNT_BY RPC).
+        #[arg(long, value_name = "FIELD")]
+        count_by: Option<String>,
     },
 
     /// Show detailed information about a process.
@@ -128,6 +173,12 @@ pub enum Commands {
         name: String,
         /// Desired number of instances.
         instances: u32,
+    },
+
+    /// Metrics commands (show, history, start Prometheus exporter).
+    Metrics {
+        #[command(subcommand)]
+        action: MetricsAction,
     },
 
     /// Check for a newer mhost release and update if available.

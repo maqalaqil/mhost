@@ -260,6 +260,169 @@ impl RawProcessConfig {
 }
 
 // ---------------------------------------------------------------------------
+// NotificationChannelConfig
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum NotificationChannelConfig {
+    #[serde(rename = "telegram")]
+    Telegram {
+        bot_token: String,
+        chat_id: String,
+        #[serde(default)]
+        events: Vec<String>,
+        #[serde(default = "default_throttle")]
+        throttle: String,
+    },
+    #[serde(rename = "slack")]
+    Slack {
+        webhook: String,
+        #[serde(default)]
+        events: Vec<String>,
+        #[serde(default = "default_throttle")]
+        throttle: String,
+    },
+    #[serde(rename = "discord")]
+    Discord {
+        webhook: String,
+        #[serde(default)]
+        events: Vec<String>,
+    },
+    #[serde(rename = "webhook")]
+    Webhook {
+        url: String,
+        #[serde(default)]
+        headers: HashMap<String, String>,
+        #[serde(default)]
+        hmac_secret: Option<String>,
+        #[serde(default)]
+        events: Vec<String>,
+    },
+    #[serde(rename = "email")]
+    Email {
+        smtp_host: String,
+        smtp_port: u16,
+        from: String,
+        to: Vec<String>,
+        #[serde(default)]
+        events: Vec<String>,
+    },
+    #[serde(rename = "pagerduty")]
+    PagerDuty {
+        routing_key: String,
+        #[serde(default)]
+        events: Vec<String>,
+    },
+    #[serde(rename = "teams")]
+    Teams {
+        webhook: String,
+        #[serde(default)]
+        events: Vec<String>,
+    },
+    #[serde(rename = "ntfy")]
+    Ntfy {
+        url: String,
+        topic: String,
+        #[serde(default)]
+        events: Vec<String>,
+    },
+}
+
+fn default_throttle() -> String {
+    "60s".into()
+}
+
+// ---------------------------------------------------------------------------
+// LogSinkConfig
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum LogSinkConfig {
+    #[serde(rename = "gelf")]
+    Gelf {
+        host: String,
+        port: u16,
+        #[serde(default = "default_udp")]
+        transport: String,
+        #[serde(default = "default_star")]
+        processes: String,
+    },
+    #[serde(rename = "loki")]
+    Loki {
+        url: String,
+        #[serde(default)]
+        labels: HashMap<String, String>,
+        #[serde(default = "default_star")]
+        processes: String,
+    },
+    #[serde(rename = "elasticsearch")]
+    Elasticsearch {
+        url: String,
+        index: String,
+        #[serde(default = "default_star")]
+        processes: String,
+    },
+    #[serde(rename = "syslog")]
+    Syslog {
+        host: String,
+        port: u16,
+        #[serde(default = "default_udp")]
+        transport: String,
+        #[serde(default = "default_star")]
+        processes: String,
+    },
+}
+
+fn default_udp() -> String {
+    "udp".into()
+}
+fn default_star() -> String {
+    "*".into()
+}
+
+// ---------------------------------------------------------------------------
+// LogsConfig
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct LogsConfig {
+    #[serde(default)]
+    pub sinks: HashMap<String, LogSinkConfig>,
+}
+
+// ---------------------------------------------------------------------------
+// AlertRuleConfig
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlertRuleConfig {
+    pub process: String,
+    /// e.g. "memory > 450MB for 5m"
+    pub condition: String,
+    #[serde(default)]
+    pub notify: Vec<String>,
+    pub action: Option<String>,
+    #[serde(default = "default_cooldown")]
+    pub cooldown: String,
+}
+
+fn default_cooldown() -> String {
+    "10m".into()
+}
+
+// ---------------------------------------------------------------------------
+// EscalationConfig
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EscalationConfig {
+    pub chain: Vec<String>,
+    pub escalate_after: String,
+}
+
+// ---------------------------------------------------------------------------
 // EcosystemConfig
 // ---------------------------------------------------------------------------
 
@@ -269,6 +432,15 @@ pub struct EcosystemConfig {
     pub process: HashMap<String, RawProcessConfig>,
     #[serde(default)]
     pub groups: HashMap<String, RawGroupConfig>,
+    #[serde(default)]
+    pub notifications: HashMap<String, NotificationChannelConfig>,
+    #[serde(default)]
+    pub alerts: HashMap<String, AlertRuleConfig>,
+    #[serde(default)]
+    pub escalation: Option<EscalationConfig>,
+    /// Log sinks go under [logs.sinks.*]
+    #[serde(default)]
+    pub logs: Option<LogsConfig>,
 }
 
 impl EcosystemConfig {
@@ -561,6 +733,65 @@ expected_status = 200
                 assert_eq!(*expected_status, 200);
             }
             other => panic!("expected Http kind, got: {:?}", other),
+        }
+    }
+
+    // 12. Notification channel and log sink config parsing
+    #[test]
+    fn test_notification_and_log_sink_config_parsing() {
+        let toml = r#"
+[process.api]
+command = "node"
+
+[notifications.telegram]
+type = "telegram"
+bot_token = "abc123"
+chat_id = "-100999"
+events = ["crash", "restart"]
+
+[notifications.slack]
+type = "slack"
+webhook = "https://hooks.slack.com/T/B/xxx"
+
+[logs.sinks.graylog]
+type = "gelf"
+host = "logs.example.com"
+port = 12201
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml")
+            .expect("parse toml with notifications and sinks");
+
+        let tg = cfg.notifications.get("telegram").expect("telegram channel");
+        match tg {
+            NotificationChannelConfig::Telegram { bot_token, chat_id, events, throttle } => {
+                assert_eq!(bot_token, "abc123");
+                assert_eq!(chat_id, "-100999");
+                assert_eq!(events, &["crash", "restart"]);
+                assert_eq!(throttle, "60s");
+            }
+            other => panic!("expected Telegram, got: {:?}", other),
+        }
+
+        let sl = cfg.notifications.get("slack").expect("slack channel");
+        match sl {
+            NotificationChannelConfig::Slack { webhook, events, throttle } => {
+                assert!(webhook.contains("slack.com"));
+                assert!(events.is_empty());
+                assert_eq!(throttle, "60s");
+            }
+            other => panic!("expected Slack, got: {:?}", other),
+        }
+
+        let logs_cfg = cfg.logs.as_ref().expect("logs config present");
+        let graylog = logs_cfg.sinks.get("graylog").expect("graylog sink");
+        match graylog {
+            LogSinkConfig::Gelf { host, port, transport, processes } => {
+                assert_eq!(host, "logs.example.com");
+                assert_eq!(*port, 12201);
+                assert_eq!(transport, "udp");
+                assert_eq!(processes, "*");
+            }
+            other => panic!("expected Gelf, got: {:?}", other),
         }
     }
 
