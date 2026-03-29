@@ -119,10 +119,10 @@ jobs:
             os: macos-14
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
-            cross: true
+            linux_musl: true
           - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
-            cross: true
+            linux_cross: true
           - target: x86_64-pc-windows-msvc
             os: windows-latest
 
@@ -136,16 +136,22 @@ jobs:
         with:
           key: release-${{ matrix.target }}
 
-      - name: Install cross
-        if: matrix.cross
+      - name: Install musl tools (x86_64 Linux)
+        if: matrix.linux_musl
+        run: sudo apt-get update && sudo apt-get install -y musl-tools pkg-config libssl-dev cmake
+
+      - name: Install cross (aarch64 Linux)
+        if: matrix.linux_cross
         run: cargo install cross --locked
 
       - name: Build (native)
-        if: "!matrix.cross"
+        if: "!matrix.linux_cross"
         run: cargo build --release --target ${{ matrix.target }}
+        env:
+          OPENSSL_STATIC: ${{ matrix.linux_musl && '1' || '' }}
 
-      - name: Build (cross)
-        if: matrix.cross
+      - name: Build (cross aarch64)
+        if: matrix.linux_cross
         run: cross build --release --target ${{ matrix.target }}
 
       - name: Package (Unix)
