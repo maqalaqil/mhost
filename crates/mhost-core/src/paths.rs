@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+#[derive(Clone)]
 pub struct MhostPaths {
     root: PathBuf,
 }

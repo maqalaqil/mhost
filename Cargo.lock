@@ -1214,6 +1214,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "mhost-health"
+version = "0.1.0"
+dependencies = [
+ "mhost-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "mhost-ipc"
 version = "0.1.0"
 dependencies = [

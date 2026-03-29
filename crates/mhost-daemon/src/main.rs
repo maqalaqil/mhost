@@ -1,6 +1,7 @@
 mod handler;
 mod state;
 mod supervisor;
+mod watcher;
 
 use std::sync::Arc;
 
