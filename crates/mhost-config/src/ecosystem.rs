@@ -4,6 +4,8 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use mhost_core::group::GroupConfig;
+use mhost_core::health::{HealthCheckKind, HealthConfig};
 use mhost_core::process::ProcessConfig;
 
 use crate::env_expand::{expand_env, expand_env_map};
@@ -28,6 +30,150 @@ pub enum EcosystemError {
 
     #[error("Unsupported config format: {0}")]
     UnsupportedFormat(String),
+}
+
+// ---------------------------------------------------------------------------
+// RawHealthConfig structs
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RawHttpHealthConfig {
+    pub url: String,
+    #[serde(default = "default_http_interval")]
+    pub interval: String,
+    #[serde(default = "default_http_timeout")]
+    pub timeout: String,
+    #[serde(default = "default_http_retries")]
+    pub retries: u32,
+    #[serde(default = "default_http_expected_status")]
+    pub expected_status: u16,
+}
+
+fn default_http_interval() -> String {
+    "10s".into()
+}
+fn default_http_timeout() -> String {
+    "3s".into()
+}
+fn default_http_retries() -> u32 {
+    3
+}
+fn default_http_expected_status() -> u16 {
+    200
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RawTcpHealthConfig {
+    #[serde(default = "default_localhost")]
+    pub host: String,
+    pub port: u16,
+    #[serde(default = "default_tcp_interval")]
+    pub interval: String,
+    #[serde(default = "default_tcp_timeout")]
+    pub timeout: String,
+    #[serde(default = "default_tcp_retries")]
+    pub retries: u32,
+}
+
+fn default_localhost() -> String {
+    "127.0.0.1".into()
+}
+fn default_tcp_interval() -> String {
+    "5s".into()
+}
+fn default_tcp_timeout() -> String {
+    "2s".into()
+}
+fn default_tcp_retries() -> u32 {
+    3
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RawScriptHealthConfig {
+    pub command: String,
+    #[serde(default = "default_script_interval")]
+    pub interval: String,
+    #[serde(default = "default_script_timeout")]
+    pub timeout: String,
+    #[serde(default = "default_script_retries")]
+    pub retries: u32,
+}
+
+fn default_script_interval() -> String {
+    "15s".into()
+}
+fn default_script_timeout() -> String {
+    "5s".into()
+}
+fn default_script_retries() -> u32 {
+    1
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct RawHealthConfig {
+    pub http: Option<RawHttpHealthConfig>,
+    pub tcp: Option<RawTcpHealthConfig>,
+    pub script: Option<RawScriptHealthConfig>,
+}
+
+impl RawHealthConfig {
+    /// Convert to a [`HealthConfig`]. Priority: http > tcp > script.
+    /// Returns `None` if none of the sub-configs are present.
+    pub fn to_health_config(&self) -> Option<HealthConfig> {
+        if let Some(h) = &self.http {
+            let interval_ms = parse_duration_ms(&h.interval).unwrap_or(10_000);
+            let timeout_ms = parse_duration_ms(&h.timeout).unwrap_or(3_000);
+            return Some(HealthConfig {
+                kind: HealthCheckKind::Http {
+                    url: h.url.clone(),
+                    expected_status: h.expected_status,
+                },
+                interval_ms,
+                timeout_ms,
+                retries: h.retries,
+            });
+        }
+
+        if let Some(t) = &self.tcp {
+            let interval_ms = parse_duration_ms(&t.interval).unwrap_or(5_000);
+            let timeout_ms = parse_duration_ms(&t.timeout).unwrap_or(2_000);
+            return Some(HealthConfig {
+                kind: HealthCheckKind::Tcp {
+                    host: t.host.clone(),
+                    port: t.port,
+                },
+                interval_ms,
+                timeout_ms,
+                retries: t.retries,
+            });
+        }
+
+        if let Some(s) = &self.script {
+            let interval_ms = parse_duration_ms(&s.interval).unwrap_or(15_000);
+            let timeout_ms = parse_duration_ms(&s.timeout).unwrap_or(5_000);
+            return Some(HealthConfig {
+                kind: HealthCheckKind::Script {
+                    command: s.command.clone(),
+                },
+                interval_ms,
+                timeout_ms,
+                retries: s.retries,
+            });
+        }
+
+        None
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RawGroupConfig
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RawGroupConfig {
+    #[serde(default)]
+    pub depends_on: Vec<String>,
+    pub processes: Vec<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -68,6 +214,9 @@ pub struct RawProcessConfig {
     pub cron_restart: Option<String>,
 
     pub interpreter: Option<String>,
+
+    #[serde(default)]
+    pub health: Option<RawHealthConfig>,
 }
 
 fn default_instances() -> u32 {
@@ -105,7 +254,7 @@ impl RawProcessConfig {
             grace_period_ms: parse_duration_ms(&self.grace_period).unwrap_or(5000),
             cron_restart: self.cron_restart.clone(),
             interpreter: self.interpreter.clone(),
-            health_config: None,
+            health_config: self.health.as_ref().and_then(|h| h.to_health_config()),
         }
     }
 }
@@ -118,6 +267,8 @@ impl RawProcessConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EcosystemConfig {
     pub process: HashMap<String, RawProcessConfig>,
+    #[serde(default)]
+    pub groups: HashMap<String, RawGroupConfig>,
 }
 
 impl EcosystemConfig {
@@ -155,6 +306,20 @@ impl EcosystemConfig {
         // Deterministic ordering by name so callers can rely on it.
         configs.sort_by(|a, b| a.name.cmp(&b.name));
         configs
+    }
+
+    /// Convert raw group entries to a `HashMap<String, GroupConfig>`.
+    pub fn to_group_configs(&self) -> HashMap<String, GroupConfig> {
+        self.groups
+            .iter()
+            .map(|(name, raw)| {
+                let group = GroupConfig {
+                    depends_on: raw.depends_on.clone(),
+                    processes: raw.processes.clone(),
+                };
+                (name.clone(), group)
+            })
+            .collect()
     }
 }
 
@@ -364,5 +529,69 @@ command = "true"
         assert!(pc.max_memory_mb.is_none());
         assert!(pc.cron_restart.is_none());
         assert!(pc.interpreter.is_none());
+    }
+
+    // 10. Health HTTP config parsing
+    #[test]
+    fn test_health_http_parsing() {
+        let toml = r#"
+[process.api]
+command = "node"
+args = ["server.js"]
+
+[process.api.health.http]
+url = "http://localhost:8080/health"
+interval = "15s"
+timeout = "2s"
+retries = 5
+expected_status = 200
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse toml with health");
+        let configs = cfg.to_process_configs();
+        let pc = &configs[0];
+        let health = pc.health_config.as_ref().expect("health config present");
+
+        assert_eq!(health.interval_ms, 15_000);
+        assert_eq!(health.timeout_ms, 2_000);
+        assert_eq!(health.retries, 5);
+
+        match &health.kind {
+            mhost_core::health::HealthCheckKind::Http { url, expected_status } => {
+                assert_eq!(url, "http://localhost:8080/health");
+                assert_eq!(*expected_status, 200);
+            }
+            other => panic!("expected Http kind, got: {:?}", other),
+        }
+    }
+
+    // 11. Group config parsing
+    #[test]
+    fn test_group_config_parsing() {
+        let toml = r#"
+[process.api]
+command = "node"
+
+[process.db]
+command = "postgres"
+
+[groups.backend]
+depends_on = ["infra"]
+processes = ["api"]
+
+[groups.infra]
+processes = ["db"]
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse toml with groups");
+        let groups = cfg.to_group_configs();
+
+        assert_eq!(groups.len(), 2);
+
+        let backend = groups.get("backend").expect("backend group");
+        assert_eq!(backend.depends_on, vec!["infra".to_string()]);
+        assert_eq!(backend.processes, vec!["api".to_string()]);
+
+        let infra = groups.get("infra").expect("infra group");
+        assert!(infra.depends_on.is_empty());
+        assert_eq!(infra.processes, vec!["db".to_string()]);
     }
 }

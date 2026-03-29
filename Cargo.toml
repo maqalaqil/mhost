@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/mhost-core",
     "crates/mhost-config",
+    "crates/mhost-health",
     "crates/mhost-ipc",
     "crates/mhost-logs",
     "crates/mhost-daemon",

@@ -1,0 +1,13 @@
+[package]
+name = "mhost-health"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+tokio = { workspace = true }
+reqwest = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
