@@ -7,7 +7,7 @@ use clap::Parser;
 use mhost_core::paths::MhostPaths;
 use mhost_ipc::IpcClient;
 
-use cli::{Cli, Commands, MetricsAction, NotifyAction};
+use cli::{AiAction, Cli, Commands, MetricsAction, NotifyAction};
 
 #[tokio::main]
 async fn main() {
@@ -82,6 +82,15 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             }
         }
 
+        // ---- AI commands that don't need the daemon ----------------------
+        Commands::Ai { action: AiAction::Setup } => commands::ai::run_setup(paths),
+        Commands::Ai { action: AiAction::Config { description } } => {
+            commands::ai::run_config_gen(paths, &description).await
+        }
+        Commands::Ai { action: AiAction::Explain { file } } => {
+            commands::ai::run_explain(paths, &file).await
+        }
+
         // ---- Commands that require a running daemon ----------------------
         other => {
             daemon_launcher::ensure_daemon_running(paths)?;
@@ -137,6 +146,28 @@ async fn dispatch_daemon(
             MetricsAction::Start { listen } => {
                 commands::metrics::start_prometheus(client, &listen).await
             }
+        },
+
+        Commands::Ai { action } => match action {
+            AiAction::Diagnose { name } => {
+                commands::ai::run_diagnose(client, _paths, &name).await
+            }
+            AiAction::Logs { name, question } => {
+                commands::ai::run_log_query(client, _paths, &name, &question).await
+            }
+            AiAction::Optimize { name } => {
+                commands::ai::run_optimize(client, _paths, &name).await
+            }
+            AiAction::Postmortem { name } => {
+                commands::ai::run_postmortem(client, _paths, &name).await
+            }
+            AiAction::Watch => commands::ai::run_watch(client, _paths).await,
+            AiAction::Ask { question } => {
+                commands::ai::run_ask(client, _paths, &question).await
+            }
+            AiAction::Suggest => commands::ai::run_suggest(client, _paths).await,
+            // Setup / Config / Explain are handled before the daemon is started.
+            _ => unreachable!(),
         },
 
         Commands::Monit => commands::monit::run(client).await,

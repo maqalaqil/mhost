@@ -1612,6 +1612,7 @@ dependencies = [
  "colored",
  "dirs",
  "libc",
+ "mhost-ai",
  "mhost-config",
  "mhost-core",
  "mhost-ipc",

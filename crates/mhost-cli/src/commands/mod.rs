@@ -1,3 +1,4 @@
+pub mod ai;
 pub mod cluster;
 pub mod completion;
 pub mod config_cmd;

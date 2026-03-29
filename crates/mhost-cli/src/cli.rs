@@ -32,6 +32,58 @@ pub enum MetricsAction {
 }
 
 // ---------------------------------------------------------------------------
+// AI subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum AiAction {
+    /// Interactive setup — configure LLM provider and API key.
+    Setup,
+    /// Diagnose why a process crashed or is errored.
+    Diagnose {
+        /// Process name.
+        name: String,
+    },
+    /// Query logs using natural language.
+    Logs {
+        /// Process name.
+        name: String,
+        /// Natural-language question about the logs.
+        question: String,
+    },
+    /// Get performance optimization suggestions.
+    Optimize {
+        /// Process name.
+        name: String,
+    },
+    /// Generate an mhost.toml config from a description.
+    Config {
+        /// Plain-English description of what you want to run.
+        description: String,
+    },
+    /// Generate an incident post-mortem report.
+    Postmortem {
+        /// Process name.
+        name: String,
+    },
+    /// Scan all processes for anomalies.
+    Watch,
+    /// Ask any question about your processes.
+    Ask {
+        /// Question to ask the AI.
+        question: String,
+    },
+    /// Explain a config file in plain English.
+    Explain {
+        /// Path to the config file.
+        #[arg(default_value = "mhost.toml")]
+        file: String,
+    },
+    /// Get proactive improvement suggestions.
+    Suggest,
+}
+
+// ---------------------------------------------------------------------------
 // Notify subcommands
 // ---------------------------------------------------------------------------
 
@@ -224,6 +276,12 @@ pub enum Commands {
     Notify {
         #[command(subcommand)]
         action: NotifyAction,
+    },
+
+    /// AI-powered process intelligence (diagnose, optimize, ask, watch).
+    Ai {
+        #[command(subcommand)]
+        action: AiAction,
     },
 
     /// Check for a newer mhost release and update if available.
