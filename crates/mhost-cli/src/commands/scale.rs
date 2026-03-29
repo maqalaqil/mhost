@@ -14,9 +14,9 @@ pub async fn run(client: &IpcClient, name: &str, instances: u32) -> Result<(), S
         .map_err(|e| format!("IPC error: {e}"))?;
 
     if let Some(err) = resp.error {
-        print_error(&format!("Failed to scale '{}': {}", name, err.message));
+        print_error(&format!("Failed to scale '{name}': {}", err.message));
     } else {
-        print_success(&format!("Scaled '{}' to {} instance(s)", name, instances));
+        print_success(&format!("Scaled '{name}' to {instances} instance(s)"));
     }
 
     Ok(())

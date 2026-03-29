@@ -497,7 +497,7 @@ pub fn run_enable(config_path: &Path, channel_name: &str, enable: bool) -> Resul
 
     save_config(config_path, &config)?;
     let action = if enable { "enabled" } else { "disabled" };
-    print_success(&format!("Channel '{}' {}", channel_name, action));
+    print_success(&format!("Channel '{channel_name}' {action}"));
     Ok(())
 }
 
@@ -533,16 +533,16 @@ pub fn run_events(config_path: &Path, channel_name: Option<&str>) -> Result<(), 
                 | ChannelConfig::Discord { events, .. }
                 | ChannelConfig::Webhook { events, .. } => events,
             };
-            println!("\n  Channel '{}' subscribed to:", name);
+            println!("\n  Channel '{name}' subscribed to:");
             for e in events {
-                println!("    [x] {}", e);
+                println!("    [x] {e}");
             }
             let missing: Vec<&&str> = ALL_EVENTS
                 .iter()
                 .filter(|e| !events.contains(&e.to_string()))
                 .collect();
             for e in missing {
-                println!("    [ ] {}", e);
+                println!("    [ ] {e}");
             }
         }
     }
@@ -611,7 +611,7 @@ pub async fn run_start(config_path: &Path, client: &mhost_ipc::IpcClient) -> Res
         .map_err(|e| format!("IPC error: {e}"))?;
 
     if let Some(err) = resp.error {
-        print_error(&format!("Failed to start notifier: {}", err.message));
+        print_error(&format!("Failed to start notifier: {err_msg}", err_msg = err.message));
     } else {
         print_success("Notifier started as 'mhost-notifier' process");
         println!("  View status: mhost info mhost-notifier");
