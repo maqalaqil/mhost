@@ -235,13 +235,12 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
         <div class="output">  Started 'frontend'</div>
         <br>
         <div><span class="prompt">$</span> <span class="cmd">mhost list</span></div>
-        <div class="output">
-<span class="dim">id   name          status     pid    cpu   mem     uptime    restarts</span>
-<span class="dim">----------------------------------------------------------------------</span>
-<span class="output">a1b2 api-server    </span><span class="status-online">online</span>     12345  12%   128MB   2d 14h    0
-<span class="output">c3d4 worker        </span><span class="status-online">online</span>     12346   3%    64MB   2d 14h    0
-<span class="output">e5f6 worker        </span><span class="status-online">online</span>     12347   3%    62MB   2d 14h    0
-<span class="output">g7h8 frontend      </span><span class="status-online">online</span>     12348   1%    32MB   1d 08h    0</div>
+        <pre class="output" style="margin:0;font-family:var(--mono);font-size:.82rem;line-height:1.7"><span class="dim">id   name          status       pid    cpu    mem      uptime     restarts</span>
+<span class="dim">────────────────────────────────────────────────────────────────────────────</span>
+a1b2 api-server    <span class="status-online">● online</span>    12345  12.3%  128MB    2d 14h     0
+c3d4 worker        <span class="status-online">● online</span>    12346   3.1%   64MB    2d 14h     0
+e5f6 worker        <span class="status-online">● online</span>    12347   2.8%   62MB    2d 14h     0
+g7h8 frontend      <span class="status-online">● online</span>    12348   1.0%   32MB    1d 08h     0</pre>
         <br>
         <div><span class="prompt">$</span> <span class="cmd">mhost ai diagnose</span> <span class="flag">api-server</span></div>
         <div class="output">  <span class="highlight">Root Cause:</span> Connection pool exhausted (10/10 connections)</div>
@@ -479,12 +478,11 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
         <div class="output">  Imported 3 servers from aws</div>
         <br>
         <div><span class="prompt">$</span> <span class="cmd">mhost cloud status</span></div>
-        <div class="output">
-<span class="dim">  Server          Status   mhost   Processes  CPU</span>
-<span class="dim">  ────────────────────────────────────────────────</span>
-  prod-api        <span class="status-online">up</span>       yes     4/4        45%
-  prod-worker     <span class="status-online">up</span>       yes     3/3        72%
-  prod-db         <span class="status-online">up</span>       yes     1/1        12%</div>
+        <pre class="output" style="margin:0;font-family:var(--mono);font-size:.82rem;line-height:1.7"><span class="dim">Server          Status   mhost   Processes  CPU</span>
+<span class="dim">────────────────────────────────────────────────────</span>
+prod-api        <span class="status-online">● up</span>     yes     4/4        45%
+prod-worker     <span class="status-online">● up</span>     yes     3/3        72%
+prod-db         <span class="status-online">● up</span>     yes     1/1        12%</pre>
         <br>
         <div><span class="prompt">$</span> <span class="cmd">mhost cloud restart</span> <span class="flag">all</span> api-server</div>
         <div class="output">  prod-api: restarted 'api-server'</div>
@@ -841,12 +839,12 @@ const demoSteps = [
   { type: 'gap', delay: 500 },
 
   { type: 'cmd', text: '$ mhost list', delay: 400 },
-  { type: 'out', text: '<span style="color:var(--text3)">id   name          status     pid    cpu   mem     uptime</span>', delay: 300 },
-  { type: 'out', text: '<span style="color:var(--text3)">------------------------------------------------------------</span>', delay: 100 },
-  { type: 'out', text: 'a1b2 api-server    <span style="color:var(--green2)">&#9679; online</span>   12345  12%   128MB   3s', delay: 200 },
-  { type: 'out', text: 'c3d4 worker        <span style="color:var(--green2)">&#9679; online</span>   12346   3%    64MB   3s', delay: 150 },
-  { type: 'out', text: 'e5f6 worker        <span style="color:var(--green2)">&#9679; online</span>   12347   3%    62MB   3s', delay: 150 },
-  { type: 'out', text: 'g7h8 frontend      <span style="color:var(--green2)">&#9679; online</span>   12348   1%    32MB   3s', delay: 150 },
+  { type: 'table', text: `<span style="color:var(--text3)">id   name          status       pid    cpu    mem      uptime
+────────────────────────────────────────────────────────────────</span>
+a1b2 api-server    <span style="color:var(--green2)">● online</span>    12345  12.3%  128MB    3s
+c3d4 worker        <span style="color:var(--green2)">● online</span>    12346   3.1%   64MB    3s
+e5f6 worker        <span style="color:var(--green2)">● online</span>    12347   2.8%   62MB    3s
+g7h8 frontend      <span style="color:var(--green2)">● online</span>    12348   1.0%   32MB    3s`, delay: 300 },
   { type: 'gap', delay: 600 },
 
   { type: 'cmd', text: '$ mhost notify setup', delay: 400 },
@@ -898,6 +896,19 @@ async function runDemo() {
         line.innerHTML = step.text;
         container.appendChild(line);
         requestAnimationFrame(() => line.classList.add('visible'));
+      }, d);
+    } else if (step.type === 'table') {
+      setTimeout(() => {
+        const pre = document.createElement('pre');
+        pre.className = 'demo-line output';
+        pre.style.fontFamily = 'var(--mono)';
+        pre.style.fontSize = '.82rem';
+        pre.style.lineHeight = '1.7';
+        pre.style.margin = '0';
+        pre.style.whiteSpace = 'pre';
+        pre.innerHTML = step.text;
+        container.appendChild(pre);
+        requestAnimationFrame(() => pre.classList.add('visible'));
       }, d);
     } else if (step.type === 'progress') {
       setTimeout(() => {
