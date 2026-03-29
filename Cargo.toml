@@ -12,6 +12,7 @@ members = [
     "crates/mhost-metrics",
     "crates/mhost-proxy",
     "crates/mhost-deploy",
+    "crates/mhost-tui",
 ]
 
 [workspace.package]
@@ -48,3 +49,5 @@ tokio-rustls = "0.26"
 rustls = "0.23"
 bytes = "1"
 git2 = "0.19"
+ratatui = "0.29"
+crossterm = "0.28"
