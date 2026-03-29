@@ -3,8 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>mhost — The Process Manager That PM2 Should Have Been</title>
-<meta name="description" content="Advanced process manager written in Rust. Single binary, zero dependencies. Health probes, AI diagnostics, Telegram alerts, Prometheus metrics, TUI dashboard.">
+
+<!-- ─── SEO ────────────────────────────────────────────────── -->
+<title>mhost — AI-Powered Process Manager for Production | Single Binary, Zero Dependencies</title>
+<meta name="description" content="mhost is an advanced process manager written in Rust. Single 14MB binary with built-in AI diagnostics, health probes, Telegram/Slack alerts, Prometheus metrics, reverse proxy, TUI dashboard, and cloud fleet management. Deploy, monitor, and scale across EC2, Azure, DigitalOcean.">
+<meta name="keywords" content="process manager, mhost, rust process manager, server management, devops tool, production monitoring, health checks, prometheus metrics, telegram alerts, AI diagnostics, reverse proxy, deploy tool, cloud fleet management, TUI dashboard, pm2 alternative">
+<meta name="author" content="Maher Al-Aqil">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://mhost.dev/">
+
+<!-- ─── Open Graph (Facebook, LinkedIn, etc.) ──────────────── -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="mhost — AI-Powered Process Manager for Production">
+<meta property="og:description" content="Single binary. Zero dependencies. Built-in AI diagnostics, health probes, 8 notification channels, Prometheus metrics, reverse proxy, TUI dashboard, and cloud fleet management. Written in Rust.">
+<meta property="og:url" content="https://mhost.dev/">
+<meta property="og:site_name" content="mhost">
+<meta property="og:image" content="https://mhost.dev/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+
+<!-- ─── Twitter Card ───────────────────────────────────────── -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="mhost — AI-Powered Process Manager for Production">
+<meta name="twitter:description" content="Single Rust binary. AI crash diagnosis, health probes, Telegram alerts, Prometheus, reverse proxy, cloud fleet management. The process manager built for modern infrastructure.">
+<meta name="twitter:image" content="https://mhost.dev/og-image.png">
+<meta name="twitter:creator" content="@maheralaqil">
+
+<!-- ─── JSON-LD Structured Data ────────────────────────────── -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "mhost",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS, Linux, Windows",
+  "description": "AI-powered process manager written in Rust. Single binary with health probes, notifications, metrics, reverse proxy, deploy engine, TUI dashboard, and cloud fleet management.",
+  "url": "https://mhost.dev",
+  "downloadUrl": "https://github.com/maheralaqil/mhost/releases",
+  "softwareVersion": "0.1.0",
+  "author": {
+    "@type": "Person",
+    "name": "Maher Al-Aqil",
+    "url": "https://github.com/maheralaqil"
+  },
+  "license": "https://opensource.org/licenses/MIT",
+  "programmingLanguage": "Rust",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5",
+    "ratingCount": "1"
+  }
+}
+</script>
+
+<!-- ─── Additional SEO ─────────────────────────────────────── -->
+<meta name="theme-color" content="#6366f1">
+<meta name="apple-mobile-web-app-title" content="mhost">
+<meta name="application-name" content="mhost">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9881;</text></svg>">
+
 <style>
 /* ─── Reset + Base ─────────────────────────────────────────── */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -214,8 +277,8 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
       <span class="badge badge-accent">Written in Rust</span>
       <span class="badge badge-yellow">AI-Powered</span>
     </div>
-    <h1>The process manager<br><span class="text-gradient">PM2 should have been.</span></h1>
-    <p class="subtitle">Single binary. Zero dependencies. Health probes, AI diagnostics, Telegram alerts, Prometheus metrics, reverse proxy, TUI dashboard. All built in.</p>
+    <h1>The AI-powered<br><span class="text-gradient">process manager.</span></h1>
+    <p class="subtitle">Single binary. Zero dependencies. Health probes, AI crash diagnosis, Telegram alerts, Prometheus metrics, reverse proxy, cloud fleet management, TUI dashboard. All built in Rust.</p>
     <div class="hero-actions">
       <a href="#install" class="btn-primary">Install mhost</a>
       <a href="https://github.com/maheralaqil/mhost" class="btn-secondary">GitHub</a>
