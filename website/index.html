@@ -237,7 +237,7 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
   <div class="container">
     <div class="stats-bar fade-in">
       <div class="stat">
-        <div class="stat-num text-gradient" data-count="14">0</div>
+        <div class="stat-num text-gradient" data-count="15">0</div>
         <div class="stat-label">Rust Crates</div>
       </div>
       <div class="stat">
@@ -245,7 +245,7 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
         <div class="stat-label">Tests Passing</div>
       </div>
       <div class="stat">
-        <div class="stat-num text-gradient" data-count="49">0</div>
+        <div class="stat-num text-gradient" data-count="59">0</div>
         <div class="stat-label">CLI Commands</div>
       </div>
       <div class="stat">
@@ -282,6 +282,7 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
         <tr><td>Restart strategy</td><td class="pm2">Basic</td><td class="mhost-val">Exponential backoff + circuit breaker</td></tr>
         <tr><td>AI intelligence</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">Diagnose, optimize, ask, watch (OpenAI/Claude)</td></tr>
         <tr><td>Cloud fleet</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">SSH fleet — AWS, Azure, DO, Railway auto-import</td></tr>
+        <tr><td>Remote control</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">Telegram/Discord bot with role-based permissions</td></tr>
         <tr><td>Config format</td><td class="pm2">JS only</td><td class="mhost-val">TOML, YAML, JSON</td></tr>
       </tbody>
     </table>
@@ -341,6 +342,11 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
         <div class="feature-icon green">&#9618;</div>
         <h3>TUI Dashboard</h3>
         <p>Split-pane terminal UI. Process table, CPU/memory sparklines, live log tail, vim keybindings.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon purple">&#128172;</div>
+        <h3>Chat Bot Control</h3>
+        <p>Control processes from Telegram or Discord. Role-based permissions, confirmation for destructive actions, audit logging.</p>
       </div>
     </div>
   </div>
@@ -579,7 +585,7 @@ action = <span class="str">"restart"</span>
   <div class="container">
     <div class="text-center fade-in">
       <span class="badge badge-accent">Architecture</span>
-      <h2 style="font-size:2.5rem;font-weight:800;margin-top:16px;letter-spacing:-1px">13 crates. One binary.</h2>
+      <h2 style="font-size:2.5rem;font-weight:800;margin-top:16px;letter-spacing:-1px">15 crates. One binary.</h2>
       <p style="color:var(--text2);max-width:600px;margin:16px auto 0">Modular Rust workspace. Each crate has one responsibility. The CLI and daemon compile into two binaries with zero runtime dependencies.</p>
     </div>
     <div class="arch-box fade-in" style="margin-top:40px">
@@ -594,6 +600,7 @@ mhost-proxy      Reverse proxy, TLS, ACME, load balancing
 mhost-deploy     Git deploy, hooks, rollback, history
 mhost-ai         LLM intelligence (OpenAI / Claude) - 10 features
 mhost-cloud      Remote fleet management - SSH, AWS, Azure, DO, Railway
+mhost-bot        Telegram/Discord bot - role-based control, audit log
 mhost-tui        Terminal dashboard with sparklines (ratatui)
 mhost-daemon     Process supervisor, state store  (mhostd binary)
 mhost-cli        CLI interface with 49 commands   (mhost binary)

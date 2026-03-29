@@ -203,6 +203,46 @@ pub enum CloudAction {
 }
 
 // ---------------------------------------------------------------------------
+// Bot subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum BotAction {
+    /// Interactive bot setup (Telegram/Discord).
+    Setup,
+    /// Start the bot.
+    Enable,
+    /// Stop the bot.
+    Disable,
+    /// Show bot status and connected users.
+    Status,
+    /// Show permission configuration.
+    Permissions,
+    /// Add an admin user.
+    AddAdmin {
+        /// Telegram or Discord user ID.
+        user_id: i64,
+    },
+    /// Add an operator user.
+    AddOperator {
+        /// Telegram or Discord user ID.
+        user_id: i64,
+    },
+    /// Add a viewer user.
+    AddViewer {
+        /// Telegram or Discord user ID.
+        user_id: i64,
+    },
+    /// Remove a user from all roles.
+    RemoveUser {
+        /// Telegram or Discord user ID.
+        user_id: i64,
+    },
+    /// Show bot audit log.
+    Logs,
+}
+
+// ---------------------------------------------------------------------------
 // Notify subcommands
 // ---------------------------------------------------------------------------
 
@@ -434,5 +474,11 @@ pub enum Commands {
     Cloud {
         #[command(subcommand)]
         action: CloudAction,
+    },
+
+    /// Chat-based remote control via Telegram or Discord.
+    Bot {
+        #[command(subcommand)]
+        action: BotAction,
     },
 }

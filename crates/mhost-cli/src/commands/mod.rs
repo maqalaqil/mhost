@@ -1,4 +1,5 @@
 pub mod ai;
+pub mod bot;
 pub mod cloud;
 pub mod cluster;
 pub mod completion;

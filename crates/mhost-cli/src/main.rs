@@ -7,7 +7,7 @@ use clap::Parser;
 use mhost_core::paths::MhostPaths;
 use mhost_ipc::IpcClient;
 
-use cli::{AiAction, Cli, CloudAction, Commands, MetricsAction, NotifyAction};
+use cli::{AiAction, BotAction, Cli, CloudAction, Commands, MetricsAction, NotifyAction};
 
 #[tokio::main]
 async fn main() {
@@ -93,6 +93,28 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
 
         // ---- Cloud commands (remote SSH, no local daemon needed) ---------
         Commands::Cloud { action } => dispatch_cloud(action, paths).await,
+
+        // ---- Bot commands (no daemon needed except Enable) ---------------
+        Commands::Bot { action } => match action {
+            BotAction::Setup => commands::bot::run_setup(paths),
+            BotAction::Enable => commands::bot::run_enable(paths).await,
+            BotAction::Disable => commands::bot::run_disable(paths),
+            BotAction::Status => commands::bot::run_status(paths),
+            BotAction::Permissions => commands::bot::run_permissions(paths),
+            BotAction::AddAdmin { user_id } => {
+                commands::bot::run_add_user(paths, user_id, "admin")
+            }
+            BotAction::AddOperator { user_id } => {
+                commands::bot::run_add_user(paths, user_id, "operator")
+            }
+            BotAction::AddViewer { user_id } => {
+                commands::bot::run_add_user(paths, user_id, "viewer")
+            }
+            BotAction::RemoveUser { user_id } => {
+                commands::bot::run_remove_user(paths, user_id)
+            }
+            BotAction::Logs => commands::bot::run_logs(paths),
+        },
 
         // ---- Commands that require a running daemon ----------------------
         other => {
@@ -186,7 +208,8 @@ async fn dispatch_daemon(
         | Commands::History { .. }
         | Commands::Logs { .. }
         | Commands::Notify { .. }
-        | Commands::Cloud { .. } => unreachable!(),
+        | Commands::Cloud { .. }
+        | Commands::Bot { .. } => unreachable!(),
     }
 }
 

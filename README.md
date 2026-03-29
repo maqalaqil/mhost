@@ -670,6 +670,110 @@ Supports: **AWS EC2**, **Azure VMs**, **DigitalOcean**, **Railway**, any SSH-acc
 
 ---
 
+## Chat Bot Control
+
+Control your processes from anywhere using a Telegram or Discord bot. Send `/status`, `/start`, `/stop`, and more — directly from your phone.
+
+### Setup
+
+```bash
+mhost bot setup
+```
+
+```
+  mhost Bot Setup
+
+  Select platform:
+    1) Telegram
+    2) Discord
+
+  Platform (1-2): 1
+  Bot token: 123456:ABC-DEF...
+  Your user/chat ID (admin): 987654321
+
+  ✓ Bot configured for telegram
+  Config: ~/.mhost/bot.json
+  Start:  mhost bot enable
+```
+
+### Chat Commands
+
+| Command | Permission | Description |
+|---|---|---|
+| `/status` | Viewer+ | List all processes with status |
+| `/start <app>` | Operator+ | Start a process |
+| `/stop <app>` | Operator+ | Stop a process |
+| `/restart <app>` | Operator+ | Restart a process |
+| `/logs <app>` | Viewer+ | Show recent log lines |
+| `/health <app>` | Viewer+ | Show health check status |
+| `/scale <app> <N>` | Operator+ | Scale to N instances |
+| `/deploy <env>` | Operator+ | Trigger a deploy |
+| `/ai <question>` | Admin | Ask the AI assistant |
+| `/help` | All | Show available commands |
+
+### Permission System
+
+Three roles control who can do what:
+
+| Role | Commands | Assigned by |
+|---|---|---|
+| **Admin** | All commands including AI and permission management | First user during setup |
+| **Operator** | start, stop, restart, scale, logs, health, deploy | Admin |
+| **Viewer** | status, logs, health, help (read-only) | Admin |
+
+Users not in any list are denied all commands. Users can be explicitly blocked.
+
+```bash
+mhost bot add-admin  987654321
+mhost bot add-operator 111222333
+mhost bot add-viewer  444555666
+mhost bot remove-user 444555666
+```
+
+### CLI Commands
+
+| Command | Description |
+|---|---|
+| `mhost bot setup` | Interactive setup wizard (Telegram/Discord) |
+| `mhost bot enable` | Start the bot (long-polling) |
+| `mhost bot disable` | Stop the bot |
+| `mhost bot status` | Show platform, enabled state, user lists |
+| `mhost bot permissions` | Show role → user mapping |
+| `mhost bot add-admin <id>` | Grant admin access |
+| `mhost bot add-operator <id>` | Grant operator access |
+| `mhost bot add-viewer <id>` | Grant viewer access |
+| `mhost bot remove-user <id>` | Remove user from all roles |
+| `mhost bot logs` | Show recent bot audit log (last 20 entries) |
+
+### Security Features
+
+- **Role-based access control** — three tiers with explicit deny lists
+- **Confirmation prompts** — destructive commands (stop, restart) require `/confirm` before executing
+- **Rate limiting** — configurable commands-per-minute cap per user (default: 30/min)
+- **Audit logging** — every command is logged to `~/.mhost/bot-audit.jsonl` with user ID, timestamp, and result
+- **Auto-alerts** — daemon crash/recover events forwarded to admin users automatically
+
+### Bot Config (`~/.mhost/bot.json`)
+
+```json
+{
+  "enabled": true,
+  "platform": "telegram",
+  "token": "123456:ABC-DEF...",
+  "permissions": {
+    "admins": [987654321],
+    "operators": [111222333],
+    "viewers": [444555666],
+    "blocked": []
+  },
+  "confirm_destructive": true,
+  "auto_alerts": true,
+  "rate_limit": 30
+}
+```
+
+---
+
 ## AI Intelligence
 
 The first process manager with built-in LLM capabilities. Supports **OpenAI** (GPT-4o) and **Claude** (Sonnet/Opus).
@@ -920,6 +1024,21 @@ mhost monit
 | `mhost cloud ai-diagnose <server>` | AI remote diagnosis |
 | `mhost cloud ai-migrate <from> <to>` | AI migration planning |
 
+### Bot
+
+| Command | Description |
+|---|---|
+| `mhost bot setup` | Interactive setup wizard (Telegram/Discord) |
+| `mhost bot enable` | Start the bot (long-polling) |
+| `mhost bot disable` | Stop the bot |
+| `mhost bot status` | Show platform, enabled state, user lists |
+| `mhost bot permissions` | Show role → user mapping |
+| `mhost bot add-admin <id>` | Grant admin access |
+| `mhost bot add-operator <id>` | Grant operator access |
+| `mhost bot add-viewer <id>` | Grant viewer access |
+| `mhost bot remove-user <id>` | Remove user from all roles |
+| `mhost bot logs` | Show recent bot audit log |
+
 ### Infrastructure
 
 | Command | Description |
@@ -972,7 +1091,7 @@ mhost monit
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Crate Structure (14 crates)
+### Crate Structure (15 crates)
 
 ```
 mhost/
@@ -987,6 +1106,7 @@ mhost/
 ├── mhost-deploy     Git deploy, hooks, rollback, history
 ├── mhost-ai         LLM intelligence (OpenAI/Claude) — diagnose, optimize, ask
 ├── mhost-cloud      Remote fleet management — SSH, cloud providers, AI ops
+├── mhost-bot        Telegram/Discord bot — role-based control, audit logging
 ├── mhost-tui        Terminal dashboard (ratatui)
 ├── mhost-daemon     Supervisor, handler, state store (mhostd binary)
 └── mhost-cli        CLI interface (mhost binary)
