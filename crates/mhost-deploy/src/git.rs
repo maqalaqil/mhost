@@ -112,4 +112,89 @@ mod tests {
         let hash_after = GitOps::current_commit(tmp.path()).expect("current_commit after");
         assert_eq!(hash, hash_after);
     }
+
+    #[test]
+    fn commit_hash_is_hex_string() {
+        let tmp = TempDir::new().unwrap();
+        init_git_repo_with_commit(tmp.path());
+
+        let hash = GitOps::current_commit(tmp.path()).expect("current_commit");
+        assert!(
+            hash.chars().all(|c| c.is_ascii_hexdigit()),
+            "hash should be all hex digits, got: {hash}"
+        );
+    }
+
+    #[test]
+    fn checkout_with_invalid_hash_fails() {
+        let tmp = TempDir::new().unwrap();
+        init_git_repo_with_commit(tmp.path());
+
+        let result = GitOps::checkout(tmp.path(), "0000000000000000000000000000000000000000");
+        assert!(result.is_err(), "nonexistent commit should fail checkout");
+    }
+
+    #[test]
+    fn checkout_with_malformed_hash_fails() {
+        let tmp = TempDir::new().unwrap();
+        init_git_repo_with_commit(tmp.path());
+
+        let result = GitOps::checkout(tmp.path(), "not-a-hash");
+        assert!(result.is_err(), "malformed hash should fail checkout");
+    }
+
+    #[test]
+    fn current_commit_on_second_commit_changes_hash() {
+        let tmp = TempDir::new().unwrap();
+        init_git_repo_with_commit(tmp.path());
+        let first_hash = GitOps::current_commit(tmp.path()).expect("first commit hash");
+
+        // Make a second commit.
+        std::fs::write(tmp.path().join("file2.txt"), "second commit").unwrap();
+        Command::new("git")
+            .args(["add", "."])
+            .current_dir(tmp.path())
+            .output()
+            .expect("git add");
+        Command::new("git")
+            .args(["commit", "-m", "second commit"])
+            .current_dir(tmp.path())
+            .output()
+            .expect("git commit");
+
+        let second_hash = GitOps::current_commit(tmp.path()).expect("second commit hash");
+        assert_ne!(
+            first_hash, second_hash,
+            "hash should differ after a new commit"
+        );
+        assert_eq!(second_hash.len(), 40);
+    }
+
+    #[test]
+    fn checkout_to_first_commit_then_back() {
+        let tmp = TempDir::new().unwrap();
+        init_git_repo_with_commit(tmp.path());
+        let first_hash = GitOps::current_commit(tmp.path()).expect("first hash");
+
+        // Second commit.
+        std::fs::write(tmp.path().join("extra.txt"), "extra").unwrap();
+        Command::new("git")
+            .args(["add", "."])
+            .current_dir(tmp.path())
+            .output()
+            .expect("git add");
+        Command::new("git")
+            .args(["commit", "-m", "second"])
+            .current_dir(tmp.path())
+            .output()
+            .expect("git commit");
+
+        let second_hash = GitOps::current_commit(tmp.path()).expect("second hash");
+        assert_ne!(first_hash, second_hash);
+
+        // Checkout back to first commit.
+        GitOps::checkout(tmp.path(), &first_hash).expect("checkout first");
+        let restored = GitOps::current_commit(tmp.path()).expect("restored hash");
+        assert_eq!(restored, first_hash, "should be back at first commit");
+    }
 }

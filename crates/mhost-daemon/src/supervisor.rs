@@ -665,9 +665,70 @@ mod tests {
     }
 
     #[test]
+    fn backoff_delay_attempt_zero_returns_base() {
+        assert_eq!(backoff_delay(0, 250, 60_000), 250);
+        assert_eq!(backoff_delay(0, 1, 99_999), 1);
+    }
+
+    #[test]
+    fn backoff_delay_base_zero_always_zero() {
+        for attempt in 0..=10 {
+            assert_eq!(
+                backoff_delay(attempt, 0, 10_000),
+                0,
+                "base=0 should always yield 0 at attempt {attempt}"
+            );
+        }
+    }
+
+    #[test]
+    fn backoff_delay_large_attempt_no_overflow() {
+        // attempt=63 would shift by 62 (clamped), which can overflow a u64 — verify
+        // saturating_mul keeps it at or below max_ms.
+        let delay = backoff_delay(63, 100, 30_000);
+        assert_eq!(delay, 30_000, "large attempt should saturate at max_ms");
+
+        let delay_max_attempt = backoff_delay(u32::MAX, 100, 30_000);
+        assert_eq!(
+            delay_max_attempt, 30_000,
+            "u32::MAX attempt should not panic"
+        );
+    }
+
+    #[test]
+    fn backoff_delay_max_ms_zero_always_zero() {
+        for attempt in 0..=5 {
+            assert_eq!(
+                backoff_delay(attempt, 100, 0),
+                0,
+                "max_ms=0 should cap at 0 for attempt {attempt}"
+            );
+        }
+    }
+
+    #[test]
     fn process_key_format() {
         assert_eq!(Supervisor::process_key("api", 0), "api:0");
         assert_eq!(Supervisor::process_key("worker", 3), "worker:3");
+    }
+
+    #[test]
+    fn process_key_format_various_names() {
+        assert_eq!(Supervisor::process_key("my-service", 0), "my-service:0");
+        assert_eq!(Supervisor::process_key("a", 100), "a:100");
+        assert_eq!(
+            Supervisor::process_key("long_process_name", 99),
+            "long_process_name:99"
+        );
+    }
+
+    #[test]
+    fn process_key_contains_colon_separator() {
+        let key = Supervisor::process_key("svc", 5);
+        let parts: Vec<&str> = key.splitn(2, ':').collect();
+        assert_eq!(parts.len(), 2);
+        assert_eq!(parts[0], "svc");
+        assert_eq!(parts[1], "5");
     }
 
     #[tokio::test]

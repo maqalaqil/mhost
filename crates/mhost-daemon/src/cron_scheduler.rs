@@ -316,4 +316,48 @@ mod tests {
         );
         assert!(sender.is_none(), "invalid cron should yield None");
     }
+
+    /// Sending on the shutdown channel should stop the scheduler without panic.
+    #[tokio::test]
+    async fn shutdown_sender_cancels_scheduler() {
+        let sender = CronScheduler::spawn(
+            "0 * * * * *".to_string(),
+            make_config("shutdown-test"),
+            make_processes(),
+            make_state(),
+            make_paths(),
+        );
+        let tx = sender.expect("valid cron should yield sender");
+        // Sending the shutdown signal should succeed.
+        let result = tx.send(());
+        assert!(result.is_ok(), "shutdown send should not fail");
+        // Give the spawned task a moment to observe the shutdown.
+        tokio::time::sleep(tokio::time::Duration::from_millis(20)).await;
+    }
+
+    /// A completely empty string is not a valid cron expression.
+    #[tokio::test]
+    async fn empty_string_cron_returns_none() {
+        let sender = CronScheduler::spawn(
+            String::new(),
+            make_config("empty-cron"),
+            make_processes(),
+            make_state(),
+            make_paths(),
+        );
+        assert!(sender.is_none(), "empty cron expr should yield None");
+    }
+
+    /// Another valid cron variant: every second via 6-field notation.
+    #[tokio::test]
+    async fn every_second_cron_returns_sender() {
+        let sender = CronScheduler::spawn(
+            "* * * * * *".to_string(), // every second
+            make_config("every-sec"),
+            make_processes(),
+            make_state(),
+            make_paths(),
+        );
+        assert!(sender.is_some(), "every-second cron should yield a sender");
+    }
 }

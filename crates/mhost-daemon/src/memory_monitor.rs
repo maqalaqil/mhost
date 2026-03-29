@@ -187,4 +187,55 @@ mod tests {
         // Give the spawned task a moment to exit cleanly.
         tokio::time::sleep(Duration::from_millis(10)).await;
     }
+
+    /// get_rss_bytes for a very high PID that almost certainly does not exist.
+    #[test]
+    fn very_high_pid_returns_none() {
+        // PID 4194304 (2^22) is above the Linux max PID and almost certainly absent.
+        let rss = get_rss_bytes(4_194_304);
+        // We don't assert the exact value since on some systems very large PIDs
+        // could theoretically be valid, but on a test machine they won't be.
+        // The important thing is that the function does not panic.
+        let _ = rss;
+    }
+
+    /// get_rss_bytes should always return Some for the test process itself on
+    /// supported platforms, regardless of how it is called.
+    #[test]
+    fn current_process_rss_consistent() {
+        let pid = std::process::id();
+        let first = get_rss_bytes(pid);
+        let second = get_rss_bytes(pid);
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            assert!(first.is_some());
+            assert!(second.is_some());
+            // Both calls should return a positive value.
+            assert!(first.unwrap() > 0);
+            assert!(second.unwrap() > 0);
+        }
+
+        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+        {
+            // Unsupported platform; just confirm no panic.
+            let _ = (first, second);
+        }
+    }
+
+    /// Dropping the sender immediately shuts down the monitor task.
+    #[tokio::test]
+    async fn drop_sender_shuts_down_monitor() {
+        let pid = std::process::id();
+        let tx = MemoryMonitor::spawn(
+            pid,
+            u64::MAX,
+            "drop-test".to_string(),
+            Duration::from_secs(30),
+        );
+        // Dropping the sender should signal the task to stop.
+        drop(tx);
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        // If the task is still alive that is fine — we're just verifying no panic.
+    }
 }

@@ -668,3 +668,75 @@ fn string_param(params: &Value, key: &str) -> Result<String, RpcResponse> {
         )),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn string_param_returns_value_when_present() {
+        let params = json!({ "name": "my-process" });
+        let result = string_param(&params, "name");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "my-process");
+    }
+
+    #[test]
+    fn string_param_returns_err_when_key_missing() {
+        let params = json!({ "other": "value" });
+        let result = string_param(&params, "name");
+        assert!(result.is_err(), "missing key should yield error response");
+    }
+
+    #[test]
+    fn string_param_returns_err_for_non_string_value() {
+        let params = json!({ "name": 42 });
+        let result = string_param(&params, "name");
+        assert!(result.is_err(), "integer value should yield error response");
+    }
+
+    #[test]
+    fn string_param_returns_err_for_null_value() {
+        let params = json!({ "name": null });
+        let result = string_param(&params, "name");
+        assert!(result.is_err(), "null value should yield error response");
+    }
+
+    #[test]
+    fn string_param_returns_err_for_bool_value() {
+        let params = json!({ "name": true });
+        let result = string_param(&params, "name");
+        assert!(result.is_err(), "bool value should yield error response");
+    }
+
+    #[test]
+    fn string_param_accepts_empty_string() {
+        let params = json!({ "name": "" });
+        let result = string_param(&params, "name");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "");
+    }
+
+    #[test]
+    fn string_param_error_response_has_id_zero() {
+        let params = json!({});
+        let response = string_param(&params, "target").unwrap_err();
+        assert_eq!(response.id, 0);
+    }
+
+    #[test]
+    fn string_param_error_message_contains_key_name() {
+        let params = json!({});
+        let response = string_param(&params, "foobar").unwrap_err();
+        let error = response.error.expect("should have error field");
+        assert!(
+            error.message.contains("foobar"),
+            "error message should mention the key name"
+        );
+    }
+}

@@ -377,4 +377,134 @@ mod tests {
         let result = store.get_process("nonexistent", 0).unwrap();
         assert!(result.is_none());
     }
+
+    #[test]
+    fn delete_all_removes_every_process() {
+        let store = StateStore::in_memory().unwrap();
+        store
+            .upsert_process(&ProcessInfo::new(make_config("api"), 0))
+            .unwrap();
+        store
+            .upsert_process(&ProcessInfo::new(make_config("worker"), 0))
+            .unwrap();
+        store
+            .upsert_process(&ProcessInfo::new(make_config("worker"), 1))
+            .unwrap();
+
+        let affected = store.delete_all().unwrap();
+        assert_eq!(affected, 3);
+
+        let list = store.list_processes().unwrap();
+        assert!(list.is_empty(), "expected empty list after delete_all");
+    }
+
+    #[test]
+    fn delete_all_on_empty_store_returns_zero() {
+        let store = StateStore::in_memory().unwrap();
+        let affected = store.delete_all().unwrap();
+        assert_eq!(affected, 0);
+    }
+
+    #[test]
+    fn multiple_events_for_same_process() {
+        let store = StateStore::in_memory().unwrap();
+
+        store.log_event("api", "started", Some("boot")).unwrap();
+        store.log_event("api", "restarted", Some("crash")).unwrap();
+        store.log_event("api", "restarted", Some("crash again")).unwrap();
+        store.log_event("api", "stopped", Some("graceful")).unwrap();
+
+        let events = store.get_events("api", 100).unwrap();
+        assert_eq!(events.len(), 4, "expected 4 events for api");
+    }
+
+    #[test]
+    fn events_are_newest_first() {
+        let store = StateStore::in_memory().unwrap();
+
+        store.log_event("svc", "started", None).unwrap();
+        store.log_event("svc", "crashed", None).unwrap();
+        store.log_event("svc", "restarted", None).unwrap();
+
+        let events = store.get_events("svc", 10).unwrap();
+        // ORDER BY id DESC — newest inserted first.
+        assert_eq!(events[0].0, "restarted");
+        assert_eq!(events[1].0, "crashed");
+        assert_eq!(events[2].0, "started");
+    }
+
+    #[test]
+    fn events_limit_is_respected() {
+        let store = StateStore::in_memory().unwrap();
+
+        for i in 0..10 {
+            store
+                .log_event("svc", "tick", Some(&format!("tick {i}")))
+                .unwrap();
+        }
+
+        let events = store.get_events("svc", 3).unwrap();
+        assert_eq!(events.len(), 3, "limit should cap result at 3");
+    }
+
+    #[test]
+    fn events_for_different_processes_are_independent() {
+        let store = StateStore::in_memory().unwrap();
+
+        store.log_event("api", "started", None).unwrap();
+        store.log_event("worker", "started", None).unwrap();
+        store.log_event("worker", "stopped", None).unwrap();
+
+        let api_events = store.get_events("api", 10).unwrap();
+        let worker_events = store.get_events("worker", 10).unwrap();
+
+        assert_eq!(api_events.len(), 1);
+        assert_eq!(worker_events.len(), 2);
+    }
+
+    #[test]
+    fn upsert_updates_status_pid_and_restart_count() {
+        let store = StateStore::in_memory().unwrap();
+        let info = ProcessInfo::new(make_config("svc"), 0);
+        store.upsert_process(&info).unwrap();
+
+        // Change several fields at once.
+        let updated = ProcessInfo {
+            status: ProcessStatus::Errored,
+            pid: Some(9999),
+            restart_count: 5,
+            exit_code: Some(1),
+            ..info
+        };
+        store.upsert_process(&updated).unwrap();
+
+        let retrieved = store.get_process("svc", 0).unwrap().unwrap();
+        assert_eq!(retrieved.status, ProcessStatus::Errored);
+        assert_eq!(retrieved.pid, Some(9999));
+        assert_eq!(retrieved.restart_count, 5);
+        assert_eq!(retrieved.exit_code, Some(1));
+        // Still only one row.
+        assert_eq!(store.list_processes().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn delete_process_does_not_affect_others() {
+        let store = StateStore::in_memory().unwrap();
+        store
+            .upsert_process(&ProcessInfo::new(make_config("a"), 0))
+            .unwrap();
+        store
+            .upsert_process(&ProcessInfo::new(make_config("b"), 0))
+            .unwrap();
+        store
+            .upsert_process(&ProcessInfo::new(make_config("b"), 1))
+            .unwrap();
+
+        let deleted = store.delete_process("b").unwrap();
+        assert_eq!(deleted, 2);
+
+        let list = store.list_processes().unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].config.name, "a");
+    }
 }

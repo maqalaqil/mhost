@@ -195,4 +195,86 @@ mod tests {
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].message.as_deref(), Some("rollback"));
     }
+
+    #[test]
+    fn list_with_limit_one_returns_newest() {
+        let history = DeployHistory::in_memory().unwrap();
+        history.record("production", "first", "success", None);
+        history.record("production", "second", "success", None);
+        history.record("production", "third", "success", None);
+
+        let records = history.list("production", 1);
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].commit_hash, "third", "limit=1 should return newest");
+    }
+
+    #[test]
+    fn list_for_unknown_env_is_empty() {
+        let history = DeployHistory::in_memory().unwrap();
+        history.record("production", "abc", "success", None);
+
+        let records = history.list("staging", 10);
+        assert!(records.is_empty(), "unknown env should return empty list");
+    }
+
+    #[test]
+    fn multiple_environments_are_isolated() {
+        let history = DeployHistory::in_memory().unwrap();
+        history.record("production", "prod1", "success", None);
+        history.record("production", "prod2", "success", None);
+        history.record("staging", "stage1", "failed", Some("lint error"));
+        history.record("dev", "dev1", "success", None);
+
+        assert_eq!(history.list("production", 10).len(), 2);
+        assert_eq!(history.list("staging", 10).len(), 1);
+        assert_eq!(history.list("dev", 10).len(), 1);
+    }
+
+    #[test]
+    fn last_successful_ignores_other_envs() {
+        let history = DeployHistory::in_memory().unwrap();
+        history.record("staging", "staging_good", "success", None);
+        // production has no success records.
+
+        let last = history.last_successful("production");
+        assert!(last.is_none(), "production has no successes");
+    }
+
+    #[test]
+    fn last_successful_returns_none_when_empty() {
+        let history = DeployHistory::in_memory().unwrap();
+        let last = history.last_successful("production");
+        assert!(last.is_none());
+    }
+
+    #[test]
+    fn deploy_ordering_newest_first() {
+        let history = DeployHistory::in_memory().unwrap();
+        for i in 0..5 {
+            history.record("production", &format!("commit_{i}"), "success", None);
+        }
+        let records = history.list("production", 10);
+        assert_eq!(records[0].commit_hash, "commit_4", "newest should come first");
+        assert_eq!(records[4].commit_hash, "commit_0", "oldest should be last");
+    }
+
+    #[test]
+    fn record_with_no_message_stores_none() {
+        let history = DeployHistory::in_memory().unwrap();
+        history.record("production", "hash1", "success", None);
+
+        let records = history.list("production", 10);
+        assert_eq!(records.len(), 1);
+        assert!(records[0].message.is_none(), "message should be None");
+    }
+
+    #[test]
+    fn last_successful_skips_all_failures() {
+        let history = DeployHistory::in_memory().unwrap();
+        history.record("production", "fail1", "failed", Some("error"));
+        history.record("production", "fail2", "failed", Some("error2"));
+
+        let last = history.last_successful("production");
+        assert!(last.is_none(), "all deploys failed, should be None");
+    }
 }

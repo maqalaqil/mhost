@@ -92,4 +92,54 @@ mod tests {
         let result = HookRunner::run(&cmds, tmp.path(), Duration::from_secs(10)).await;
         assert!(result.is_err());
     }
+
+    #[tokio::test]
+    async fn middle_command_failure_stops_chain() {
+        let tmp = TempDir::new().unwrap();
+        // echo ok — false (fails) — echo never_reached
+        let cmds = vec![
+            "echo step_one".to_string(),
+            "false".to_string(),
+            "echo step_three".to_string(),
+        ];
+        let result = HookRunner::run(&cmds, tmp.path(), Duration::from_secs(10)).await;
+        assert!(result.is_err(), "middle failure should abort the chain");
+        let err = result.unwrap_err();
+        assert!(
+            err.contains("exit code"),
+            "error should mention exit code, got: {err}"
+        );
+    }
+
+    #[tokio::test]
+    async fn hook_timeout_returns_error() {
+        let tmp = TempDir::new().unwrap();
+        // sleep for 10 seconds but timeout is 100 ms
+        let cmds = vec!["sleep 10".to_string()];
+        let result =
+            HookRunner::run(&cmds, tmp.path(), Duration::from_millis(100)).await;
+        assert!(result.is_err(), "timed-out hook should return an error");
+        let err = result.unwrap_err();
+        assert!(
+            err.contains("timed out"),
+            "error should mention timeout, got: {err}"
+        );
+    }
+
+    #[tokio::test]
+    async fn nonexistent_command_returns_error() {
+        let tmp = TempDir::new().unwrap();
+        let cmds = vec!["__nonexistent_binary_xyz__".to_string()];
+        let result = HookRunner::run(&cmds, tmp.path(), Duration::from_secs(5)).await;
+        assert!(result.is_err(), "nonexistent binary should return an error");
+    }
+
+    #[tokio::test]
+    async fn whitespace_only_command_is_skipped() {
+        let tmp = TempDir::new().unwrap();
+        // A command that is empty after split_whitespace should be skipped.
+        let cmds = vec!["   ".to_string(), "echo ok".to_string()];
+        let result = HookRunner::run(&cmds, tmp.path(), Duration::from_secs(5)).await;
+        assert!(result.is_ok(), "whitespace-only command should be skipped");
+    }
 }
