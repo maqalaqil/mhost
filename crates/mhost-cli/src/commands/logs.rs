@@ -33,7 +33,7 @@ pub fn run(
     let reader = BufReader::new(file);
     let all_lines: Vec<String> = reader
         .lines()
-        .filter_map(|l| l.ok())
+        .map_while(|l| l.ok())
         .filter(|l| grep.map(|g| l.contains(g)).unwrap_or(true))
         .collect();
 
@@ -44,7 +44,7 @@ pub fn run(
     };
 
     for line in &all_lines[start..] {
-        println!("{}", line);
+        println!("{line}");
     }
 
     Ok(())
@@ -100,9 +100,9 @@ pub async fn search(
         } else {
             for entry in results {
                 if let Some(line) = entry.as_str() {
-                    println!("{}", line);
+                    println!("{line}");
                 } else {
-                    println!("{}", entry);
+                    println!("{entry}");
                 }
             }
         }
@@ -152,7 +152,7 @@ pub async fn count_by(
         for bucket in buckets {
             let key = bucket.get("key").and_then(|k| k.as_str()).unwrap_or("?");
             let count = bucket.get("count").and_then(|c| c.as_u64()).unwrap_or(0);
-            println!("{:<20} {:>10}", key, count);
+            println!("{key:<20} {count:>10}");
         }
     }
 

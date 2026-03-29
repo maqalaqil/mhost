@@ -42,7 +42,7 @@ pub fn run_add(
     let mut fleet = load_fleet(paths);
     fleet.add_server(name, config);
     save_fleet(paths, &fleet)?;
-    print_success(&format!("Server '{}' added ({})", name, host));
+    print_success(&format!("Server '{name}' added ({host})"));
     Ok(())
 }
 
@@ -54,9 +54,9 @@ pub fn run_remove(paths: &MhostPaths, name: &str) -> Result<(), String> {
     let mut fleet = load_fleet(paths);
     if fleet.remove_server(name) {
         save_fleet(paths, &fleet)?;
-        print_success(&format!("Server '{}' removed", name));
+        print_success(&format!("Server '{name}' removed"));
     } else {
-        print_error(&format!("Server '{}' not found", name));
+        print_error(&format!("Server '{name}' not found"));
     }
     Ok(())
 }
@@ -72,8 +72,8 @@ pub fn run_list(paths: &MhostPaths) -> Result<(), String> {
         return Ok(());
     }
     println!(
-        "\n  {:<15} {:<20} {:<8} {:<10} {}",
-        "Name", "Host", "Port", "User", "Tags"
+        "\n  {:<15} {:<20} {:<8} {:<10} Tags",
+        "Name", "Host", "Port", "User"
     );
     println!("  {}", "-".repeat(65));
     for (name, s) in &fleet.servers {
@@ -106,7 +106,7 @@ pub async fn run_status(paths: &MhostPaths) -> Result<(), String> {
         let mhost = if s.mhost_installed { "yes" } else { "no" };
         let cpu = s
             .cpu
-            .map(|c| format!("{:.1}%", c))
+            .map(|c| format!("{c:.1}%"))
             .unwrap_or_else(|| "-".into());
         println!(
             "  {:<15} {:<10} {:<8} {:<12} {:<10}",
@@ -124,13 +124,13 @@ pub async fn run_deploy(paths: &MhostPaths, server: &str, config_file: &str) -> 
     let fleet = load_fleet(paths);
     let sc = fleet
         .get_server(server)
-        .ok_or_else(|| format!("Server '{}' not found", server))?;
+        .ok_or_else(|| format!("Server '{server}' not found"))?;
     let host = RemoteHost::new(server, sc);
-    println!("  Deploying to '{}'...", server);
+    println!("  Deploying to '{server}'...");
     let result = host
         .deploy_config(std::path::Path::new(config_file))
         .await?;
-    print_success(&format!("Deployed to '{}'\n{}", server, result));
+    print_success(&format!("Deployed to '{server}'\n{result}"));
     Ok(())
 }
 
@@ -142,7 +142,7 @@ pub async fn run_exec(paths: &MhostPaths, server: &str, command: &str) -> Result
     let fleet = load_fleet(paths);
     let sc = fleet
         .get_server(server)
-        .ok_or_else(|| format!("Server '{}' not found", server))?;
+        .ok_or_else(|| format!("Server '{server}' not found"))?;
     let ssh = SshExecutor::from_server_config(sc);
     let output = ssh.exec(command).await?;
     print!("{}", output.stdout);
@@ -160,10 +160,10 @@ pub async fn run_logs(paths: &MhostPaths, server: &str, app: &str) -> Result<(),
     let fleet = load_fleet(paths);
     let sc = fleet
         .get_server(server)
-        .ok_or_else(|| format!("Server '{}' not found", server))?;
+        .ok_or_else(|| format!("Server '{server}' not found"))?;
     let host = RemoteHost::new(server, sc);
     let logs = host.stream_logs(app).await?;
-    println!("{}", logs);
+    println!("{logs}");
     Ok(())
 }
 
@@ -178,18 +178,18 @@ pub async fn run_restart(paths: &MhostPaths, server: &str, app: &str) -> Result<
         let results = fleet.exec_all(&["restart", app]).await;
         for (name, r) in results {
             match r {
-                Ok(_) => print_success(&format!("{}: restarted '{}'", name, app)),
-                Err(e) => print_error(&format!("{}: {}", name, e)),
+                Ok(_) => print_success(&format!("{name}: restarted '{app}'")),
+                Err(e) => print_error(&format!("{name}: {e}")),
             }
         }
     } else {
         let fleet = load_fleet(paths);
         let sc = fleet
             .get_server(server)
-            .ok_or_else(|| format!("Server '{}' not found", server))?;
+            .ok_or_else(|| format!("Server '{server}' not found"))?;
         let host = RemoteHost::new(server, sc);
         host.restart(app).await?;
-        print_success(&format!("Restarted '{}' on '{}'", app, server));
+        print_success(&format!("Restarted '{app}' on '{server}'"));
     }
     Ok(())
 }
@@ -202,10 +202,10 @@ pub async fn run_scale(paths: &MhostPaths, server: &str, app: &str, n: u32) -> R
     let fleet = load_fleet(paths);
     let sc = fleet
         .get_server(server)
-        .ok_or_else(|| format!("Server '{}' not found", server))?;
+        .ok_or_else(|| format!("Server '{server}' not found"))?;
     let host = RemoteHost::new(server, sc);
     host.scale(app, n).await?;
-    print_success(&format!("Scaled '{}' to {} on '{}'", app, n, server));
+    print_success(&format!("Scaled '{app}' to {n} on '{server}'"));
     Ok(())
 }
 
@@ -223,8 +223,8 @@ pub async fn run_sync(paths: &MhostPaths, config_file: &str) -> Result<(), Strin
     let results = fleet.sync_config(std::path::Path::new(config_file)).await;
     for (name, r) in results {
         match r {
-            Ok(_) => print_success(&format!("{}: synced", name)),
-            Err(e) => print_error(&format!("{}: {}", name, e)),
+            Ok(_) => print_success(&format!("{name}: synced")),
+            Err(e) => print_error(&format!("{name}: {e}")),
         }
     }
     Ok(())
@@ -238,7 +238,7 @@ pub fn run_ssh(paths: &MhostPaths, server: &str) -> Result<(), String> {
     let fleet = load_fleet(paths);
     let sc = fleet
         .get_server(server)
-        .ok_or_else(|| format!("Server '{}' not found", server))?;
+        .ok_or_else(|| format!("Server '{server}' not found"))?;
     let mut args = vec!["-p".to_string(), sc.port.to_string()];
     if let Some(ref key) = sc.key_path {
         args.extend(["-i".into(), key.clone()]);
@@ -262,11 +262,11 @@ pub async fn run_install(paths: &MhostPaths, server: &str) -> Result<(), String>
     let fleet = load_fleet(paths);
     let sc = fleet
         .get_server(server)
-        .ok_or_else(|| format!("Server '{}' not found", server))?;
+        .ok_or_else(|| format!("Server '{server}' not found"))?;
     let ssh = SshExecutor::from_server_config(sc);
-    println!("  Installing mhost on '{}'...", server);
+    println!("  Installing mhost on '{server}'...");
     let version = mhost_cloud::install::RemoteInstaller::install(&ssh).await?;
-    print_success(&format!("Installed {} on '{}'", version, server));
+    print_success(&format!("Installed {version} on '{server}'"));
     Ok(())
 }
 
@@ -281,8 +281,8 @@ pub async fn run_update(paths: &MhostPaths, target: &str) -> Result<(), String> 
         let results = fleet.update_all().await;
         for (name, r) in results {
             match r {
-                Ok(v) => print_success(&format!("{}: updated to {}", name, v)),
-                Err(e) => print_error(&format!("{}: {}", name, e)),
+                Ok(v) => print_success(&format!("{name}: updated to {v}")),
+                Err(e) => print_error(&format!("{name}: {e}")),
             }
         }
     } else {
@@ -318,7 +318,7 @@ pub async fn run_import(
             .unwrap_or_default(),
     };
 
-    println!("  Importing from {}...", provider_name);
+    println!("  Importing from {provider_name}...");
     let instances = provider.list_instances(&filters).await?;
 
     if instances.is_empty() {
@@ -350,7 +350,7 @@ pub async fn run_ai_setup(paths: &MhostPaths, description: &str) -> Result<(), S
     let provider = ai_config.create_provider()?;
     println!("  Planning infrastructure...\n");
     let plan = mhost_cloud::ai_cloud::ai_setup_infra(provider.as_ref(), description).await?;
-    println!("{}", plan);
+    println!("{plan}");
     Ok(())
 }
 
@@ -362,14 +362,14 @@ pub async fn run_ai_diagnose(paths: &MhostPaths, server: &str) -> Result<(), Str
     let fleet = load_fleet(paths);
     let sc = fleet
         .get_server(server)
-        .ok_or_else(|| format!("Server '{}' not found", server))?;
+        .ok_or_else(|| format!("Server '{server}' not found"))?;
     let ai_config = mhost_ai::AiConfig::load(&paths.ai_config())
         .ok_or("AI not configured. Run: mhost ai setup")?;
     let llm = ai_config.create_provider()?;
     let host = RemoteHost::new(server, sc);
-    println!("  Diagnosing '{}'...\n", server);
+    println!("  Diagnosing '{server}'...\n");
     let result = mhost_cloud::ai_cloud::ai_diagnose_remote(llm.as_ref(), &host).await?;
-    println!("{}", result);
+    println!("{result}");
     Ok(())
 }
 
@@ -381,17 +381,17 @@ pub async fn run_ai_migrate(paths: &MhostPaths, from: &str, to: &str) -> Result<
     let fleet = load_fleet(paths);
     let from_sc = fleet
         .get_server(from)
-        .ok_or_else(|| format!("Server '{}' not found", from))?;
+        .ok_or_else(|| format!("Server '{from}' not found"))?;
     let to_sc = fleet
         .get_server(to)
-        .ok_or_else(|| format!("Server '{}' not found", to))?;
+        .ok_or_else(|| format!("Server '{to}' not found"))?;
     let ai_config = mhost_ai::AiConfig::load(&paths.ai_config())
         .ok_or("AI not configured. Run: mhost ai setup")?;
     let llm = ai_config.create_provider()?;
     let from_host = RemoteHost::new(from, from_sc);
     let to_host = RemoteHost::new(to, to_sc);
-    println!("  Planning migration {} -> {}...\n", from, to);
+    println!("  Planning migration {from} -> {to}...\n");
     let plan = mhost_cloud::ai_cloud::ai_migrate(llm.as_ref(), &from_host, &to_host).await?;
-    println!("{}", plan);
+    println!("{plan}");
     Ok(())
 }

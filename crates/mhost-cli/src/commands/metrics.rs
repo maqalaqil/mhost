@@ -24,7 +24,7 @@ pub async fn show(client: &IpcClient, name: &str) -> Result<(), String> {
         .unwrap_or(&empty);
 
     if metrics.is_empty() {
-        println!("No metrics available for '{}'.", name);
+        println!("No metrics available for '{name}'.");
         return Ok(());
     }
 
@@ -43,10 +43,7 @@ pub async fn show(client: &IpcClient, name: &str) -> Result<(), String> {
 
         let uptime_display = format_uptime(uptime_ms);
 
-        println!(
-            "{:<6} {:<20} {:>10.1} {:>12} {:>12}",
-            instance, process_name, cpu, mem_mb, uptime_display
-        );
+        println!("{instance:<6} {process_name:<20} {cpu:>10.1} {mem_mb:>12} {uptime_display:>12}");
     }
 
     Ok(())
@@ -82,10 +79,7 @@ pub async fn history(
         .unwrap_or(&empty);
 
     if series.is_empty() {
-        println!(
-            "No history available for '{}' metric on '{}'.",
-            metric, name
-        );
+        println!("No history available for '{metric}' metric on '{name}'.");
         return Ok(());
     }
 
@@ -95,7 +89,7 @@ pub async fn history(
     for point in series {
         let ts = point.get("ts").and_then(|v| v.as_str()).unwrap_or("?");
         let value = point.get("value").and_then(|v| v.as_f64()).unwrap_or(0.0);
-        println!("{:<24} {:>12.2}", ts, value);
+        println!("{ts:<24} {value:>12.2}");
     }
 
     Ok(())
@@ -114,7 +108,7 @@ pub async fn start_prometheus(client: &IpcClient, listen: &str) -> Result<(), St
         return Err(format!("Daemon error: {}", err.message));
     }
 
-    println!("Prometheus exporter acknowledged on {}.", listen);
+    println!("Prometheus exporter acknowledged on {listen}.");
     Ok(())
 }
 
@@ -138,6 +132,6 @@ fn format_uptime(ms: u64) -> String {
     } else if mins > 0 {
         format!("{}m {}s", mins, secs % 60)
     } else {
-        format!("{}s", secs)
+        format!("{secs}s")
     }
 }

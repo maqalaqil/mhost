@@ -58,9 +58,9 @@ pub async fn run_diagnose(
     let provider = load_provider(paths)?;
     let context = fetch_process_context(client, paths, name).await?;
 
-    println!("  Analyzing crash for '{}'...\n", name);
+    println!("  Analyzing crash for '{name}'...\n");
     let result = mhost_ai::diagnose::diagnose(provider.as_ref(), &context).await?;
-    println!("{}", result);
+    println!("{result}");
     Ok(())
 }
 
@@ -74,7 +74,7 @@ pub async fn run_log_query(
 ) -> Result<(), String> {
     let provider = load_provider(paths)?;
 
-    println!("  Translating query: \"{}\"...\n", question);
+    println!("  Translating query: \"{question}\"...\n");
     let query = mhost_ai::log_query::translate_log_query(provider.as_ref(), name, question).await?;
 
     println!("  Search: {:?}", query.search);
@@ -95,14 +95,14 @@ pub async fn run_optimize(
     let provider = load_provider(paths)?;
     let context = fetch_process_context(client, paths, name).await?;
 
-    println!("  Analyzing performance for '{}'...\n", name);
+    println!("  Analyzing performance for '{name}'...\n");
     let result = mhost_ai::optimize::optimize(
         provider.as_ref(),
         &context,
         "No metrics history available yet",
     )
     .await?;
-    println!("{}", result);
+    println!("{result}");
     Ok(())
 }
 
@@ -113,7 +113,7 @@ pub async fn run_config_gen(paths: &MhostPaths, description: &str) -> Result<(),
 
     println!("  Generating config from description...\n");
     let toml = mhost_ai::config_gen::generate_config(provider.as_ref(), description).await?;
-    println!("{}", toml);
+    println!("{toml}");
     println!("\n  To save: copy the above into mhost.toml");
     Ok(())
 }
@@ -128,14 +128,14 @@ pub async fn run_postmortem(
     let provider = load_provider(paths)?;
     let context = fetch_process_context(client, paths, name).await?;
 
-    println!("  Generating incident report for '{}'...\n", name);
+    println!("  Generating incident report for '{name}'...\n");
     let report = mhost_ai::postmortem::generate_postmortem(
         provider.as_ref(),
         &context,
         "No metrics history available",
     )
     .await?;
-    println!("{}", report);
+    println!("{report}");
     Ok(())
 }
 
@@ -191,7 +191,7 @@ pub async fn run_ask(client: &IpcClient, paths: &MhostPaths, question: &str) -> 
 
     println!("  Thinking...\n");
     let answer = mhost_ai::ask::ask(provider.as_ref(), question, &contexts).await?;
-    println!("{}", answer);
+    println!("{answer}");
     Ok(())
 }
 
@@ -200,11 +200,11 @@ pub async fn run_ask(client: &IpcClient, paths: &MhostPaths, question: &str) -> 
 pub async fn run_explain(paths: &MhostPaths, config_file: &str) -> Result<(), String> {
     let provider = load_provider(paths)?;
     let content = std::fs::read_to_string(config_file)
-        .map_err(|e| format!("Cannot read '{}': {}", config_file, e))?;
+        .map_err(|e| format!("Cannot read '{config_file}': {e}"))?;
 
     println!("  Explaining config...\n");
     let explanation = mhost_ai::explain::explain_config(provider.as_ref(), &content).await?;
-    println!("{}", explanation);
+    println!("{explanation}");
     Ok(())
 }
 
@@ -221,7 +221,7 @@ pub async fn run_suggest(client: &IpcClient, paths: &MhostPaths) -> Result<(), S
 
     println!("  Analyzing {} processes...\n", contexts.len());
     let suggestions = mhost_ai::explain::suggest_improvements(provider.as_ref(), &contexts).await?;
-    println!("{}", suggestions);
+    println!("{suggestions}");
     Ok(())
 }
 
@@ -234,7 +234,7 @@ fn load_provider(paths: &MhostPaths) -> Result<Box<dyn mhost_ai::LlmProvider>, S
 }
 
 fn prompt(label: &str) -> String {
-    print!("  {}: ", label);
+    print!("  {label}: ");
     io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
@@ -242,7 +242,7 @@ fn prompt(label: &str) -> String {
 }
 
 fn prompt_default(label: &str, default: &str) -> String {
-    print!("  {} [{}]: ", label, default);
+    print!("  {label} [{default}]: ");
     io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
@@ -277,7 +277,7 @@ async fn fetch_process_context(
     let info = processes
         .iter()
         .find(|p| p.config.name == name)
-        .ok_or_else(|| format!("Process '{}' not found", name))?;
+        .ok_or_else(|| format!("Process '{name}' not found"))?;
 
     let out_log = paths.process_out_log(name, info.instance);
     let err_log = paths.process_err_log(name, info.instance);

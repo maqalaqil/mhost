@@ -49,7 +49,7 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let cmds = vec!["echo hello".to_string()];
         let result = HookRunner::run(&cmds, tmp.path(), Duration::from_secs(10)).await;
-        assert!(result.is_ok(), "echo hello should succeed: {:?}", result);
+        assert!(result.is_ok(), "echo hello should succeed: {result:?}");
     }
 
     #[tokio::test]

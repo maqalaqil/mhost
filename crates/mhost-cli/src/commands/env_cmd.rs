@@ -23,12 +23,12 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
         serde_json::from_value(result).map_err(|e| format!("Failed to parse process info: {e}"))?;
 
     if info.config.env.is_empty() {
-        println!("No environment variables set for '{}'.", name);
+        println!("No environment variables set for '{name}'.");
     } else {
         let mut pairs: Vec<(&String, &String)> = info.config.env.iter().collect();
         pairs.sort_by_key(|(k, _)| k.as_str());
         for (k, v) in pairs {
-            println!("{}={}", k, v);
+            println!("{k}={v}");
         }
     }
 

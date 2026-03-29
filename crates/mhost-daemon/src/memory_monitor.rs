@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::time::Duration;
 use tokio::sync::oneshot;
 
@@ -150,8 +151,7 @@ mod tests {
         {
             assert!(
                 rss.is_some(),
-                "get_rss_bytes returned None for current PID {}",
-                pid
+                "get_rss_bytes returned None for current PID {pid}"
             );
             assert!(
                 rss.unwrap() > 0,
@@ -173,7 +173,7 @@ mod tests {
     fn nonexistent_pid_returns_none() {
         // PID 0 is never a valid user process.
         let rss = get_rss_bytes(0);
-        assert!(rss.is_none(), "expected None for PID 0, got {:?}", rss);
+        assert!(rss.is_none(), "expected None for PID 0, got {rss:?}");
     }
 
     /// Spawning a monitor task should give back a sender immediately.

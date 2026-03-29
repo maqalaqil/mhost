@@ -38,7 +38,7 @@ pub fn run(paths: &MhostPaths, name: &str) -> Result<(), String> {
         .collect();
 
     if rows.is_empty() {
-        println!("No history found for '{}'.", name);
+        println!("No history found for '{name}'.");
         return Ok(());
     }
 
@@ -59,7 +59,7 @@ pub fn run(paths: &MhostPaths, name: &str) -> Result<(), String> {
             _ => event_type.normal().to_string(),
         };
 
-        println!("{:<24} {:<30} {}", colored_event, timestamp, message);
+        println!("{colored_event:<24} {timestamp:<30} {message}");
     }
 
     Ok(())

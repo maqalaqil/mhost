@@ -32,7 +32,7 @@ async fn main() {
     // -----------------------------------------------------------------------
     let paths = MhostPaths::new();
     if let Err(e) = paths.ensure_dirs() {
-        eprintln!("Failed to create directories: {}", e);
+        eprintln!("Failed to create directories: {e}");
         std::process::exit(1);
     }
 
@@ -42,7 +42,7 @@ async fn main() {
     let pid_file = paths.pid_file();
     let my_pid = std::process::id();
     if let Err(e) = std::fs::write(&pid_file, my_pid.to_string()) {
-        eprintln!("Failed to write PID file: {}", e);
+        eprintln!("Failed to write PID file: {e}");
         std::process::exit(1);
     }
     tracing::info!("mhostd starting (PID {})", my_pid);
@@ -53,7 +53,7 @@ async fn main() {
     let state_store = match StateStore::open(&paths.db()) {
         Ok(s) => Arc::new(Mutex::new(s)),
         Err(e) => {
-            eprintln!("Failed to open state database: {}", e);
+            eprintln!("Failed to open state database: {e}");
             std::process::exit(1);
         }
     };

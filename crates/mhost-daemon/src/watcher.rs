@@ -268,7 +268,7 @@ impl ExitWatcher {
                         let _ = state_guard.log_event(
                             &config.name,
                             "errored",
-                            Some(&format!("respawn failed: {}", e)),
+                            Some(&format!("respawn failed: {e}")),
                         );
                     }
                 }
@@ -283,7 +283,7 @@ impl ExitWatcher {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+
     use crate::supervisor::backoff_delay;
 
     #[test]
@@ -292,9 +292,7 @@ mod tests {
             let delay = backoff_delay(attempt, 100, 30_000);
             assert!(
                 delay <= 30_000,
-                "attempt {} produced delay {} > 30_000",
-                attempt,
-                delay
+                "attempt {attempt} produced delay {delay} > 30_000"
             );
         }
     }

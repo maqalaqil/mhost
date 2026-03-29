@@ -277,8 +277,7 @@ mod tests {
         // The top-level node should be OR
         assert!(
             matches!(filter, QueryFilter::Or(_, _)),
-            "top-level should be OR, got: {:?}",
-            filter
+            "top-level should be OR, got: {filter:?}"
         );
     }
 

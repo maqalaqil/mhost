@@ -143,8 +143,7 @@ mod tests {
             .expect_err("should reject oversized frame");
         assert!(
             err.to_string().contains("too large"),
-            "error should mention 'too large', got: {}",
-            err
+            "error should mention 'too large', got: {err}"
         );
     }
 

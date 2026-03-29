@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -511,7 +512,7 @@ impl Supervisor {
         let procs = self.processes.read().await;
         procs
             .iter()
-            .filter(|(k, _)| k.starts_with(&format!("{}:", name)))
+            .filter(|(k, _)| k.starts_with(&format!("{name}:")))
             .map(|(_, mp)| mp.info.clone())
             .collect()
     }
@@ -615,7 +616,7 @@ async fn graceful_kill(child: &mut Child, grace_period_ms: u64) {
 
             let grace = tokio::time::Duration::from_millis(grace_period_ms);
             match tokio::time::timeout(grace, child.wait()).await {
-                Ok(_) => return, // exited cleanly within the grace period
+                Ok(_) => (), // exited cleanly within the grace period
                 Err(_) => {
                     tracing::debug!(pid = pid, "grace period expired, sending SIGKILL");
                     let _ = child.kill().await;

@@ -24,7 +24,7 @@ mod tests {
     fn write_lines(path: &Path, lines: &[&str]) {
         let mut f = std::fs::File::create(path).expect("create");
         for line in lines {
-            writeln!(f, "{}", line).expect("write");
+            writeln!(f, "{line}").expect("write");
         }
     }
 

@@ -776,7 +776,7 @@ expected_status = 200
                 assert_eq!(url, "http://localhost:8080/health");
                 assert_eq!(*expected_status, 200);
             }
-            other => panic!("expected Http kind, got: {:?}", other),
+            other => panic!("expected Http kind, got: {other:?}"),
         }
     }
 
@@ -818,7 +818,7 @@ port = 12201
                 assert_eq!(events, &["crash", "restart"]);
                 assert_eq!(throttle, "60s");
             }
-            other => panic!("expected Telegram, got: {:?}", other),
+            other => panic!("expected Telegram, got: {other:?}"),
         }
 
         let sl = cfg.notifications.get("slack").expect("slack channel");
@@ -832,7 +832,7 @@ port = 12201
                 assert!(events.is_empty());
                 assert_eq!(throttle, "60s");
             }
-            other => panic!("expected Slack, got: {:?}", other),
+            other => panic!("expected Slack, got: {other:?}"),
         }
 
         let logs_cfg = cfg.logs.as_ref().expect("logs config present");
@@ -849,7 +849,7 @@ port = 12201
                 assert_eq!(transport, "udp");
                 assert_eq!(processes, "*");
             }
-            other => panic!("expected Gelf, got: {:?}", other),
+            other => panic!("expected Gelf, got: {other:?}"),
         }
     }
 
@@ -968,7 +968,7 @@ retries = 2
                 assert_eq!(host, "127.0.0.1");
                 assert_eq!(*port, 5432);
             }
-            other => panic!("expected Tcp kind, got: {:?}", other),
+            other => panic!("expected Tcp kind, got: {other:?}"),
         }
     }
 
@@ -999,7 +999,7 @@ retries = 1
             mhost_core::health::HealthCheckKind::Script { command } => {
                 assert_eq!(command, "/usr/local/bin/check-worker.sh");
             }
-            other => panic!("expected Script kind, got: {:?}", other),
+            other => panic!("expected Script kind, got: {other:?}"),
         }
     }
 

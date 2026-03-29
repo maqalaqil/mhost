@@ -84,7 +84,7 @@ mod tests {
         history.record("production", &commit_hash, "success", None);
 
         let result = Rollback::execute("production", tmp.path(), &history, &[]).await;
-        assert!(result.is_ok(), "rollback should succeed: {:?}", result);
+        assert!(result.is_ok(), "rollback should succeed: {result:?}");
         assert_eq!(result.unwrap(), commit_hash);
 
         // Verify rollback was recorded

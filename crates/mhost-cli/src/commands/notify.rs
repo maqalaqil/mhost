@@ -153,7 +153,7 @@ pub fn run_setup(config_path: &Path) -> Result<(), String> {
     config.channels.insert(name.clone(), channel);
     save_config(config_path, &config)?;
 
-    print_success(&format!("Channel '{}' configured and saved", name));
+    print_success(&format!("Channel '{name}' configured and saved"));
     println!("  Config: {}", config_path.display());
     println!();
     println!("  To test:  mhost notify test {name}");
@@ -321,10 +321,7 @@ pub fn run_list(config_path: &Path) -> Result<(), String> {
         } else {
             events.join(", ")
         };
-        println!(
-            "  {:<15} {:<12} {:<10} {}",
-            name, ch_type, status, event_str
-        );
+        println!("  {name:<15} {ch_type:<12} {status:<10} {event_str}");
     }
     println!();
     Ok(())
@@ -333,12 +330,10 @@ pub fn run_list(config_path: &Path) -> Result<(), String> {
 pub async fn run_test(config_path: &Path, channel_name: &str) -> Result<(), String> {
     let config = load_config(config_path);
 
-    let channel = config.channels.get(channel_name).ok_or_else(|| {
-        format!(
-            "Channel '{}' not found. Run: mhost notify list",
-            channel_name
-        )
-    })?;
+    let channel = config
+        .channels
+        .get(channel_name)
+        .ok_or_else(|| format!("Channel '{channel_name}' not found. Run: mhost notify list"))?;
 
     println!("  Sending test notification to '{channel_name}'...");
 
@@ -472,11 +467,11 @@ pub fn run_remove(config_path: &Path, channel_name: &str) -> Result<(), String> 
     let mut config = load_config(config_path);
 
     if config.channels.remove(channel_name).is_none() {
-        return Err(format!("Channel '{}' not found", channel_name));
+        return Err(format!("Channel '{channel_name}' not found"));
     }
 
     save_config(config_path, &config)?;
-    print_success(&format!("Channel '{}' removed", channel_name));
+    print_success(&format!("Channel '{channel_name}' removed"));
     Ok(())
 }
 
@@ -486,7 +481,7 @@ pub fn run_enable(config_path: &Path, channel_name: &str, enable: bool) -> Resul
     let channel = config
         .channels
         .get_mut(channel_name)
-        .ok_or_else(|| format!("Channel '{}' not found", channel_name))?;
+        .ok_or_else(|| format!("Channel '{channel_name}' not found"))?;
 
     match channel {
         ChannelConfig::Telegram { enabled, .. }
@@ -579,7 +574,7 @@ pub async fn run_start(config_path: &Path, client: &mhost_ipc::IpcClient) -> Res
 
     // Build env vars from the first enabled telegram channel
     let mut env_vars = HashMap::new();
-    for (_name, ch) in &config.channels {
+    for ch in config.channels.values() {
         match ch {
             ChannelConfig::Telegram {
                 bot_token,
@@ -611,7 +606,10 @@ pub async fn run_start(config_path: &Path, client: &mhost_ipc::IpcClient) -> Res
         .map_err(|e| format!("IPC error: {e}"))?;
 
     if let Some(err) = resp.error {
-        print_error(&format!("Failed to start notifier: {err_msg}", err_msg = err.message));
+        print_error(&format!(
+            "Failed to start notifier: {err_msg}",
+            err_msg = err.message
+        ));
     } else {
         print_success("Notifier started as 'mhost-notifier' process");
         println!("  View status: mhost info mhost-notifier");

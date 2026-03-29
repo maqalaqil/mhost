@@ -99,7 +99,7 @@ mod tests {
                 assert_eq!(url, "http://localhost:8080/health");
                 assert_eq!(*expected_status, 200);
             }
-            other => panic!("unexpected kind: {:?}", other),
+            other => panic!("unexpected kind: {other:?}"),
         }
     }
 

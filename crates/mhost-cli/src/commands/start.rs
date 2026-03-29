@@ -4,7 +4,6 @@ use mhost_config::EcosystemConfig;
 use mhost_core::process::ProcessConfig;
 use mhost_core::protocol::methods;
 use mhost_ipc::IpcClient;
-use serde_json::json;
 
 use crate::output::{print_error, print_success};
 
@@ -42,7 +41,7 @@ pub async fn run(client: &IpcClient, target: &str, name: Option<&str>) -> Result
 fn build_configs(target: &str, name: Option<&str>) -> Result<Vec<ProcessConfig>, String> {
     if is_config_file(target) {
         let eco = EcosystemConfig::from_file(Path::new(target))
-            .map_err(|e| format!("Failed to parse ecosystem config '{}': {e}", target))?;
+            .map_err(|e| format!("Failed to parse ecosystem config '{target}': {e}"))?;
         Ok(eco.to_process_configs())
     } else {
         // Treat target as command, split on whitespace for simplicity.

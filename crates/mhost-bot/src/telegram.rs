@@ -167,9 +167,7 @@ impl TelegramBot {
             let _ = self
                 .send_message(
                     chat_id,
-                    &format!(
-                        "Permission denied. Your role ({role:?}) cannot use /{command}"
-                    ),
+                    &format!("Permission denied. Your role ({role:?}) cannot use /{command}"),
                 )
                 .await;
             return;

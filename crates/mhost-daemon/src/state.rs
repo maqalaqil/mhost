@@ -1,3 +1,4 @@
+#![allow(dead_code, clippy::type_complexity)]
 use std::path::Path;
 use std::sync::Mutex;
 
@@ -147,7 +148,7 @@ impl StateStore {
              FROM processes ORDER BY name, instance",
         )?;
 
-        let rows = stmt.query_map([], |row| row_to_process_info(row))?;
+        let rows = stmt.query_map([], row_to_process_info)?;
         rows.collect()
     }
 

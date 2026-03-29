@@ -61,10 +61,7 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
             _ => health.yellow().to_string(),
         };
 
-        println!(
-            "{:<4} {:<20} {:<8} {:<12}",
-            inst, proc_name, id, health_display,
-        );
+        println!("{inst:<4} {proc_name:<20} {id:<8} {health_display:<12}",);
     }
 
     Ok(())

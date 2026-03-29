@@ -284,8 +284,6 @@ mod tests {
 
     #[test]
     fn search_with_time_range() {
-        use chrono::Duration;
-
         let indexer = LogIndexer::in_memory().expect("in_memory");
 
         let old_raw =
@@ -337,8 +335,6 @@ mod tests {
 
     #[test]
     fn delete_before_removes_old_entries() {
-        use chrono::Duration;
-
         let indexer = LogIndexer::in_memory().expect("in_memory");
 
         let old_raw =

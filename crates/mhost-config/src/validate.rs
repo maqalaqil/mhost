@@ -70,7 +70,7 @@ instances = 2
 "#;
         let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse");
         let errors = validate_config(&cfg);
-        assert!(errors.is_empty(), "expected no errors, got: {:?}", errors);
+        assert!(errors.is_empty(), "expected no errors, got: {errors:?}");
     }
 
     // 2. Empty command triggers a validation error.

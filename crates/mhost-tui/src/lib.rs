@@ -220,7 +220,11 @@ fn draw_detail_panel(f: &mut Frame, area: Rect, app: &App) {
         let cmd = if p.config.args.is_empty() {
             p.config.command.clone()
         } else {
-            format!("{cmd_val} {args_val}", cmd_val = p.config.command, args_val = p.config.args.join(" "))
+            format!(
+                "{cmd_val} {args_val}",
+                cmd_val = p.config.command,
+                args_val = p.config.args.join(" ")
+            )
         };
         DetailStrings {
             pid: p.pid.map(|v| v.to_string()).unwrap_or_else(|| "-".into()),
@@ -334,10 +338,7 @@ fn draw_sparklines(f: &mut Frame, area: Rect, app: &App) {
 fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
     // If there is a status message, show it (overrides normal help text).
     let text = if let Some((msg, _)) = &app.status_message {
-        Span::styled(
-            format!(" {msg}"),
-            Style::default().fg(Color::Yellow).bold(),
-        )
+        Span::styled(format!(" {msg}"), Style::default().fg(Color::Yellow).bold())
     } else if app.search_mode {
         let q = app.search_query.as_deref().unwrap_or("");
         Span::styled(

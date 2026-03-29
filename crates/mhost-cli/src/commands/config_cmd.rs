@@ -25,6 +25,6 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
     let pretty = serde_json::to_string_pretty(&info.config)
         .map_err(|e| format!("Serialization error: {e}"))?;
 
-    println!("{}", pretty);
+    println!("{pretty}");
     Ok(())
 }

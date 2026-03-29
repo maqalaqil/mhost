@@ -18,9 +18,7 @@ pub async fn explain_config(
             },
             LlmMessage {
                 role: "user".into(),
-                content: format!(
-                    "Explain this mhost.toml:\n\n```toml\n{config_content}\n```"
-                ),
+                content: format!("Explain this mhost.toml:\n\n```toml\n{config_content}\n```"),
             },
         ],
         max_tokens: 2048,

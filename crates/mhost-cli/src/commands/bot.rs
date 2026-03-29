@@ -25,14 +25,19 @@ pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
         .parse()
         .map_err(|_| "Invalid ID: must be a number")?;
 
-    let mut config = BotConfig::default();
-    config.platform = platform.into();
-    config.token = token;
-    config.enabled = true;
-    config.permissions.admins.push(admin_id);
+    let config = BotConfig {
+        platform: platform.into(),
+        token,
+        enabled: true,
+        permissions: mhost_bot::Permissions {
+            admins: vec![admin_id],
+            ..Default::default()
+        },
+        ..Default::default()
+    };
     config.save(&paths.bot_config())?;
 
-    print_success(&format!("Bot configured for {}", platform));
+    print_success(&format!("Bot configured for {platform}"));
     println!("  Config: {}", paths.bot_config().display());
     println!("  Start:  mhost bot enable");
     Ok(())
@@ -110,14 +115,13 @@ pub fn run_add_user(paths: &MhostPaths, user_id: i64, role: &str) -> Result<(), 
         "viewer" => Role::Viewer,
         _ => {
             return Err(format!(
-                "Invalid role: '{}'. Use: admin, operator, viewer",
-                role
+                "Invalid role: '{role}'. Use: admin, operator, viewer"
             ))
         }
     };
     config.permissions.add_user(user_id, r);
     config.save(&paths.bot_config())?;
-    print_success(&format!("User {} added as {}", user_id, role));
+    print_success(&format!("User {user_id} added as {role}"));
     Ok(())
 }
 
@@ -125,7 +129,7 @@ pub fn run_remove_user(paths: &MhostPaths, user_id: i64) -> Result<(), String> {
     let mut config = BotConfig::load(&paths.bot_config()).ok_or("Bot not configured")?;
     config.permissions.remove_user(user_id);
     config.save(&paths.bot_config())?;
-    print_success(&format!("User {} removed", user_id));
+    print_success(&format!("User {user_id} removed"));
     Ok(())
 }
 
@@ -137,8 +141,8 @@ pub fn run_logs(paths: &MhostPaths) -> Result<(), String> {
         return Ok(());
     }
     println!(
-        "\n  {:<20} {:<10} {:<25} {}",
-        "Timestamp", "User", "Command", "Result"
+        "\n  {:<20} {:<10} {:<25} Result",
+        "Timestamp", "User", "Command"
     );
     println!("  {}", "-".repeat(70));
     for e in &entries {
@@ -154,7 +158,7 @@ pub fn run_logs(paths: &MhostPaths) -> Result<(), String> {
 }
 
 fn prompt(label: &str) -> String {
-    print!("  {}: ", label);
+    print!("  {label}: ");
     io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();

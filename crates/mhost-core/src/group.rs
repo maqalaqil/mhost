@@ -249,8 +249,7 @@ mod tests {
         let msg = result.unwrap_err().to_string();
         assert!(
             msg.contains("Cycle"),
-            "error message should mention cycle, got: {}",
-            msg
+            "error message should mention cycle, got: {msg}"
         );
     }
 
@@ -270,8 +269,7 @@ mod tests {
         let msg = result.unwrap_err().to_string();
         assert!(
             msg.contains("nonexistent"),
-            "error message should mention missing dep, got: {}",
-            msg
+            "error message should mention missing dep, got: {msg}"
         );
     }
 

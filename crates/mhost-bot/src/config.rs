@@ -20,7 +20,7 @@ pub struct BotConfig {
 }
 
 /// Per-role user lists.  A user may appear in **at most one** list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Permissions {
     #[serde(default)]
     pub admins: Vec<i64>,

@@ -19,7 +19,7 @@ pub async fn start(client: &IpcClient, group: &str) -> Result<(), String> {
             group, err.message
         ));
     } else {
-        print_success(&format!("Started group '{}'", group));
+        print_success(&format!("Started group '{group}'"));
     }
 
     Ok(())
@@ -40,7 +40,7 @@ pub async fn stop(client: &IpcClient, group: &str) -> Result<(), String> {
             group, err.message
         ));
     } else {
-        print_success(&format!("Stopped group '{}'", group));
+        print_success(&format!("Stopped group '{group}'"));
     }
 
     Ok(())

@@ -12,9 +12,7 @@ pub async fn ask(
     all_contexts: &[ProcessContext],
 ) -> Result<String, String> {
     let context_summary = build_context_summary(all_contexts);
-    let user_content = format!(
-        "Current process state:\n{context_summary}\n\nQuestion: {question}"
-    );
+    let user_content = format!("Current process state:\n{context_summary}\n\nQuestion: {question}");
 
     let request = LlmRequest {
         messages: vec![

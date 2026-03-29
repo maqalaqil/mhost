@@ -145,7 +145,7 @@ mod tests {
     fn list_respects_limit() {
         let history = DeployHistory::in_memory().unwrap();
         for i in 0..5 {
-            history.record("production", &format!("commit{}", i), "success", None);
+            history.record("production", &format!("commit{i}"), "success", None);
         }
         let records = history.list("production", 3);
         assert_eq!(records.len(), 3);

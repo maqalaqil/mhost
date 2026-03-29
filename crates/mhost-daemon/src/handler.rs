@@ -1,3 +1,4 @@
+#![allow(dead_code, clippy::result_large_err, clippy::type_complexity)]
 use std::sync::Arc;
 
 use serde_json::{json, Value};
