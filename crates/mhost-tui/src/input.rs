@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::app::App;
+use crate::app::{App, ConfirmAction};
 
 // ---------------------------------------------------------------------------
 // Action
@@ -16,7 +16,24 @@ pub enum Action {
     SelectFirst,
     SelectLast,
     EnterSearch,
-    // Future: Restart, Stop, Delete selected process
+    /// Restart the selected process (confirmation already given).
+    Restart,
+    /// Stop the selected process (confirmation already given).
+    Stop,
+    /// Delete the selected process (confirmation already given).
+    Delete,
+    /// A confirmation prompt was just raised (waiting for y/n).
+    ConfirmPending,
+    /// The pending confirmation was cancelled.
+    ConfirmCancelled,
+    /// Sort column cycled.
+    SortCycled,
+    /// Sort direction toggled.
+    SortToggled,
+    /// Scroll log up.
+    ScrollUp,
+    /// Scroll log down.
+    ScrollDown,
 }
 
 // ---------------------------------------------------------------------------
@@ -26,6 +43,32 @@ pub enum Action {
 /// Translate a raw key event into an [`Action`], applying side-effects to
 /// `app` where necessary (e.g. updating the search buffer, cycling tabs).
 pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
+    // -- Confirmation dialog is open ------------------------------------------
+    if let Some(confirm) = app.confirm_action.take() {
+        match key.code {
+            KeyCode::Char('y') | KeyCode::Char('Y') => {
+                let action = match &confirm {
+                    ConfirmAction::Restart(_) => Action::Restart,
+                    ConfirmAction::Stop(_) => Action::Stop,
+                    ConfirmAction::Delete(_) => Action::Delete,
+                };
+                // Keep the name in status message; caller will send IPC.
+                app.set_status(format!(
+                    "{}ing {}…",
+                    confirm.verb(),
+                    confirm.process_name()
+                ));
+                return action;
+            }
+            _ => {
+                // Any key other than 'y' cancels.
+                app.set_status("Cancelled.");
+                return Action::ConfirmCancelled;
+            }
+        }
+    }
+
+    // -- Search mode ----------------------------------------------------------
     if app.search_mode {
         match key.code {
             KeyCode::Esc => {
@@ -50,13 +93,19 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
         return Action::None;
     }
 
+    // -- Normal mode ----------------------------------------------------------
     match key.code {
+        // Quit
         KeyCode::Char('q') => Action::Quit,
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => Action::Quit,
+
+        // Tab cycling
         KeyCode::Tab => {
             app.next_tab();
             Action::NextTab
         }
+
+        // Navigation
         KeyCode::Char('j') | KeyCode::Down => {
             app.select_next();
             Action::SelectNext
@@ -73,11 +122,79 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
             app.select_last();
             Action::SelectLast
         }
+
+        // Log scrolling
+        KeyCode::PageUp => {
+            app.scroll_offset = app.scroll_offset.saturating_sub(10);
+            Action::ScrollUp
+        }
+        KeyCode::PageDown => {
+            app.scroll_offset = app.scroll_offset.saturating_add(10);
+            Action::ScrollDown
+        }
+
+        // Search
         KeyCode::Char('/') => {
             app.search_mode = true;
             app.search_query = Some(String::new());
             Action::EnterSearch
         }
+
+        // Process actions — raise confirmation
+        KeyCode::Char('r') => {
+            if let Some(name) = app.selected_process_name().map(String::from) {
+                app.confirm_action = Some(ConfirmAction::Restart(name.clone()));
+                app.set_status(format!("Restart '{}'? (y/n)", name));
+                Action::ConfirmPending
+            } else {
+                Action::None
+            }
+        }
+        KeyCode::Char('s') => {
+            if let Some(name) = app.selected_process_name().map(String::from) {
+                app.confirm_action = Some(ConfirmAction::Stop(name.clone()));
+                app.set_status(format!("Stop '{}'? (y/n)", name));
+                Action::ConfirmPending
+            } else {
+                Action::None
+            }
+        }
+        KeyCode::Char('d') => {
+            if let Some(name) = app.selected_process_name().map(String::from) {
+                app.confirm_action = Some(ConfirmAction::Delete(name.clone()));
+                app.set_status(format!("Delete '{}'? (y/n)", name));
+                Action::ConfirmPending
+            } else {
+                Action::None
+            }
+        }
+
+        // Sort controls
+        KeyCode::Char('S') => {
+            app.cycle_sort();
+            Action::SortCycled
+        }
+        KeyCode::Char('1') => {
+            app.sort_by = crate::app::SortColumn::Name;
+            Action::SortCycled
+        }
+        KeyCode::Char('2') => {
+            app.sort_by = crate::app::SortColumn::Cpu;
+            Action::SortCycled
+        }
+        KeyCode::Char('3') => {
+            app.sort_by = crate::app::SortColumn::Memory;
+            Action::SortCycled
+        }
+        KeyCode::Char('4') => {
+            app.sort_by = crate::app::SortColumn::Uptime;
+            Action::SortCycled
+        }
+        KeyCode::Char('R') => {
+            app.toggle_sort_direction();
+            Action::SortToggled
+        }
+
         _ => Action::None,
     }
 }
@@ -267,5 +384,96 @@ mod tests {
         let action = handle_key(&mut app, key(KeyCode::Char('q')));
         assert_eq!(action, Action::None);
         assert_eq!(app.search_query, Some("q".into()));
+    }
+
+    // -- process action confirmations -----------------------------------------
+
+    #[test]
+    fn test_r_raises_restart_confirmation() {
+        let mut app = App::new();
+        app.processes = vec![make_process("api")];
+        let action = handle_key(&mut app, key(KeyCode::Char('r')));
+        assert_eq!(action, Action::ConfirmPending);
+        assert!(matches!(app.confirm_action, Some(ConfirmAction::Restart(_))));
+    }
+
+    #[test]
+    fn test_r_no_processes_is_noop() {
+        let mut app = App::new();
+        let action = handle_key(&mut app, key(KeyCode::Char('r')));
+        assert_eq!(action, Action::None);
+        assert!(app.confirm_action.is_none());
+    }
+
+    #[test]
+    fn test_confirm_y_returns_restart() {
+        let mut app = App::new();
+        app.confirm_action = Some(ConfirmAction::Restart("api".into()));
+        let action = handle_key(&mut app, key(KeyCode::Char('y')));
+        assert_eq!(action, Action::Restart);
+        assert!(app.confirm_action.is_none());
+    }
+
+    #[test]
+    fn test_confirm_n_cancels() {
+        let mut app = App::new();
+        app.confirm_action = Some(ConfirmAction::Stop("api".into()));
+        let action = handle_key(&mut app, key(KeyCode::Char('n')));
+        assert_eq!(action, Action::ConfirmCancelled);
+        assert!(app.confirm_action.is_none());
+    }
+
+    #[test]
+    fn test_confirm_esc_cancels() {
+        let mut app = App::new();
+        app.confirm_action = Some(ConfirmAction::Delete("old".into()));
+        let action = handle_key(&mut app, key(KeyCode::Esc));
+        assert_eq!(action, Action::ConfirmCancelled);
+    }
+
+    #[test]
+    fn test_s_raises_stop_confirmation() {
+        let mut app = App::new();
+        app.processes = vec![make_process("worker")];
+        let action = handle_key(&mut app, key(KeyCode::Char('s')));
+        assert_eq!(action, Action::ConfirmPending);
+        assert!(matches!(app.confirm_action, Some(ConfirmAction::Stop(_))));
+    }
+
+    #[test]
+    fn test_d_raises_delete_confirmation() {
+        let mut app = App::new();
+        app.processes = vec![make_process("old-svc")];
+        let action = handle_key(&mut app, key(KeyCode::Char('d')));
+        assert_eq!(action, Action::ConfirmPending);
+        assert!(matches!(app.confirm_action, Some(ConfirmAction::Delete(_))));
+    }
+
+    // -- sort controls ---------------------------------------------------------
+
+    #[test]
+    fn test_shift_s_cycles_sort() {
+        let mut app = App::new();
+        let action = handle_key(&mut app, key(KeyCode::Char('S')));
+        assert_eq!(action, Action::SortCycled);
+        // Name → Status
+        assert_eq!(app.sort_by, crate::app::SortColumn::Status);
+    }
+
+    #[test]
+    fn test_digit_1_sets_sort_name() {
+        let mut app = App::new();
+        app.sort_by = crate::app::SortColumn::Cpu;
+        handle_key(&mut app, key(KeyCode::Char('1')));
+        assert_eq!(app.sort_by, crate::app::SortColumn::Name);
+    }
+
+    #[test]
+    fn test_shift_r_toggles_sort_direction() {
+        let mut app = App::new();
+        assert!(app.sort_ascending);
+        let action = handle_key(&mut app, key(KeyCode::Char('R')));
+        assert_eq!(action, Action::SortToggled);
+        assert!(!app.sort_ascending);
     }
 }

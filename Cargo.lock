@@ -1773,9 +1773,11 @@ dependencies = [
 name = "mhost-tui"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "crossterm",
  "mhost-core",
  "mhost-ipc",
+ "mhost-logs",
  "ratatui",
  "serde_json",
  "tokio",

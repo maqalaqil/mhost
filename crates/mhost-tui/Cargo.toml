@@ -6,7 +6,9 @@ edition.workspace = true
 [dependencies]
 mhost-core = { path = "../mhost-core" }
 mhost-ipc = { path = "../mhost-ipc" }
+mhost-logs = { path = "../mhost-logs" }
 ratatui = { workspace = true }
 crossterm = { workspace = true }
 tokio = { workspace = true }
 serde_json = { workspace = true }
+chrono = { workspace = true }
