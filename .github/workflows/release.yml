@@ -1,6 +1,5 @@
 name: Release
 
-# ─── Trigger: every push to main auto-releases ────────────────
 on:
   push:
     branches: [main]
@@ -15,7 +14,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # ─── 1. Test first ──────────────────────────────────────────
+  # ─── 1. Test ────────────────────────────────────────────────
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -29,71 +28,89 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
 
-  # ─── 2. Auto-version + tag ──────────────────────────────────
+  # ─── 2. Determine version ───────────────────────────────────
   version:
-    name: Version & Tag
+    name: Version
     needs: test
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.bump.outputs.version }}
       tag: ${{ steps.bump.outputs.tag }}
-      skipped: ${{ steps.bump.outputs.skipped }}
+      should_release: ${{ steps.bump.outputs.should_release }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bump version from commits
+      - name: Calculate version
         id: bump
         run: |
-          # Get latest tag
+          # Get latest tag or default to v0.0.0
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          LATEST_VERSION="${LATEST_TAG#v}"
+          echo "Latest tag: $LATEST_TAG"
 
-          # Parse current version
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_VERSION"
-          PATCH=${PATCH:-0}
-          MINOR=${MINOR:-0}
-          MAJOR=${MAJOR:-0}
+          # Count commits since last tag
+          COMMIT_COUNT=$(git rev-list "${LATEST_TAG}..HEAD" --count 2>/dev/null || git rev-list HEAD --count)
+          echo "Commits since $LATEST_TAG: $COMMIT_COUNT"
 
-          # Check commits since last tag for version bump type
-          COMMITS=$(git log "${LATEST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
-
-          if echo "$COMMITS" | grep -qiE "^(feat|ci|docs|fix|chore|refactor|test|perf)"; then
-            # Any meaningful commit = patch bump
-            PATCH=$((PATCH + 1))
-          else
-            echo "skipped=true" >> $GITHUB_OUTPUT
-            echo "No releasable commits found"
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No new commits since last tag."
             exit 0
           fi
 
-          # Check for breaking changes or feat = minor
-          if echo "$COMMITS" | grep -qiE "^feat(\(|:)"; then
+          # Parse version
+          LATEST_VERSION="${LATEST_TAG#v}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_VERSION"
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
+
+          # Check commit types
+          COMMITS=$(git log "${LATEST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
+          HAS_FEAT=$(echo "$COMMITS" | grep -ciE "^feat" || true)
+          HAS_BREAKING=$(echo "$COMMITS" | grep -ciE "^.*!:" || true)
+
+          # Determine bump type
+          if [ "$HAS_BREAKING" -gt 0 ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "$HAS_FEAT" -gt 0 ]; then
             MINOR=$((MINOR + 1))
             PATCH=0
+          else
+            PATCH=$((PATCH + 1))
           fi
 
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
           echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
           echo "tag=v${NEW_VERSION}" >> $GITHUB_OUTPUT
-          echo "skipped=false" >> $GITHUB_OUTPUT
-          echo "Releasing v${NEW_VERSION}"
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "Will release: v${NEW_VERSION}"
 
-      - name: Create tag
-        if: steps.bump.outputs.skipped != 'true'
+  # ─── 3. Create tag ──────────────────────────────────────────
+  tag:
+    name: Create Tag
+    needs: version
+    if: needs.version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create and push tag
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "${{ steps.bump.outputs.tag }}" -m "Release ${{ steps.bump.outputs.tag }}"
-          git push origin "${{ steps.bump.outputs.tag }}"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ needs.version.outputs.tag }}" -m "Release ${{ needs.version.outputs.tag }}"
+          git push origin "${{ needs.version.outputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ─── 3. Build binaries for all platforms ────────────────────
+  # ─── 4. Build binaries ──────────────────────────────────────
   build:
     name: Build (${{ matrix.target }})
-    needs: version
-    if: needs.version.outputs.skipped != 'true'
+    needs: [version, tag]
+    if: needs.version.outputs.should_release == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -109,8 +126,6 @@ jobs:
             os: ubuntu-latest
             cross: true
           - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: aarch64-pc-windows-msvc
             os: windows-latest
 
     runs-on: ${{ matrix.os }}
@@ -148,10 +163,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cd target/${{ matrix.target }}/release
-          7z a ../../../mhost-${{ matrix.target }}.zip mhost.exe mhostd.exe
-          cd ../../..
-          Get-FileHash mhost-${{ matrix.target }}.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  mhost-${{ matrix.target }}.zip" } | Out-File -Encoding ascii mhost-${{ matrix.target }}.zip.sha256
+          cd target\${{ matrix.target }}\release
+          7z a ..\..\..\mhost-${{ matrix.target }}.zip mhost.exe mhostd.exe
+          cd ..\..\..
+          $hash = (Get-FileHash "mhost-${{ matrix.target }}.zip" -Algorithm SHA256).Hash.ToLower()
+          "$hash  mhost-${{ matrix.target }}.zip" | Out-File -Encoding ascii "mhost-${{ matrix.target }}.zip.sha256"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -163,37 +179,43 @@ jobs:
             mhost-${{ matrix.target }}.zip.sha256
           if-no-files-found: ignore
 
-  # ─── 4. GitHub Release ──────────────────────────────────────
+  # ─── 5. GitHub Release ──────────────────────────────────────
   release:
     name: GitHub Release
     needs: [version, build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
           path: artifacts
 
       - name: Create checksums
-        run: cd artifacts && cat *.sha256 > checksums.txt
+        run: |
+          cd artifacts
+          cat *.sha256 > checksums.txt 2>/dev/null || echo "No checksums" > checksums.txt
+          echo "=== Artifacts ==="
+          ls -la
 
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.version.outputs.tag }}
-          name: mhost ${{ needs.version.outputs.tag }}
+          name: "mhost ${{ needs.version.outputs.tag }}"
           files: |
             artifacts/*.tar.gz
             artifacts/*.zip
             artifacts/checksums.txt
           generate_release_notes: true
           draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ─── 5. Publish npm ─────────────────────────────────────────
+  # ─── 6. Publish npm ─────────────────────────────────────────
   publish-npm:
-    name: Publish npm
+    name: npm
     needs: [version, release]
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -202,57 +224,57 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: |
           cd npm-package
-          npm version ${{ needs.version.outputs.version }} --no-git-tag-version --allow-same-version
+          npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        continue-on-error: true
 
-  # ─── 6. Publish crates.io ───────────────────────────────────
+  # ─── 7. Publish crates.io ───────────────────────────────────
   publish-crates:
-    name: Publish crates.io
+    name: crates.io
     needs: [version, release]
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: Publish all crates
+      - name: Publish crates
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
         run: |
-          for crate in mhost-core mhost-config mhost-ipc mhost-logs mhost-health \
-                       mhost-notify mhost-metrics mhost-ai mhost-proxy mhost-deploy \
-                       mhost-cloud mhost-bot mhost-tui mhost-daemon mhost-cli; do
-            echo "Publishing $crate..."
-            cargo publish -p "$crate" --allow-dirty || true
-            sleep 25
+          CRATES=(
+            mhost-core mhost-config mhost-ipc mhost-logs mhost-health
+            mhost-notify mhost-metrics mhost-ai mhost-proxy mhost-deploy
+            mhost-cloud mhost-bot mhost-tui mhost-daemon mhost-cli
+          )
+          for crate in "${CRATES[@]}"; do
+            echo "::group::Publishing $crate"
+            cargo publish -p "$crate" --allow-dirty 2>&1 || echo "  (skipped or already published)"
+            echo "::endgroup::"
+            sleep 20
           done
-        continue-on-error: true
 
-  # ─── 7. Update Homebrew tap ─────────────────────────────────
+  # ─── 8. Homebrew tap ────────────────────────────────────────
   publish-homebrew:
-    name: Update Homebrew
+    name: Homebrew
     needs: [version, build, release]
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
           path: artifacts
 
-      - name: Compute SHA256
-        id: sha
-        run: |
-          echo "darwin_arm64=$(shasum -a 256 artifacts/mhost-aarch64-apple-darwin.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-          echo "darwin_x64=$(shasum -a 256 artifacts/mhost-x86_64-apple-darwin.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-          echo "linux_arm64=$(shasum -a 256 artifacts/mhost-aarch64-unknown-linux-musl.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-          echo "linux_x64=$(shasum -a 256 artifacts/mhost-x86_64-unknown-linux-musl.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-
       - name: Generate formula
         run: |
-          VERSION=${{ needs.version.outputs.version }}
-          cat > mhost.rb << EOF
+          VERSION="${{ needs.version.outputs.version }}"
+          SHA_DARWIN_ARM=$(shasum -a 256 artifacts/mhost-aarch64-apple-darwin.tar.gz | cut -d' ' -f1)
+          SHA_DARWIN_X64=$(shasum -a 256 artifacts/mhost-x86_64-apple-darwin.tar.gz | cut -d' ' -f1)
+          SHA_LINUX_ARM=$(shasum -a 256 artifacts/mhost-aarch64-unknown-linux-musl.tar.gz | cut -d' ' -f1)
+          SHA_LINUX_X64=$(shasum -a 256 artifacts/mhost-x86_64-unknown-linux-musl.tar.gz | cut -d' ' -f1)
+
+          cat > mhost.rb << RUBY
           class Mhost < Formula
             desc "AI-powered process manager written in Rust"
             homepage "https://github.com/maheralaqil/mhost"
@@ -262,20 +284,20 @@ jobs:
             on_macos do
               if Hardware::CPU.arm?
                 url "https://github.com/maheralaqil/mhost/releases/download/v${VERSION}/mhost-aarch64-apple-darwin.tar.gz"
-                sha256 "${{ steps.sha.outputs.darwin_arm64 }}"
+                sha256 "${SHA_DARWIN_ARM}"
               else
                 url "https://github.com/maheralaqil/mhost/releases/download/v${VERSION}/mhost-x86_64-apple-darwin.tar.gz"
-                sha256 "${{ steps.sha.outputs.darwin_x64 }}"
+                sha256 "${SHA_DARWIN_X64}"
               end
             end
 
             on_linux do
               if Hardware::CPU.arm?
                 url "https://github.com/maheralaqil/mhost/releases/download/v${VERSION}/mhost-aarch64-unknown-linux-musl.tar.gz"
-                sha256 "${{ steps.sha.outputs.linux_arm64 }}"
+                sha256 "${SHA_LINUX_ARM}"
               else
                 url "https://github.com/maheralaqil/mhost/releases/download/v${VERSION}/mhost-x86_64-unknown-linux-musl.tar.gz"
-                sha256 "${{ steps.sha.outputs.linux_x64 }}"
+                sha256 "${SHA_LINUX_X64}"
               end
             end
 
@@ -289,7 +311,13 @@ jobs:
               assert_match "mhost #{version}", shell_output("#{bin}/mhost --version")
             end
           end
-          EOF
+          RUBY
+
+          # Remove leading whitespace (heredoc indentation)
+          sed -i 's/^          //' mhost.rb
+
+          echo "=== Generated Formula ==="
+          cat mhost.rb
 
       - name: Push to homebrew-tap
         uses: dmnemec/copy_file_to_another_repo_action@main
@@ -302,11 +330,10 @@ jobs:
           user_email: mhost@users.noreply.github.com
           user_name: mhost-bot
           commit_message: "mhost ${{ needs.version.outputs.version }}"
-        continue-on-error: true
 
-  # ─── 8. Deploy website ──────────────────────────────────────
+  # ─── 9. GitHub Pages ────────────────────────────────────────
   deploy-website:
-    name: Deploy Website
+    name: Website
     needs: [version, release]
     runs-on: ubuntu-latest
     environment:
@@ -321,11 +348,12 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
 
-  # ─── 9. Docker image ────────────────────────────────────────
+  # ─── 10. Docker ─────────────────────────────────────────────
   publish-docker:
-    name: Docker Image
-    needs: [version, release]
+    name: Docker
+    needs: [version, build, release]
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
