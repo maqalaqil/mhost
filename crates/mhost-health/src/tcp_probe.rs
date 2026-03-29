@@ -73,4 +73,34 @@ mod tests {
         };
         assert_eq!(run_tcp_check(&config).await, HealthStatus::Disabled);
     }
+
+    #[tokio::test]
+    async fn test_tcp_timeout_on_non_routable_address_returns_unhealthy() {
+        // 192.0.2.0/24 is TEST-NET-1 (RFC 5737) — packets are dropped, not refused,
+        // so the connection attempt will hang until our very short timeout fires.
+        let config = HealthConfig {
+            kind: HealthCheckKind::Tcp {
+                host: "192.0.2.1".to_string(),
+                port: 9999,
+            },
+            interval_ms: 5_000,
+            timeout_ms: 200, // very short to keep the test fast
+            retries: 1,
+        };
+        assert_eq!(run_tcp_check(&config).await, HealthStatus::Unhealthy);
+    }
+
+    #[tokio::test]
+    async fn test_tcp_http_kind_returns_disabled() {
+        let config = HealthConfig {
+            kind: HealthCheckKind::Http {
+                url: "http://localhost/health".to_string(),
+                expected_status: 200,
+            },
+            interval_ms: 5_000,
+            timeout_ms: 1_000,
+            retries: 1,
+        };
+        assert_eq!(run_tcp_check(&config).await, HealthStatus::Disabled);
+    }
 }

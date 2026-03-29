@@ -112,4 +112,44 @@ mod tests {
         pool.mark_unhealthy(99); // should not panic
         assert_eq!(pool.healthy_backends(), vec![0, 1]);
     }
+
+    #[test]
+    fn new_pool_active_connections_start_at_zero() {
+        let pool = make_pool(3);
+        for backend in &pool.backends {
+            assert_eq!(
+                backend.active_connections.load(Ordering::Relaxed),
+                0,
+                "all backends must start with zero active connections"
+            );
+        }
+    }
+
+    #[test]
+    fn active_connections_can_be_incremented_and_decremented() {
+        let pool = make_pool(2);
+        pool.backends[0].active_connections.fetch_add(1, Ordering::Relaxed);
+        pool.backends[0].active_connections.fetch_add(1, Ordering::Relaxed);
+        assert_eq!(pool.backends[0].active_connections.load(Ordering::Relaxed), 2);
+        pool.backends[0].active_connections.fetch_sub(1, Ordering::Relaxed);
+        assert_eq!(pool.backends[0].active_connections.load(Ordering::Relaxed), 1);
+    }
+
+    #[test]
+    fn new_pool_stores_addresses_correctly() {
+        let addrs: Vec<std::net::SocketAddr> = vec![
+            "127.0.0.1:8000".parse().unwrap(),
+            "127.0.0.1:8001".parse().unwrap(),
+        ];
+        let pool = BackendPool::new(addrs.clone());
+        assert_eq!(pool.backends.len(), 2);
+        assert_eq!(pool.backends[0].addr, addrs[0]);
+        assert_eq!(pool.backends[1].addr, addrs[1]);
+    }
+
+    #[test]
+    fn empty_pool_has_no_healthy_backends() {
+        let pool = BackendPool::new(vec![]);
+        assert!(pool.healthy_backends().is_empty());
+    }
 }

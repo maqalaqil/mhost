@@ -196,4 +196,95 @@ mod tests {
             .expect("runner should stop after shutdown")
             .expect("runner task should not panic");
     }
+
+    #[test]
+    fn runner_construction_stores_fields() {
+        let config = HealthConfig {
+            kind: HealthCheckKind::Script {
+                command: "true".to_string(),
+            },
+            interval_ms: 5_000,
+            timeout_ms: 2_000,
+            retries: 3,
+        };
+        let runner = HealthCheckRunner::new("my-service".to_string(), 7, config.clone());
+        assert_eq!(runner.process_name, "my-service");
+        assert_eq!(runner.instance, 7);
+        assert_eq!(runner.config, config);
+    }
+
+    #[test]
+    fn health_event_fields_are_correct() {
+        let event = HealthEvent {
+            process_name: "api".to_string(),
+            instance: 2,
+            status: mhost_core::health::HealthStatus::Healthy,
+        };
+        assert_eq!(event.process_name, "api");
+        assert_eq!(event.instance, 2);
+        assert_eq!(event.status, mhost_core::health::HealthStatus::Healthy);
+    }
+
+    #[tokio::test]
+    async fn test_runner_retries_before_unhealthy() {
+        // retries = 3: first two failures should produce Unknown, third → Unhealthy.
+        let config = HealthConfig {
+            kind: HealthCheckKind::Script {
+                command: "false".to_string(),
+            },
+            interval_ms: 10,
+            timeout_ms: 5_000,
+            retries: 3,
+        };
+
+        let runner = HealthCheckRunner::new("retry-test".to_string(), 0, config);
+        let (tx, mut rx) = mpsc::channel(16);
+        let (shutdown_tx, shutdown_rx) = oneshot::channel();
+
+        tokio::spawn(async move {
+            runner.run(tx, shutdown_rx).await;
+        });
+
+        let evt1 = rx.recv().await.unwrap();
+        let evt2 = rx.recv().await.unwrap();
+        let evt3 = rx.recv().await.unwrap();
+
+        // First two failures are still within retry budget → Unknown.
+        assert_eq!(evt1.status, mhost_core::health::HealthStatus::Unknown);
+        assert_eq!(evt2.status, mhost_core::health::HealthStatus::Unknown);
+        // Third failure exceeds retries → Unhealthy.
+        assert_eq!(evt3.status, mhost_core::health::HealthStatus::Unhealthy);
+
+        let _ = shutdown_tx.send(());
+    }
+
+    #[tokio::test]
+    async fn test_runner_multiple_probes_in_sequence() {
+        let config = HealthConfig {
+            kind: HealthCheckKind::Script {
+                command: "true".to_string(),
+            },
+            interval_ms: 10,
+            timeout_ms: 5_000,
+            retries: 1,
+        };
+
+        let runner = HealthCheckRunner::new("seq-test".to_string(), 1, config);
+        let (tx, mut rx) = mpsc::channel(16);
+        let (shutdown_tx, shutdown_rx) = oneshot::channel();
+
+        tokio::spawn(async move {
+            runner.run(tx, shutdown_rx).await;
+        });
+
+        // Collect 3 consecutive healthy events.
+        for _ in 0..3 {
+            let evt = rx.recv().await.expect("should receive event");
+            assert_eq!(evt.status, mhost_core::health::HealthStatus::Healthy);
+            assert_eq!(evt.process_name, "seq-test");
+            assert_eq!(evt.instance, 1);
+        }
+
+        let _ = shutdown_tx.send(());
+    }
 }

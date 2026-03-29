@@ -102,4 +102,41 @@ mod tests {
         assert_eq!(router.resolve("api.example.com"), Some("api-backend"));
         assert_eq!(router.resolve("www.example.com"), Some("web-backend"));
     }
+
+    #[test]
+    fn empty_router_returns_none_without_default() {
+        let router = ProxyRouter::new();
+        assert_eq!(router.resolve("anything.example.com"), None);
+    }
+
+    #[test]
+    fn empty_router_returns_default_when_set() {
+        let mut router = ProxyRouter::new();
+        router.set_default("catch-all");
+        assert_eq!(router.resolve("anything.example.com"), Some("catch-all"));
+    }
+
+    #[test]
+    fn route_overwrite_replaces_existing_mapping() {
+        let mut router = ProxyRouter::new();
+        router.add_route("example.com", "backend-v1");
+        router.add_route("example.com", "backend-v2");
+        assert_eq!(router.resolve("example.com"), Some("backend-v2"));
+    }
+
+    #[test]
+    fn known_host_takes_precedence_over_default() {
+        let mut router = ProxyRouter::new();
+        router.add_route("specific.com", "specific-backend");
+        router.set_default("default-backend");
+        assert_eq!(router.resolve("specific.com"), Some("specific-backend"));
+        assert_eq!(router.resolve("other.com"), Some("default-backend"));
+    }
+
+    #[test]
+    fn resolve_strips_port_and_lowercases() {
+        let mut router = ProxyRouter::new();
+        router.add_route("MY.DOMAIN.COM", "backend-x");
+        assert_eq!(router.resolve("My.Domain.Com:443"), Some("backend-x"));
+    }
 }

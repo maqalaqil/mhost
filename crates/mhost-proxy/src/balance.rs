@@ -201,4 +201,49 @@ mod tests {
             "ip-hash should spread load across backends"
         );
     }
+
+    #[test]
+    fn ip_hash_no_ip_falls_back_to_round_robin() {
+        // With no client IP, IpHash falls back to the internal counter.
+        let pool = make_pool(2);
+        let balancer = Balancer::new(Strategy::IpHash);
+        // Just ensure we get a valid backend index without panicking.
+        let result = balancer.select(&pool, None);
+        assert!(result.is_some(), "IpHash fallback must return Some");
+        assert!(result.unwrap() < 2, "index must be within pool bounds");
+    }
+
+    #[test]
+    fn round_robin_single_backend_always_returns_zero() {
+        let pool = make_pool(1);
+        let balancer = Balancer::new(Strategy::RoundRobin);
+        for _ in 0..5 {
+            assert_eq!(balancer.select(&pool, None), Some(0));
+        }
+    }
+
+    #[test]
+    fn least_connections_empty_healthy_returns_none() {
+        let pool = make_pool(1);
+        pool.mark_unhealthy(0);
+        let balancer = Balancer::new(Strategy::LeastConnections);
+        assert_eq!(balancer.select(&pool, None), None);
+    }
+
+    #[test]
+    fn least_connections_single_backend_returns_it() {
+        let pool = make_pool(1);
+        let balancer = Balancer::new(Strategy::LeastConnections);
+        assert_eq!(balancer.select(&pool, None), Some(0));
+    }
+
+    #[test]
+    fn ip_hash_returns_none_for_empty_pool() {
+        let pool = make_pool(2);
+        pool.mark_unhealthy(0);
+        pool.mark_unhealthy(1);
+        let balancer = Balancer::new(Strategy::IpHash);
+        let ip: IpAddr = "1.2.3.4".parse().unwrap();
+        assert_eq!(balancer.select(&pool, Some(ip)), None);
+    }
 }

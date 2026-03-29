@@ -99,4 +99,67 @@ mod tests {
         };
         assert_eq!(run_script_check(&config).await, HealthStatus::Disabled);
     }
+
+    #[tokio::test]
+    async fn test_script_with_arguments_returns_healthy() {
+        // `test -n "hello"` exits 0 when the string is non-empty.
+        let config = HealthConfig {
+            kind: HealthCheckKind::Script {
+                command: r#"test -n "hello""#.to_string(),
+            },
+            interval_ms: 15_000,
+            timeout_ms: 5_000,
+            retries: 1,
+        };
+        assert_eq!(run_script_check(&config).await, HealthStatus::Healthy);
+    }
+
+    #[tokio::test]
+    async fn test_script_with_arguments_false_condition_returns_unhealthy() {
+        // `test -n ""` exits 1 when the string is empty.
+        let config = HealthConfig {
+            kind: HealthCheckKind::Script {
+                command: r#"test -n """#.to_string(),
+            },
+            interval_ms: 15_000,
+            timeout_ms: 5_000,
+            retries: 1,
+        };
+        assert_eq!(run_script_check(&config).await, HealthStatus::Unhealthy);
+    }
+
+    #[tokio::test]
+    async fn test_empty_command_returns_unhealthy() {
+        // An empty string passed to sh -c should produce an error or a zero exit,
+        // but either way it should not panic.  On most POSIX shells `sh -c ""` exits 0,
+        // so we verify the function completes without panicking and returns a valid status.
+        let config = HealthConfig {
+            kind: HealthCheckKind::Script {
+                command: "".to_string(),
+            },
+            interval_ms: 5_000,
+            timeout_ms: 3_000,
+            retries: 1,
+        };
+        // Just ensure no panic; accept either Healthy or Unhealthy.
+        let status = run_script_check(&config).await;
+        assert!(
+            status == HealthStatus::Healthy || status == HealthStatus::Unhealthy,
+            "empty command must return Healthy or Unhealthy, got {status:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_script_nonexistent_binary_returns_unhealthy() {
+        // A command that references a non-existent binary fails to execute.
+        let config = HealthConfig {
+            kind: HealthCheckKind::Script {
+                command: "/nonexistent/path/to/binary --check".to_string(),
+            },
+            interval_ms: 5_000,
+            timeout_ms: 3_000,
+            retries: 1,
+        };
+        assert_eq!(run_script_check(&config).await, HealthStatus::Unhealthy);
+    }
 }

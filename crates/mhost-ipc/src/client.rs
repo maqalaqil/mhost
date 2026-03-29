@@ -60,4 +60,44 @@ mod tests {
         let client = IpcClient::new(Path::new("/tmp/mhost-no-such-daemon.sock"));
         assert!(!client.is_daemon_running(), "daemon should not be detected");
     }
+
+    // -- call() fails gracefully when socket does not exist ----------------
+
+    #[tokio::test]
+    async fn test_call_returns_error_for_nonexistent_socket() {
+        let client = IpcClient::new(Path::new("/tmp/mhost-definitely-gone.sock"));
+        let err = client
+            .call("daemon.ping", serde_json::Value::Null)
+            .await
+            .expect_err("call to missing socket must return an error");
+        // Any I/O error is acceptable (NotFound or ConnectionRefused).
+        assert!(
+            err.kind() == std::io::ErrorKind::NotFound
+                || err.kind() == std::io::ErrorKind::ConnectionRefused,
+            "unexpected error kind: {:?}",
+            err.kind()
+        );
+    }
+
+    // -- Request ID counter increments with each call ----------------------
+
+    #[tokio::test]
+    async fn test_request_id_increments() {
+        use std::sync::atomic::Ordering;
+        // Read the internal counter directly to verify it increments.
+        let client = IpcClient::new(Path::new("/tmp/mhost-counter-test.sock"));
+        let initial = client.counter.load(Ordering::Relaxed);
+        // Attempt a call (will fail — no server), but the counter fetch_add runs first.
+        let _ = client
+            .call("daemon.ping", serde_json::Value::Null)
+            .await;
+        let after_first = client.counter.load(Ordering::Relaxed);
+        let _ = client
+            .call("daemon.ping", serde_json::Value::Null)
+            .await;
+        let after_second = client.counter.load(Ordering::Relaxed);
+
+        assert_eq!(after_first, initial + 1, "counter should increment by 1 per call");
+        assert_eq!(after_second, initial + 2, "counter should increment by 1 per call");
+    }
 }

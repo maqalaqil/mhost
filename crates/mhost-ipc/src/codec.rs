@@ -145,4 +145,76 @@ mod tests {
             err
         );
     }
+
+    // -- Empty frame (zero-length payload) ---------------------------------
+
+    #[tokio::test]
+    async fn test_empty_frame_roundtrip() {
+        let result = roundtrip_frame(b"").await;
+        assert!(result.is_empty(), "empty payload should roundtrip as empty vec");
+    }
+
+    // -- Multiple frames in sequence (write two, read two) -----------------
+
+    #[tokio::test]
+    async fn test_multiple_frames_in_sequence() {
+        let mut buf: Vec<u8> = Vec::new();
+        write_frame(&mut buf, b"first").await.expect("write first");
+        write_frame(&mut buf, b"second").await.expect("write second");
+        write_frame(&mut buf, b"third").await.expect("write third");
+
+        let mut cursor = Cursor::new(buf);
+        let f1 = read_frame(&mut cursor).await.expect("read first");
+        let f2 = read_frame(&mut cursor).await.expect("read second");
+        let f3 = read_frame(&mut cursor).await.expect("read third");
+
+        assert_eq!(f1, b"first");
+        assert_eq!(f2, b"second");
+        assert_eq!(f3, b"third");
+    }
+
+    // -- Large payload just under the 10 MB limit is accepted --------------
+
+    #[tokio::test]
+    async fn test_large_payload_under_limit_accepted() {
+        // 9 MB is below the 10 MB MAX_FRAME_SIZE limit.
+        let payload = vec![0xABu8; 9 * 1024 * 1024];
+        let result = roundtrip_frame(&payload).await;
+        assert_eq!(result.len(), payload.len());
+        assert_eq!(result, payload);
+    }
+
+    // -- Exact 10 MB boundary: 10 MB + 1 byte is rejected -----------------
+
+    #[tokio::test]
+    async fn test_exact_boundary_plus_one_byte_rejected() {
+        // Claim exactly MAX_FRAME_SIZE + 1 in the length header.
+        let over_limit: u32 = 10 * 1024 * 1024 + 1;
+        let mut buf: Vec<u8> = Vec::new();
+        buf.extend_from_slice(&over_limit.to_be_bytes());
+        let mut cursor = Cursor::new(buf);
+        let err = read_frame(&mut cursor)
+            .await
+            .expect_err("frame one byte over limit must be rejected");
+        assert!(
+            err.to_string().contains("too large"),
+            "expected 'too large' error, got: {err}"
+        );
+    }
+
+    // -- Exactly MAX_FRAME_SIZE (10 MB) is accepted ------------------------
+
+    #[tokio::test]
+    async fn test_exact_max_frame_size_accepted() {
+        // Build a frame whose header claims exactly 10 MB and provides that many bytes.
+        let max: usize = 10 * 1024 * 1024;
+        let payload = vec![0u8; max];
+        let mut buf: Vec<u8> = Vec::new();
+        write_frame(&mut buf, &payload).await.expect("write 10 MB frame");
+        let mut cursor = Cursor::new(buf);
+        let result = read_frame(&mut cursor)
+            .await
+            .expect("10 MB frame must be accepted");
+        assert_eq!(result.len(), max);
+    }
 }
