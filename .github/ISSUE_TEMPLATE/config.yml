@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/maheralaqil/mhost#readme
+    about: Check the README for usage and configuration docs.
+  - name: Discussions
+    url: https://github.com/maheralaqil/mhost/discussions
+    about: Ask questions and share ideas in Discussions.

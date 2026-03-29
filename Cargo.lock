@@ -1631,6 +1631,7 @@ dependencies = [
  "dirs",
  "libc",
  "mhost-ai",
+ "mhost-bot",
  "mhost-cloud",
  "mhost-config",
  "mhost-core",

@@ -1,0 +1,62 @@
+name: Bug Report
+description: Report a bug in mhost
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting a bug! Please fill out the details below.
+
+  - type: input
+    id: version
+    attributes:
+      label: mhost version
+      description: Run `mhost --version`
+      placeholder: "mhost 0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Linux (x86_64)
+        - Linux (ARM64)
+        - Windows (x86_64)
+        - Windows (ARM64)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: What happened? What did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this?
+      value: |
+        1. Run `mhost ...`
+        2. ...
+        3. See error
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste any error output, daemon logs, or relevant output.
+      render: shell
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Config file (if relevant)
+      render: toml

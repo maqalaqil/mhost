@@ -6,40 +6,55 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # ─── Build binaries for all platforms ───────────────────────
   build:
+    name: Build (${{ matrix.target }})
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: x86_64-apple-darwin
             os: macos-latest
+            artifact: mhost-x86_64-apple-darwin
           - target: aarch64-apple-darwin
             os: macos-latest
+            artifact: mhost-aarch64-apple-darwin
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
             cross: true
+            artifact: mhost-x86_64-unknown-linux-musl
           - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
             cross: true
+            artifact: mhost-aarch64-unknown-linux-musl
           - target: x86_64-pc-windows-msvc
             os: windows-latest
+            artifact: mhost-x86_64-pc-windows-msvc
           - target: aarch64-pc-windows-msvc
             os: windows-latest
+            artifact: mhost-aarch64-pc-windows-msvc
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install cross (Linux)
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install cross
         if: matrix.cross
-        run: cargo install cross
+        run: cargo install cross --locked
 
       - name: Build (native)
         if: "!matrix.cross"
@@ -53,35 +68,73 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           cd target/${{ matrix.target }}/release
-          tar czf ../../../mhost-${{ matrix.target }}.tar.gz mhost mhostd
+          chmod +x mhost mhostd
+          tar czf ../../../${{ matrix.artifact }}.tar.gz mhost mhostd
           cd ../../..
+          shasum -a 256 ${{ matrix.artifact }}.tar.gz > ${{ matrix.artifact }}.tar.gz.sha256
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           cd target/${{ matrix.target }}/release
-          7z a ../../../mhost-${{ matrix.target }}.zip mhost.exe mhostd.exe
+          7z a ../../../${{ matrix.artifact }}.zip mhost.exe mhostd.exe
           cd ../../..
+          Get-FileHash ${{ matrix.artifact }}.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  ${{ matrix.artifact }}.zip" } | Out-File -Encoding ascii ${{ matrix.artifact }}.zip.sha256
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mhost-${{ matrix.target }}
-          path: mhost-${{ matrix.target }}.*
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}.tar.gz
+            ${{ matrix.artifact }}.tar.gz.sha256
+            ${{ matrix.artifact }}.zip
+            ${{ matrix.artifact }}.zip.sha256
+          if-no-files-found: ignore
 
+  # ─── Create GitHub Release ──────────────────────────────────
   release:
+    name: GitHub Release
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
+          path: artifacts
+
+      - name: List artifacts
+        run: ls -la artifacts/
+
+      - name: Create checksums file
+        run: |
+          cd artifacts
+          cat *.sha256 > checksums.txt
+          cat checksums.txt
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: mhost-*
+          files: |
+            artifacts/*.tar.gz
+            artifacts/*.zip
+            artifacts/checksums.txt
           generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  # ─── Publish to npm ─────────────────────────────────────────
   publish-npm:
+    name: Publish npm
     needs: release
     runs-on: ubuntu-latest
     steps:
@@ -90,22 +143,191 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
-      - run: cd npm-package && npm publish
+
+      - name: Update npm package version
+        run: |
+          cd npm-package
+          npm version ${{ needs.release.outputs.version }} --no-git-tag-version --allow-same-version
+
+      - name: Publish
+        run: cd npm-package && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  publish-crate:
+  # ─── Publish to crates.io ───────────────────────────────────
+  publish-crates:
+    name: Publish crates.io
     needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo publish -p mhost-core
+
+      - name: Publish crates (dependency order)
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
-      - run: sleep 30 && cargo publish -p mhost-config
+        run: |
+          cargo publish -p mhost-core --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-config --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-ipc --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-logs --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-health --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-notify --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-metrics --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-ai --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-proxy --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-deploy --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-cloud --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-bot --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-tui --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-daemon --allow-dirty || true
+          sleep 30
+          cargo publish -p mhost-cli --allow-dirty || true
+
+  # ─── Update Homebrew tap ────────────────────────────────────
+  publish-homebrew:
+    name: Update Homebrew
+    needs: [release, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: artifacts
+
+      - name: Compute SHA256 sums
+        id: sha
+        run: |
+          echo "darwin_arm64=$(shasum -a 256 artifacts/mhost-aarch64-apple-darwin.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "darwin_x64=$(shasum -a 256 artifacts/mhost-x86_64-apple-darwin.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$(shasum -a 256 artifacts/mhost-aarch64-unknown-linux-musl.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_x64=$(shasum -a 256 artifacts/mhost-x86_64-unknown-linux-musl.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Generate formula
+        run: |
+          cat > mhost.rb << 'FORMULA'
+          class Mhost < Formula
+            desc "AI-powered process manager written in Rust"
+            homepage "https://github.com/maheralaqil/mhost"
+            version "${{ needs.release.outputs.version }}"
+            license "MIT"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "https://github.com/maheralaqil/mhost/releases/download/v${{ needs.release.outputs.version }}/mhost-aarch64-apple-darwin.tar.gz"
+                sha256 "${{ steps.sha.outputs.darwin_arm64 }}"
+              else
+                url "https://github.com/maheralaqil/mhost/releases/download/v${{ needs.release.outputs.version }}/mhost-x86_64-apple-darwin.tar.gz"
+                sha256 "${{ steps.sha.outputs.darwin_x64 }}"
+              end
+            end
+
+            on_linux do
+              if Hardware::CPU.arm?
+                url "https://github.com/maheralaqil/mhost/releases/download/v${{ needs.release.outputs.version }}/mhost-aarch64-unknown-linux-musl.tar.gz"
+                sha256 "${{ steps.sha.outputs.linux_arm64 }}"
+              else
+                url "https://github.com/maheralaqil/mhost/releases/download/v${{ needs.release.outputs.version }}/mhost-x86_64-unknown-linux-musl.tar.gz"
+                sha256 "${{ steps.sha.outputs.linux_x64 }}"
+              end
+            end
+
+            def install
+              bin.install "mhost"
+              bin.install "mhostd"
+              generate_completions_from_executable(bin/"mhost", "completion")
+            end
+
+            test do
+              assert_match "mhost #{version}", shell_output("#{bin}/mhost --version")
+            end
+          end
+          FORMULA
+
+      - name: Push to homebrew-tap
+        uses: dmnemec/copy_file_to_another_repo_action@main
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
-      - run: sleep 30 && cargo publish -p mhost-cli
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
+          API_TOKEN_GITHUB: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        with:
+          source_file: mhost.rb
+          destination_repo: maheralaqil/homebrew-tap
+          destination_folder: Formula
+          user_email: mhost@users.noreply.github.com
+          user_name: mhost-bot
+          commit_message: "Update mhost to ${{ needs.release.outputs.version }}"
+
+  # ─── Deploy website to GitHub Pages ─────────────────────────
+  deploy-website:
+    name: Deploy Website
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ─── Docker image ───────────────────────────────────────────
+  publish-docker:
+    name: Docker Image
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mhost-x86_64-unknown-linux-musl
+          path: docker-build
+
+      - name: Extract binary
+        run: |
+          cd docker-build
+          tar xzf mhost-x86_64-unknown-linux-musl.tar.gz
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ghcr.io/maheralaqil/mhost:${{ needs.release.outputs.version }}
+            ghcr.io/maheralaqil/mhost:latest
