@@ -59,7 +59,7 @@ brew install maqalaqil/tap/mhost
 <tr><td><b>npm</b></td><td>
 
 ```bash
-npm install -g mhost
+npm install -g @maqalaqil93/mhost
 ```
 
 </td></tr>
