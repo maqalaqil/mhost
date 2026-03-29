@@ -13,6 +13,7 @@ pub mod list;
 pub mod logs;
 pub mod metrics;
 pub mod monit;
+pub mod notify;
 pub mod ping;
 pub mod proxy_cmd;
 pub mod restart;

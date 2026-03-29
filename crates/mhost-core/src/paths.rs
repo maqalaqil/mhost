@@ -38,6 +38,7 @@ impl MhostPaths {
 
     pub fn daemon_log(&self) -> PathBuf { self.logs_dir().join("daemon.log") }
     pub fn dump_file(&self) -> PathBuf { self.root.join("dump.json") }
+    pub fn notify_config(&self) -> PathBuf { self.root.join("notify.json") }
 
     pub fn ensure_dirs(&self) -> std::io::Result<()> {
         std::fs::create_dir_all(&self.root)?;

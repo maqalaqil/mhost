@@ -7,7 +7,7 @@ use clap::Parser;
 use mhost_core::paths::MhostPaths;
 use mhost_ipc::IpcClient;
 
-use cli::{Cli, Commands, MetricsAction};
+use cli::{Cli, Commands, MetricsAction, NotifyAction};
 
 #[tokio::main]
 async fn main() {
@@ -33,6 +33,20 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             Ok(())
         }
         Commands::History { name } => commands::history::run(paths, &name),
+        Commands::Notify { action } => match action {
+            NotifyAction::Setup => commands::notify::run_setup(&paths.notify_config()),
+            NotifyAction::List => commands::notify::run_list(&paths.notify_config()),
+            NotifyAction::Remove { channel } => commands::notify::run_remove(&paths.notify_config(), &channel),
+            NotifyAction::Enable { channel } => commands::notify::run_enable(&paths.notify_config(), &channel, true),
+            NotifyAction::Disable { channel } => commands::notify::run_enable(&paths.notify_config(), &channel, false),
+            NotifyAction::Events { channel } => commands::notify::run_events(&paths.notify_config(), channel.as_deref()),
+            NotifyAction::Test { channel } => commands::notify::run_test(&paths.notify_config(), &channel).await,
+            NotifyAction::Start => {
+                daemon_launcher::ensure_daemon_running(paths)?;
+                let client = IpcClient::new(&paths.socket());
+                commands::notify::run_start(&paths.notify_config(), &client).await
+            }
+        },
         Commands::Logs {
             name,
             lines,
@@ -136,6 +150,7 @@ async fn dispatch_daemon(
         | Commands::SelfUpdate
         | Commands::Completion { .. }
         | Commands::History { .. }
-        | Commands::Logs { .. } => unreachable!(),
+        | Commands::Logs { .. }
+        | Commands::Notify { .. } => unreachable!(),
     }
 }

@@ -31,6 +31,45 @@ pub enum MetricsAction {
     },
 }
 
+// ---------------------------------------------------------------------------
+// Notify subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum NotifyAction {
+    /// Interactive setup wizard to add a notification channel.
+    Setup,
+    /// List all configured notification channels.
+    List,
+    /// Send a test notification to a channel.
+    Test {
+        /// Channel name to test.
+        channel: String,
+    },
+    /// Remove a notification channel.
+    Remove {
+        /// Channel name to remove.
+        channel: String,
+    },
+    /// Enable a notification channel.
+    Enable {
+        /// Channel name to enable.
+        channel: String,
+    },
+    /// Disable a notification channel.
+    Disable {
+        /// Channel name to disable.
+        channel: String,
+    },
+    /// Show available alert events and channel subscriptions.
+    Events {
+        /// Show events for a specific channel.
+        channel: Option<String>,
+    },
+    /// Start the notifier as a managed mhost process.
+    Start,
+}
+
 #[derive(Parser)]
 #[command(
     name = "mhost",
@@ -179,6 +218,12 @@ pub enum Commands {
     Metrics {
         #[command(subcommand)]
         action: MetricsAction,
+    },
+
+    /// Configure and manage notification channels (Telegram, Slack, Discord, Webhook).
+    Notify {
+        #[command(subcommand)]
+        action: NotifyAction,
     },
 
     /// Check for a newer mhost release and update if available.
