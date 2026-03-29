@@ -127,6 +127,26 @@ nav .cta-btn:hover{background:var(--accent2);transform:translateY(-1px);box-shad
 .install-card code{font-family:var(--mono);font-size:.8rem;color:var(--accent3);background:rgba(99,102,241,.08);padding:2px 8px;border-radius:4px}
 .install-icon{font-size:1.5rem;width:40px;text-align:center;flex-shrink:0}
 
+/* ─── Copy Button ──────────────────────────────────────────── */
+.copyable{position:relative;cursor:pointer}
+.copyable:hover{background:rgba(99,102,241,.15)!important}
+.copy-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--bg4);border:1px solid var(--border);color:var(--text3);padding:4px 10px;border-radius:6px;font-size:.7rem;font-family:var(--font);cursor:pointer;opacity:0;transition:opacity .2s}
+.copyable:hover .copy-btn{opacity:1}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.copy-btn.copied{background:var(--green);color:#fff;border-color:var(--green);opacity:1}
+.install-card{position:relative}
+.install-card .copy-btn{right:12px}
+
+/* ─── Animated Terminal Demo ───────────────────────────────── */
+.demo-terminal{background:var(--bg3);border:1px solid var(--border);border-radius:16px;overflow:hidden;max-width:900px;margin:0 auto;box-shadow:var(--glow),0 20px 60px rgba(0,0,0,.5)}
+.demo-line{opacity:0;transform:translateX(-10px);transition:opacity .4s,transform .4s;font-family:var(--mono);font-size:.85rem;line-height:1.8;padding:0 24px}
+.demo-line.visible{opacity:1;transform:translateX(0)}
+.demo-line.output{padding-left:40px}
+.demo-progress{height:3px;background:var(--bg4);border-radius:2px;margin:8px 24px;overflow:hidden}
+.demo-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--green2));width:0;border-radius:2px;transition:width 1.5s ease-out}
+.demo-spinner{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* ─── Code Blocks ──────────────────────────────────────────── */
 .code-block{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:24px;font-family:var(--mono);font-size:.85rem;line-height:1.8;overflow-x:auto;margin:24px 0}
 .code-block .comment{color:var(--text3)}
@@ -500,30 +520,62 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
       <h2 style="font-size:2.5rem;font-weight:800;margin-top:16px;letter-spacing:-1px">Install in seconds.</h2>
     </div>
     <div class="install-grid fade-in">
-      <div class="install-card">
+      <div class="install-card copyable" data-copy="brew install maheralaqil/tap/mhost">
         <div class="install-icon">&#127866;</div>
         <div><div class="install-name">Homebrew</div><code>brew install maheralaqil/tap/mhost</code></div>
+        <button class="copy-btn">Copy</button>
       </div>
-      <div class="install-card">
+      <div class="install-card copyable" data-copy="npm install -g mhost">
         <div class="install-icon">&#128230;</div>
         <div><div class="install-name">npm</div><code>npm install -g mhost</code></div>
+        <button class="copy-btn">Copy</button>
       </div>
-      <div class="install-card">
+      <div class="install-card copyable" data-copy="cargo install mhost">
         <div class="install-icon">&#9881;</div>
         <div><div class="install-name">Cargo</div><code>cargo install mhost</code></div>
+        <button class="copy-btn">Copy</button>
       </div>
-      <div class="install-card">
+      <div class="install-card copyable" data-copy="curl -fsSL mhost.dev/install.sh | sh">
         <div class="install-icon">&#10548;</div>
         <div><div class="install-name">curl</div><code>curl -fsSL mhost.dev/install.sh | sh</code></div>
+        <button class="copy-btn">Copy</button>
       </div>
-      <div class="install-card">
+      <div class="install-card copyable" data-copy="irm mhost.dev/install.ps1 | iex">
         <div class="install-icon">&#9638;</div>
         <div><div class="install-name">PowerShell</div><code>irm mhost.dev/install.ps1 | iex</code></div>
+        <button class="copy-btn">Copy</button>
       </div>
-      <div class="install-card">
+      <div class="install-card copyable" data-copy="git clone https://github.com/maheralaqil/mhost && cd mhost && cargo build --release">
         <div class="install-icon">&#128187;</div>
         <div><div class="install-name">From Source</div><code>git clone && cargo build --release</code></div>
+        <button class="copy-btn">Copy</button>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Live Demo Terminal ────────────────────────────────── -->
+<section class="section section-alt" id="demo">
+  <div class="container">
+    <div class="text-center fade-in">
+      <span class="badge badge-accent">See It In Action</span>
+      <h2 style="font-size:2.5rem;font-weight:800;margin-top:16px;letter-spacing:-1px">From zero to production<br>in 60 seconds.</h2>
+    </div>
+
+    <div class="demo-terminal fade-in" id="demo-terminal" style="margin-top:48px">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <span class="terminal-title">~/myapp</span>
+      </div>
+      <div style="padding:20px 0" id="demo-lines">
+        <!-- Lines injected by JS animation -->
+      </div>
+    </div>
+
+    <div class="text-center fade-in" style="margin-top:32px">
+      <button class="btn-secondary" onclick="replayDemo()" style="font-size:.85rem;padding:10px 24px">Replay Demo</button>
     </div>
   </div>
 </section>
@@ -729,6 +781,152 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
+
+// ── Copy to clipboard ──
+document.querySelectorAll('.copyable').forEach(el => {
+  el.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('copy-btn') || el.dataset.copy) {
+      const text = el.dataset.copy || el.querySelector('code')?.textContent || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = el.querySelector('.copy-btn');
+        if (btn) {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        }
+      } catch {}
+    }
+  });
+});
+
+// Also make standalone code blocks copyable on click
+document.querySelectorAll('.code-block').forEach(block => {
+  block.style.cursor = 'pointer';
+  block.style.position = 'relative';
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'Copy';
+  btn.style.opacity = '0';
+  btn.style.position = 'absolute';
+  btn.style.right = '12px';
+  btn.style.top = '12px';
+  block.appendChild(btn);
+  block.addEventListener('mouseenter', () => btn.style.opacity = '1');
+  block.addEventListener('mouseleave', () => { if (!btn.classList.contains('copied')) btn.style.opacity = '0'; });
+  block.addEventListener('click', async () => {
+    const text = block.textContent.replace('Copy','').replace('Copied!','').trim();
+    try {
+      await navigator.clipboard.writeText(text);
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      btn.style.opacity = '1';
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); btn.style.opacity = '0'; }, 2000);
+    } catch {}
+  });
+});
+
+// ── Animated Terminal Demo ──
+const demoSteps = [
+  { type: 'cmd', text: '$ curl -fsSL mhost.dev/install.sh | sh', delay: 0 },
+  { type: 'out', text: 'Downloading mhost v0.1.0 for aarch64-apple-darwin...', delay: 800 },
+  { type: 'progress', target: 100, delay: 400 },
+  { type: 'out', text: '<span style="color:var(--green2)">&#10003;</span> mhost installed to /usr/local/bin/mhost', delay: 1800 },
+  { type: 'gap', delay: 600 },
+
+  { type: 'cmd', text: '$ mhost start mhost.toml', delay: 400 },
+  { type: 'out', text: '<span style="color:var(--green2)">&#10003;</span> Started \'api-server\'', delay: 600 },
+  { type: 'out', text: '<span style="color:var(--green2)">&#10003;</span> Started \'worker\' (2 instances)', delay: 300 },
+  { type: 'out', text: '<span style="color:var(--green2)">&#10003;</span> Started \'frontend\'', delay: 300 },
+  { type: 'gap', delay: 500 },
+
+  { type: 'cmd', text: '$ mhost list', delay: 400 },
+  { type: 'out', text: '<span style="color:var(--text3)">id   name          status     pid    cpu   mem     uptime</span>', delay: 300 },
+  { type: 'out', text: '<span style="color:var(--text3)">------------------------------------------------------------</span>', delay: 100 },
+  { type: 'out', text: 'a1b2 api-server    <span style="color:var(--green2)">&#9679; online</span>   12345  12%   128MB   3s', delay: 200 },
+  { type: 'out', text: 'c3d4 worker        <span style="color:var(--green2)">&#9679; online</span>   12346   3%    64MB   3s', delay: 150 },
+  { type: 'out', text: 'e5f6 worker        <span style="color:var(--green2)">&#9679; online</span>   12347   3%    62MB   3s', delay: 150 },
+  { type: 'out', text: 'g7h8 frontend      <span style="color:var(--green2)">&#9679; online</span>   12348   1%    32MB   3s', delay: 150 },
+  { type: 'gap', delay: 600 },
+
+  { type: 'cmd', text: '$ mhost notify setup', delay: 400 },
+  { type: 'out', text: '  Select channel: <span style="color:var(--accent3)">1) Telegram</span>  2) Slack  3) Discord', delay: 500 },
+  { type: 'out', text: '  Bot token: <span style="color:var(--text3)">***********</span>', delay: 400 },
+  { type: 'out', text: '<span style="color:var(--green2)">&#10003;</span> Channel \'telegram\' configured', delay: 300 },
+  { type: 'gap', delay: 500 },
+
+  { type: 'cmd', text: '$ mhost scale worker 4', delay: 400 },
+  { type: 'out', text: '<span style="color:var(--green2)">&#10003;</span> Scaled \'worker\' to 4 instances', delay: 400 },
+  { type: 'gap', delay: 500 },
+
+  { type: 'cmd', text: '$ mhost ai diagnose api-server', delay: 400 },
+  { type: 'out', text: '  <span style="color:var(--accent3)">Analyzing...</span>', delay: 800 },
+  { type: 'out', text: '  <span style="color:var(--cyan)">Root Cause:</span> Connection pool exhaustion (10/10)', delay: 600 },
+  { type: 'out', text: '  <span style="color:var(--cyan)">Fix:</span> Increase pool_size to 25', delay: 300 },
+  { type: 'out', text: '  <span style="color:var(--cyan)">Prevention:</span> Add pool utilization alert', delay: 300 },
+  { type: 'gap', delay: 600 },
+
+  { type: 'cmd', text: '$ mhost monit', delay: 400 },
+  { type: 'out', text: '  <span style="color:var(--green2)">Launching TUI dashboard...</span> <span style="color:var(--text3)">(press q to quit)</span>', delay: 500 },
+  { type: 'done', delay: 300 },
+];
+
+let demoRunning = false;
+async function runDemo() {
+  if (demoRunning) return;
+  demoRunning = true;
+  const container = document.getElementById('demo-lines');
+  container.innerHTML = '';
+
+  let totalDelay = 0;
+  for (const step of demoSteps) {
+    totalDelay += step.delay;
+    const d = totalDelay;
+
+    if (step.type === 'cmd') {
+      setTimeout(() => {
+        const line = document.createElement('div');
+        line.className = 'demo-line';
+        line.innerHTML = `<span style="color:var(--green2)">${step.text.substring(0,1)}</span> <span style="color:var(--text)">${step.text.substring(2)}</span>`;
+        container.appendChild(line);
+        requestAnimationFrame(() => line.classList.add('visible'));
+      }, d);
+    } else if (step.type === 'out') {
+      setTimeout(() => {
+        const line = document.createElement('div');
+        line.className = 'demo-line output';
+        line.innerHTML = step.text;
+        container.appendChild(line);
+        requestAnimationFrame(() => line.classList.add('visible'));
+      }, d);
+    } else if (step.type === 'progress') {
+      setTimeout(() => {
+        const bar = document.createElement('div');
+        bar.className = 'demo-progress';
+        bar.innerHTML = '<div class="demo-progress-bar"></div>';
+        container.appendChild(bar);
+        requestAnimationFrame(() => {
+          bar.querySelector('.demo-progress-bar').style.width = step.target + '%';
+        });
+      }, d);
+    } else if (step.type === 'gap') {
+      // just a pause, no visual
+    } else if (step.type === 'done') {
+      setTimeout(() => { demoRunning = false; }, d);
+    }
+  }
+}
+
+function replayDemo() { demoRunning = false; runDemo(); }
+
+// Auto-play demo when scrolled into view
+const demoObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { runDemo(); demoObserver.unobserve(e.target); }
+  });
+}, { threshold: 0.3 });
+const demoEl = document.getElementById('demo-terminal');
+if (demoEl) demoObserver.observe(demoEl);
 </script>
 
 </body>
