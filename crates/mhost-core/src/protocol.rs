@@ -140,6 +140,11 @@ pub mod methods {
     pub const METRICS_HISTORY: &str = "metrics.history";
     pub const METRICS_START_PROMETHEUS: &str = "metrics.start_prometheus";
     pub const NOTIFY_TEST: &str = "notify.test";
+
+    pub const DEPLOY_EXECUTE: &str = "deploy.execute";
+    pub const DEPLOY_ROLLBACK: &str = "deploy.rollback";
+    pub const PROXY_LIST: &str = "proxy.list";
+    pub const PROXY_RELOAD: &str = "proxy.reload";
 }
 
 // ---------------------------------------------------------------------------

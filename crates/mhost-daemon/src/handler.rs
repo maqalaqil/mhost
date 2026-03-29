@@ -581,6 +581,56 @@ impl Handler {
             }
 
             // ----------------------------------------------------------------
+            // deploy.execute  (stub)
+            // ----------------------------------------------------------------
+            methods::DEPLOY_EXECUTE => {
+                let env = req
+                    .params
+                    .get("env")
+                    .and_then(Value::as_str)
+                    .unwrap_or("unknown")
+                    .to_string();
+                let resp = RpcResponse::success(
+                    id,
+                    json!({ "acknowledged": true, "env": env, "status": "queued" }),
+                );
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
+            // deploy.rollback  (stub)
+            // ----------------------------------------------------------------
+            methods::DEPLOY_ROLLBACK => {
+                let env = req
+                    .params
+                    .get("env")
+                    .and_then(Value::as_str)
+                    .unwrap_or("unknown")
+                    .to_string();
+                let resp = RpcResponse::success(
+                    id,
+                    json!({ "acknowledged": true, "env": env, "status": "rolled_back" }),
+                );
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
+            // proxy.list  (stub)
+            // ----------------------------------------------------------------
+            methods::PROXY_LIST => {
+                let resp = RpcResponse::success(id, json!({ "routes": [] }));
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
+            // proxy.reload  (stub)
+            // ----------------------------------------------------------------
+            methods::PROXY_RELOAD => {
+                let resp = RpcResponse::success(id, json!({ "acknowledged": true }));
+                (resp, false)
+            }
+
+            // ----------------------------------------------------------------
             // daemon.kill
             // ----------------------------------------------------------------
             methods::DAEMON_KILL => {

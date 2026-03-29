@@ -15,6 +15,7 @@ mhost-core = { path = "../mhost-core" }
 mhost-config = { path = "../mhost-config" }
 mhost-ipc = { path = "../mhost-ipc" }
 mhost-logs = { path = "../mhost-logs" }
+mhost-tui = { path = "../mhost-tui" }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

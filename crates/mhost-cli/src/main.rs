@@ -125,6 +125,11 @@ async fn dispatch_daemon(
             }
         },
 
+        Commands::Monit => commands::monit::run(client).await,
+        Commands::Deploy { env } => commands::deploy::run(client, &env).await,
+        Commands::Rollback { env } => commands::rollback::run(client, &env).await,
+        Commands::Proxy => commands::proxy_cmd::run(client).await,
+
         // These are handled earlier; this arm is unreachable.
         Commands::Startup
         | Commands::Unstartup

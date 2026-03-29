@@ -132,6 +132,9 @@ mod tests {
 
     #[test]
     fn build_server_config_succeeds_with_valid_cert_and_key() {
+        // Install the default rustls crypto provider (ring) so that
+        // ServerConfig::builder() can resolve a provider.
+        let _ = rustls::crypto::ring::default_provider().install_default();
         let (certs, key) = generate_self_signed_cert(&["localhost"]).unwrap();
         let result = build_server_config(certs, key);
         assert!(result.is_ok(), "expected Ok, got {result:?}");

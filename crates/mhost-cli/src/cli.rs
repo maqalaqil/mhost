@@ -189,4 +189,22 @@ pub enum Commands {
         #[arg(value_enum)]
         shell: Shell,
     },
+
+    /// Launch the interactive TUI dashboard.
+    Monit,
+
+    /// Deploy an environment defined in the ecosystem config.
+    Deploy {
+        /// Environment name (e.g. "production").
+        env: String,
+    },
+
+    /// Rollback an environment to the previous deploy.
+    Rollback {
+        /// Environment name (e.g. "production").
+        env: String,
+    },
+
+    /// Show proxy routes.
+    Proxy,
 }

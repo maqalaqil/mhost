@@ -423,6 +423,43 @@ pub struct EscalationConfig {
 }
 
 // ---------------------------------------------------------------------------
+// DeployEnvConfig
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployEnvConfig {
+    pub repo: String,
+    pub branch: String,
+    pub path: String,
+    #[serde(default)]
+    pub pre_deploy: Vec<String>,
+    #[serde(default)]
+    pub post_deploy: Vec<String>,
+}
+
+// ---------------------------------------------------------------------------
+// RemoteApiConfig
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteApiConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_remote_listen")]
+    pub listen: String,
+    #[serde(default)]
+    pub cert: String,
+    #[serde(default)]
+    pub key: String,
+    #[serde(default)]
+    pub ca: String,
+}
+
+fn default_remote_listen() -> String {
+    "0.0.0.0:9615".into()
+}
+
+// ---------------------------------------------------------------------------
 // EcosystemConfig
 // ---------------------------------------------------------------------------
 
@@ -441,6 +478,10 @@ pub struct EcosystemConfig {
     /// Log sinks go under [logs.sinks.*]
     #[serde(default)]
     pub logs: Option<LogsConfig>,
+    #[serde(default)]
+    pub deploy: HashMap<String, DeployEnvConfig>,
+    #[serde(default)]
+    pub remote: Option<RemoteApiConfig>,
 }
 
 impl EcosystemConfig {
@@ -793,6 +834,62 @@ port = 12201
             }
             other => panic!("expected Gelf, got: {:?}", other),
         }
+    }
+
+    // 13. Deploy and remote config parsing
+    #[test]
+    fn test_deploy_and_remote_config_parsing() {
+        let toml = r#"
+[process.api]
+command = "node"
+
+[deploy.production]
+repo = "https://github.com/example/app"
+branch = "main"
+path = "/srv/app"
+pre_deploy = ["npm install"]
+post_deploy = ["pm2 reload all"]
+
+[remote]
+enabled = true
+listen = "0.0.0.0:9615"
+cert = "/etc/mhost/server.crt"
+key = "/etc/mhost/server.key"
+ca = "/etc/mhost/ca.crt"
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml")
+            .expect("parse toml with deploy and remote");
+
+        let prod = cfg.deploy.get("production").expect("production deploy");
+        assert_eq!(prod.repo, "https://github.com/example/app");
+        assert_eq!(prod.branch, "main");
+        assert_eq!(prod.path, "/srv/app");
+        assert_eq!(prod.pre_deploy, vec!["npm install".to_string()]);
+        assert_eq!(prod.post_deploy, vec!["pm2 reload all".to_string()]);
+
+        let remote = cfg.remote.as_ref().expect("remote config present");
+        assert!(remote.enabled);
+        assert_eq!(remote.listen, "0.0.0.0:9615");
+        assert_eq!(remote.cert, "/etc/mhost/server.crt");
+    }
+
+    // 14. Remote config defaults
+    #[test]
+    fn test_remote_config_defaults() {
+        let toml = r#"
+[process.api]
+command = "node"
+
+[remote]
+enabled = false
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse");
+        let remote = cfg.remote.as_ref().expect("remote config present");
+        assert!(!remote.enabled);
+        assert_eq!(remote.listen, "0.0.0.0:9615");
+        assert_eq!(remote.cert, "");
+        assert_eq!(remote.key, "");
+        assert_eq!(remote.ca, "");
     }
 
     // 11. Group config parsing

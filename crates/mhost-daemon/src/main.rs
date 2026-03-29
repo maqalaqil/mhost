@@ -1,6 +1,7 @@
 mod cron_scheduler;
 mod handler;
 mod memory_monitor;
+mod remote;
 mod state;
 mod supervisor;
 mod watcher;
