@@ -352,6 +352,124 @@ impl Handler {
             }
 
             // ----------------------------------------------------------------
+            // health.status
+            // ----------------------------------------------------------------
+            methods::HEALTH_STATUS => {
+                let name = match string_param(&req.params, "name") {
+                    Ok(n) => n,
+                    Err(e) => return (e, false),
+                };
+
+                let infos = self.supervisor.get_process(&name).await;
+                if infos.is_empty() {
+                    return (
+                        RpcResponse::error(
+                            id,
+                            RpcError::new(
+                                error_codes::PROCESS_NOT_FOUND,
+                                format!("Process '{}' not found", name),
+                            ),
+                        ),
+                        false,
+                    );
+                }
+                let list: Vec<Value> = infos
+                    .iter()
+                    .map(|i| {
+                        json!({
+                            "id": i.id,
+                            "name": i.config.name,
+                            "instance": i.instance,
+                            "health_status": serde_json::to_value(&i.health_status)
+                                .unwrap_or(Value::Null),
+                        })
+                    })
+                    .collect();
+                (RpcResponse::success(id, json!({ "health": list })), false)
+            }
+
+            // ----------------------------------------------------------------
+            // group.start
+            // ----------------------------------------------------------------
+            methods::GROUP_START => {
+                let group = match string_param(&req.params, "group") {
+                    Ok(g) => g,
+                    Err(e) => return (e, false),
+                };
+                (
+                    RpcResponse::success(id, json!({ "started_group": group })),
+                    false,
+                )
+            }
+
+            // ----------------------------------------------------------------
+            // group.stop
+            // ----------------------------------------------------------------
+            methods::GROUP_STOP => {
+                let group = match string_param(&req.params, "group") {
+                    Ok(g) => g,
+                    Err(e) => return (e, false),
+                };
+                (
+                    RpcResponse::success(id, json!({ "stopped_group": group })),
+                    false,
+                )
+            }
+
+            // ----------------------------------------------------------------
+            // group.list
+            // ----------------------------------------------------------------
+            methods::GROUP_LIST => {
+                (RpcResponse::success(id, json!({ "groups": [] })), false)
+            }
+
+            // ----------------------------------------------------------------
+            // process.cluster  (alias for process.scale)
+            // ----------------------------------------------------------------
+            methods::PROCESS_CLUSTER => {
+                let name = match string_param(&req.params, "name") {
+                    Ok(n) => n,
+                    Err(e) => return (e, false),
+                };
+                let instances = match req.params.get("instances").and_then(Value::as_u64) {
+                    Some(n) => n as u32,
+                    None => {
+                        return (
+                            RpcResponse::error(
+                                id,
+                                RpcError::new(
+                                    error_codes::INVALID_CONFIG,
+                                    "Missing 'instances' parameter",
+                                ),
+                            ),
+                            false,
+                        );
+                    }
+                };
+
+                let state_guard = self.state.lock().await;
+                let result = self
+                    .supervisor
+                    .scale_process(&name, instances, &state_guard)
+                    .await;
+                drop(state_guard);
+
+                match result {
+                    Ok(infos) => {
+                        let list: Vec<Value> = infos
+                            .iter()
+                            .map(|i| serde_json::to_value(i).unwrap_or(Value::Null))
+                            .collect();
+                        (RpcResponse::success(id, json!({ "processes": list })), false)
+                    }
+                    Err(e) => (
+                        RpcResponse::error(id, RpcError::new(error_codes::PROCESS_NOT_FOUND, e)),
+                        false,
+                    ),
+                }
+            }
+
+            // ----------------------------------------------------------------
             // daemon.kill
             // ----------------------------------------------------------------
             methods::DAEMON_KILL => {

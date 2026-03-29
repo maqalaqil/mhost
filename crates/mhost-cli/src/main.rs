@@ -55,10 +55,20 @@ async fn dispatch_daemon(
     _paths: &MhostPaths,
 ) -> Result<(), String> {
     match cmd {
-        Commands::Start { target, name } => {
-            commands::start::run(client, &target, name.as_deref()).await
+        Commands::Start { target, name, group } => {
+            if let Some(ref g) = group {
+                commands::group::start(client, g).await
+            } else {
+                commands::start::run(client, &target, name.as_deref()).await
+            }
         }
-        Commands::Stop { target } => commands::stop::run(client, &target).await,
+        Commands::Stop { target, group } => {
+            if let Some(ref g) = group {
+                commands::group::stop(client, g).await
+            } else {
+                commands::stop::run(client, &target).await
+            }
+        }
         Commands::Restart { target } => commands::restart::run(client, &target).await,
         Commands::Delete { target } => commands::delete::run(client, &target).await,
         Commands::List => commands::list::run(client).await,
@@ -72,6 +82,10 @@ async fn dispatch_daemon(
         Commands::Ping => commands::ping::run(client).await,
         Commands::Kill => commands::kill::run(client).await,
         Commands::Config { name } => commands::config_cmd::run(client, &name).await,
+        Commands::Health { name } => commands::health::run(client, &name).await,
+        Commands::Cluster { name, instances } => {
+            commands::cluster::run(client, &name, instances).await
+        }
 
         // These are handled earlier; this arm is unreachable.
         Commands::Startup

@@ -21,12 +21,18 @@ pub enum Commands {
         /// Override or set the process name.
         #[arg(short, long)]
         name: Option<String>,
+        /// Start all processes belonging to this group.
+        #[arg(long)]
+        group: Option<String>,
     },
 
     /// Stop a running process (use "all" to stop everything).
     Stop {
         /// Process name or "all".
         target: String,
+        /// Stop all processes belonging to this group.
+        #[arg(long)]
+        group: Option<String>,
     },
 
     /// Restart a process (use "all" to restart everything).
@@ -108,6 +114,20 @@ pub enum Commands {
     Config {
         /// Process name.
         name: String,
+    },
+
+    /// Show health status for each instance of a process.
+    Health {
+        /// Process name.
+        name: String,
+    },
+
+    /// Set the number of running instances for a process (alias for scale).
+    Cluster {
+        /// Process name.
+        name: String,
+        /// Desired number of instances.
+        instances: u32,
     },
 
     /// Check for a newer mhost release and update if available.

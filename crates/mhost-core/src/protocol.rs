@@ -127,6 +127,12 @@ pub mod methods {
 
     pub const EVENT_LOG: &str = "event.log";
     pub const EVENT_STATUS: &str = "event.status";
+
+    pub const HEALTH_STATUS: &str = "health.status";
+    pub const GROUP_START: &str = "group.start";
+    pub const GROUP_STOP: &str = "group.stop";
+    pub const GROUP_LIST: &str = "group.list";
+    pub const PROCESS_CLUSTER: &str = "process.cluster";
 }
 
 // ---------------------------------------------------------------------------

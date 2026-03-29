@@ -1,7 +1,10 @@
+pub mod cluster;
 pub mod completion;
 pub mod config_cmd;
+pub mod group;
 pub mod delete;
 pub mod env_cmd;
+pub mod health;
 pub mod history;
 pub mod info;
 pub mod kill;
