@@ -1,5 +1,5 @@
 {
-  "name": "@maqalaqil/mhost",
+  "name": "@maqalaqil93/mhost",
   "version": "0.1.0",
   "description": "Advanced process manager — PM2 replacement written in Rust",
   "bin": { "mhost": "./bin/mhost" },
