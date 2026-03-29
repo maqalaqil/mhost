@@ -7,8 +7,6 @@ on:
 permissions:
   contents: write
   packages: write
-  pages: write
-  id-token: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -331,22 +329,20 @@ jobs:
           user_name: mhost-bot
           commit_message: "mhost ${{ needs.version.outputs.version }}"
 
-  # ─── 9. GitHub Pages ────────────────────────────────────────
+  # ─── 9. GitHub Pages (deploy from gh-pages branch) ───────────
   deploy-website:
     name: Website
     needs: [version, release]
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v4
-      - uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: website
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./website
+          publish_branch: gh-pages
 
   # ─── 10. Docker ─────────────────────────────────────────────
   publish-docker:
