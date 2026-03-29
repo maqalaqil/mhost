@@ -1630,6 +1630,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "mhost-cloud"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "dirs",
+ "mhost-ai",
+ "mhost-core",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "mhost-config"
 version = "0.1.0"
 dependencies = [
