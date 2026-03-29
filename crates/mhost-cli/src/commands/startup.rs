@@ -5,10 +5,10 @@ use std::fs;
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 use std::path::PathBuf;
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
-use crate::output::print_success;
 #[cfg(not(any(target_os = "macos", target_os = "linux")))]
 use crate::output::print_error;
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+use crate::output::print_success;
 
 // ---------------------------------------------------------------------------
 // Public API
