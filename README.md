@@ -20,7 +20,7 @@ Built in Rust. Single binary. Zero runtime dependencies.
 [![Rust](https://img.shields.io/badge/Rust-1.82%2B-orange.svg)](https://www.rust-lang.org)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)](#)
 
-[Installation](#installation) | [Quick Start](#quick-start) | [Config](#ecosystem-config) | [Notifications](#notifications) | [Commands](#all-commands)
+[Installation](#installation) | [Quick Start](#quick-start) | [Config](#ecosystem-config) | [AI](#ai-intelligence) | [Notifications](#notifications) | [Commands](#all-commands)
 
 </div>
 
@@ -41,6 +41,7 @@ Built in Rust. Single binary. Zero runtime dependencies.
 | **Groups** | None | Dependency ordering with topological sort |
 | **Restart** | Basic | Exponential backoff + circuit breaker |
 | **Config** | JS only | TOML, YAML, JSON |
+| **AI** | None | Built-in LLM intelligence (OpenAI/Claude) — diagnose, optimize, ask |
 
 ---
 
@@ -598,6 +599,124 @@ Deploy history is tracked in SQLite with commit hashes, timestamps, and status.
 
 ---
 
+## AI Intelligence
+
+The first process manager with built-in LLM capabilities. Supports **OpenAI** (GPT-4o) and **Claude** (Sonnet/Opus).
+
+### Setup
+
+```bash
+mhost ai setup
+```
+
+```
+  mhost AI Setup
+
+  Select LLM provider:
+    1) OpenAI (GPT-4o, GPT-4o-mini)
+    2) Claude (Sonnet, Haiku, Opus)
+
+  Provider (1-2): 1
+  API key: sk-...
+  Model [gpt-4o]: gpt-4o
+
+  ✓ AI configured with openai (gpt-4o)
+```
+
+Or configure via file (`~/.mhost/ai.json`) or environment variables.
+
+### Crash Diagnosis
+
+```bash
+mhost ai diagnose api-server
+```
+
+```
+  Analyzing crash for 'api-server'...
+
+  ## Root Cause
+  The process crashed due to an unhandled promise rejection in database.js:42.
+  The connection pool was exhausted after 15 concurrent requests exceeded the
+  pool limit of 10.
+
+  ## Impact
+  Severity: HIGH — All API requests failed for 12 seconds until auto-restart.
+
+  ## Fix Steps
+  1. Increase pool size: `max_connections: 25` in database config
+  2. Add connection timeout: `idle_timeout: 30000`
+
+  ## Prevention
+  - Add health check for DB connection pool utilization
+  - Set up alert: `condition = "memory > 256MB for 5m"`
+
+  ## Config Suggestions
+  max_memory = "512MB"    # Currently 256MB — too tight
+  max_restarts = 20       # Currently 15 — increase headroom
+```
+
+### Natural Language Log Queries
+
+```bash
+mhost ai logs api "show me all timeout errors in the last hour"
+mhost ai logs worker "what errors happened during the deploy?"
+mhost ai logs api "count errors by type today"
+```
+
+### Generate Config from Description
+
+```bash
+mhost ai config "I have a Node.js API on port 3000 with 2 Python celery workers
+                  and a React frontend. Add health checks and process groups."
+```
+
+Outputs a complete, valid `mhost.toml` ready to use.
+
+### Performance Optimization
+
+```bash
+mhost ai optimize api-server
+```
+
+Analyzes CPU/memory trends and suggests instance count, memory limits, restart thresholds.
+
+### Incident Post-Mortem
+
+```bash
+mhost ai postmortem api-server
+```
+
+Generates a full Markdown incident report with timeline, root cause, impact, and action items.
+
+### Ask Anything
+
+```bash
+mhost ai ask "which process is using the most memory?"
+mhost ai ask "why has my worker restarted 12 times today?"
+mhost ai ask "should I scale up my API?"
+```
+
+### More AI Commands
+
+```bash
+mhost ai watch                        # Scan all processes for anomalies
+mhost ai explain mhost.toml           # Explain config in plain English
+mhost ai suggest                      # Get proactive improvement suggestions
+```
+
+### AI Config
+
+```toml
+# In mhost.toml
+[ai]
+provider = "openai"                    # or "claude"
+api_key = "${OPENAI_API_KEY}"          # env var expansion
+model = "gpt-4o"                       # any supported model
+max_tokens = 4096
+```
+
+---
+
 ## TUI Dashboard
 
 ```bash
@@ -693,6 +812,21 @@ mhost monit
 | `mhost deploy <env>` | Deploy via git pull + hooks |
 | `mhost rollback <env>` | Revert to previous successful deploy |
 
+### AI
+
+| Command | Description |
+|---|---|
+| `mhost ai setup` | Interactive LLM provider setup (OpenAI/Claude) |
+| `mhost ai diagnose <app>` | Analyze crash with root cause, fix steps, prevention |
+| `mhost ai logs <app> "<question>"` | Natural language log search |
+| `mhost ai optimize <app>` | Performance recommendations with config diff |
+| `mhost ai config "<description>"` | Generate mhost.toml from plain English |
+| `mhost ai postmortem <app>` | Generate incident report (Markdown) |
+| `mhost ai watch` | Scan all processes for anomalies |
+| `mhost ai ask "<question>"` | Ask anything about your processes |
+| `mhost ai explain [config]` | Explain config in plain English |
+| `mhost ai suggest` | Proactive improvement suggestions |
+
 ### Infrastructure
 
 | Command | Description |
@@ -715,7 +849,7 @@ mhost monit
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                        mhost CLI                              │
-│  start | stop | list | logs | monit | notify | deploy | ...  │
+│  start | stop | list | logs | monit | notify | ai | deploy   │
 └──────────────┬───────────────────────────────────────────────┘
                │  JSON-RPC 2.0 over Unix Socket
 ┌──────────────▼───────────────────────────────────────────────┐
@@ -736,10 +870,15 @@ mhost monit
 │  Deploy Engine          Scheduler          State Store        │
 │  - Git pull / hooks     - Cron restarts    - SQLite           │
 │  - Rollback             - Memory monitor   - Event history    │
+│                                                               │
+│  AI Intelligence                                              │
+│  - OpenAI / Claude      - Crash diagnosis  - Log queries      │
+│  - Config generation    - Optimization     - Anomaly watch    │
+│  - Post-mortems         - Ask anything     - Suggestions      │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Crate Structure (12 crates)
+### Crate Structure (13 crates)
 
 ```
 mhost/
@@ -752,6 +891,7 @@ mhost/
 ├── mhost-metrics    Collector, time-series, Prometheus, alerts
 ├── mhost-proxy      Reverse proxy, TLS, ACME, load balancing
 ├── mhost-deploy     Git deploy, hooks, rollback, history
+├── mhost-ai         LLM intelligence (OpenAI/Claude) — diagnose, optimize, ask
 ├── mhost-tui        Terminal dashboard (ratatui)
 ├── mhost-daemon     Supervisor, handler, state store (mhostd binary)
 └── mhost-cli        CLI interface (mhost binary)
