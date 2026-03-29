@@ -922,4 +922,192 @@ processes = ["db"]
         assert!(infra.depends_on.is_empty());
         assert_eq!(infra.processes, vec!["db".to_string()]);
     }
+
+    // 15. Parse TOML with health.tcp config
+    #[test]
+    fn test_toml_health_tcp_parsing() {
+        let toml = r#"
+[process.db]
+command = "postgres"
+
+[process.db.health.tcp]
+host = "127.0.0.1"
+port = 5432
+interval = "10s"
+timeout = "3s"
+retries = 2
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse toml with tcp health");
+        let configs = cfg.to_process_configs();
+        let pc = &configs[0];
+        let health = pc.health_config.as_ref().expect("health config present");
+
+        assert_eq!(health.interval_ms, 10_000);
+        assert_eq!(health.timeout_ms, 3_000);
+        assert_eq!(health.retries, 2);
+
+        match &health.kind {
+            mhost_core::health::HealthCheckKind::Tcp { host, port } => {
+                assert_eq!(host, "127.0.0.1");
+                assert_eq!(*port, 5432);
+            }
+            other => panic!("expected Tcp kind, got: {:?}", other),
+        }
+    }
+
+    // 16. Parse TOML with health.script config
+    #[test]
+    fn test_toml_health_script_parsing() {
+        let toml = r#"
+[process.worker]
+command = "python3"
+args = ["worker.py"]
+
+[process.worker.health.script]
+command = "/usr/local/bin/check-worker.sh"
+interval = "30s"
+timeout = "5s"
+retries = 1
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse toml with script health");
+        let configs = cfg.to_process_configs();
+        let pc = &configs[0];
+        let health = pc.health_config.as_ref().expect("health config present");
+
+        assert_eq!(health.interval_ms, 30_000);
+        assert_eq!(health.timeout_ms, 5_000);
+        assert_eq!(health.retries, 1);
+
+        match &health.kind {
+            mhost_core::health::HealthCheckKind::Script { command } => {
+                assert_eq!(command, "/usr/local/bin/check-worker.sh");
+            }
+            other => panic!("expected Script kind, got: {:?}", other),
+        }
+    }
+
+    // 17. Parse TOML with all notification types
+    #[test]
+    fn test_all_notification_types_parsing() {
+        let toml = r#"
+[process.api]
+command = "node"
+
+[notifications.disc]
+type = "discord"
+webhook = "https://discord.com/api/webhooks/xxx"
+
+[notifications.wh]
+type = "webhook"
+url = "https://hooks.example.com/notify"
+
+[notifications.email]
+type = "email"
+smtp_host = "smtp.example.com"
+smtp_port = 587
+from = "noreply@example.com"
+to = ["ops@example.com"]
+
+[notifications.pd]
+type = "pagerduty"
+routing_key = "my-routing-key"
+
+[notifications.ms_teams]
+type = "teams"
+webhook = "https://outlook.office.com/webhook/xxx"
+
+[notifications.ntfy_ch]
+type = "ntfy"
+url = "https://ntfy.sh"
+topic = "mhost-alerts"
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse all notification types");
+
+        assert!(matches!(
+            cfg.notifications.get("disc"),
+            Some(NotificationChannelConfig::Discord { .. })
+        ));
+        assert!(matches!(
+            cfg.notifications.get("wh"),
+            Some(NotificationChannelConfig::Webhook { .. })
+        ));
+        assert!(matches!(
+            cfg.notifications.get("email"),
+            Some(NotificationChannelConfig::Email { .. })
+        ));
+        assert!(matches!(
+            cfg.notifications.get("pd"),
+            Some(NotificationChannelConfig::PagerDuty { .. })
+        ));
+        assert!(matches!(
+            cfg.notifications.get("ms_teams"),
+            Some(NotificationChannelConfig::Teams { .. })
+        ));
+        assert!(matches!(
+            cfg.notifications.get("ntfy_ch"),
+            Some(NotificationChannelConfig::Ntfy { .. })
+        ));
+    }
+
+    // 18. Parse TOML with empty groups section
+    #[test]
+    fn test_parse_empty_groups() {
+        let toml = r#"
+[process.api]
+command = "node"
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse");
+        let groups = cfg.to_group_configs();
+        assert!(groups.is_empty());
+    }
+
+    // 19. Parse TOML with deploy config
+    #[test]
+    fn test_parse_deploy_config() {
+        let toml = r#"
+[process.api]
+command = "node"
+
+[deploy.staging]
+repo = "https://github.com/example/app"
+branch = "develop"
+path = "/srv/staging"
+
+[deploy.production]
+repo = "https://github.com/example/app"
+branch = "main"
+path = "/srv/production"
+pre_deploy = ["make build"]
+post_deploy = ["systemctl reload nginx"]
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse deploy config");
+
+        assert_eq!(cfg.deploy.len(), 2);
+
+        let staging = cfg.deploy.get("staging").expect("staging");
+        assert_eq!(staging.branch, "develop");
+        assert!(staging.pre_deploy.is_empty());
+        assert!(staging.post_deploy.is_empty());
+
+        let production = cfg.deploy.get("production").expect("production");
+        assert_eq!(production.branch, "main");
+        assert_eq!(production.pre_deploy, vec!["make build".to_string()]);
+    }
+
+    // 20. Parse TOML with remote config
+    #[test]
+    fn test_parse_remote_config_enabled() {
+        let toml = r#"
+[process.api]
+command = "node"
+
+[remote]
+enabled = true
+listen = "127.0.0.1:9615"
+"#;
+        let cfg = EcosystemConfig::from_str(toml, "toml").expect("parse remote config");
+        let remote = cfg.remote.as_ref().expect("remote present");
+        assert!(remote.enabled);
+        assert_eq!(remote.listen, "127.0.0.1:9615");
+    }
 }

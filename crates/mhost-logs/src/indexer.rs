@@ -282,4 +282,74 @@ mod tests {
         let info_count = counts.iter().find(|(k, _)| k == "INFO").map(|(_, v)| *v);
         assert_eq!(info_count, Some(1));
     }
+
+    // -- Search with time range ----------------------------------------------
+
+    #[test]
+    fn search_with_time_range() {
+        use chrono::Duration;
+
+        let indexer = LogIndexer::in_memory().expect("in_memory");
+
+        let old_raw = r#"{"level":"INFO","message":"old event","timestamp":"2020-01-01T00:00:00Z"}"#;
+        let new_raw = r#"{"level":"INFO","message":"new event","timestamp":"2024-06-01T00:00:00Z"}"#;
+
+        let old_entry = parse_line(old_raw, "svc", 0);
+        let new_entry = parse_line(new_raw, "svc", 0);
+
+        indexer.index_entry(&old_entry).expect("index old");
+        indexer.index_entry(&new_entry).expect("index new");
+
+        // Search for events after 2023-01-01 — should only return the new one
+        let since = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let results = indexer.search("event", None, Some(since), 10).expect("search");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].message, "new event");
+    }
+
+    // -- Index many entries then search ------------------------------------
+
+    #[test]
+    fn index_many_entries_then_search() {
+        let indexer = LogIndexer::in_memory().expect("in_memory");
+
+        for i in 0..50 {
+            let raw = format!(
+                r#"{{"level":"INFO","message":"message-{i}","timestamp":"2024-01-01T00:00:00Z"}}"#
+            );
+            let entry = parse_line(&raw, "bulk-svc", 0);
+            indexer.index_entry(&entry).expect("index");
+        }
+
+        // Search with limit 10 — must not return more than 10
+        let results = indexer.search("message", None, None, 10).expect("search");
+        assert!(results.len() <= 10, "limit should be respected");
+
+        // Search with limit 100 — must return all 50
+        let all_results = indexer.search("message", None, None, 100).expect("search all");
+        assert_eq!(all_results.len(), 50);
+    }
+
+    // -- delete_before works --------------------------------------------------
+
+    #[test]
+    fn delete_before_removes_old_entries() {
+        use chrono::Duration;
+
+        let indexer = LogIndexer::in_memory().expect("in_memory");
+
+        let old_raw = r#"{"level":"INFO","message":"stale log","timestamp":"2020-01-01T00:00:00Z"}"#;
+        let new_raw = r#"{"level":"INFO","message":"fresh log","timestamp":"2024-01-01T00:00:00Z"}"#;
+
+        indexer.index_entry(&parse_line(old_raw, "svc", 0)).expect("index old");
+        indexer.index_entry(&parse_line(new_raw, "svc", 0)).expect("index new");
+
+        let cutoff = "2022-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let deleted = indexer.delete_before(cutoff).expect("delete_before");
+        assert_eq!(deleted, 1);
+
+        let remaining = indexer.search("log", None, None, 10).expect("search");
+        assert_eq!(remaining.len(), 1);
+        assert_eq!(remaining[0].message, "fresh log");
+    }
 }

@@ -102,4 +102,51 @@ mod tests {
         std::thread::sleep(Duration::from_millis(15));
         assert!(throttle.should_send("email", Duration::from_millis(10)));
     }
+
+    // -- Throttle with zero window always allows ----------------------------
+
+    #[test]
+    fn test_zero_window_always_allows() {
+        let mut throttle = Throttle::new(Duration::from_secs(0));
+        for _ in 0..5 {
+            assert!(
+                throttle.should_send_default("chan"),
+                "zero window should always allow"
+            );
+        }
+    }
+
+    // -- Multiple channels are throttled independently ---------------------
+
+    #[test]
+    fn test_multiple_channels_independent_throttle() {
+        let mut throttle = Throttle::new(Duration::from_secs(60));
+
+        // First send on each channel allowed
+        assert!(throttle.should_send("ch-a", Duration::from_secs(60)));
+        assert!(throttle.should_send("ch-b", Duration::from_secs(60)));
+        assert!(throttle.should_send("ch-c", Duration::from_secs(60)));
+
+        // Second send on each suppressed
+        assert!(!throttle.should_send("ch-a", Duration::from_secs(60)));
+        assert!(!throttle.should_send("ch-b", Duration::from_secs(60)));
+        assert!(!throttle.should_send("ch-c", Duration::from_secs(60)));
+
+        // Reset only ch-a
+        throttle.reset("ch-a");
+        assert!(throttle.should_send("ch-a", Duration::from_secs(60)));
+        // ch-b and ch-c remain suppressed
+        assert!(!throttle.should_send("ch-b", Duration::from_secs(60)));
+        assert!(!throttle.should_send("ch-c", Duration::from_secs(60)));
+    }
+
+    // -- should_send_default uses the stored default_window ----------------
+
+    #[test]
+    fn test_should_send_default_uses_default_window() {
+        let mut throttle = Throttle::new(Duration::from_secs(60));
+        assert!(throttle.should_send_default("myslack"));
+        // Immediately suppressed via the 60-second default window
+        assert!(!throttle.should_send_default("myslack"));
+    }
 }

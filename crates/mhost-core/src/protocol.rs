@@ -228,4 +228,65 @@ mod tests {
         let req: RpcRequest = serde_json::from_str(json_str).expect("deserialize");
         assert_eq!(req.params, Value::Null);
     }
+
+    // -- RpcResponse with both result and error None (deserialize only) -----
+
+    #[test]
+    fn test_response_both_result_and_error_none() {
+        // A response with neither result nor error is technically valid to
+        // deserialize (optional fields default to None).
+        let json_str = r#"{"jsonrpc":"2.0","id":99}"#;
+        let resp: RpcResponse = serde_json::from_str(json_str).expect("deserialize");
+        assert_eq!(resp.id, 99);
+        assert!(resp.result.is_none());
+        assert!(resp.error.is_none());
+    }
+
+    // -- Multiple distinct request IDs --------------------------------------
+
+    #[test]
+    fn test_multiple_request_ids_are_distinct() {
+        let req1 = RpcRequest::new(1, methods::PROCESS_START, json!({}));
+        let req2 = RpcRequest::new(2, methods::PROCESS_STOP, json!({}));
+        let req3 = RpcRequest::new(100, methods::DAEMON_PING, json!({}));
+
+        assert_ne!(req1.id, req2.id);
+        assert_ne!(req2.id, req3.id);
+        assert_ne!(req1.id, req3.id);
+    }
+
+    // -- methods module has expected constant values ------------------------
+
+    #[test]
+    fn test_methods_constants() {
+        assert_eq!(methods::PROCESS_START, "process.start");
+        assert_eq!(methods::PROCESS_STOP, "process.stop");
+        assert_eq!(methods::PROCESS_RESTART, "process.restart");
+        assert_eq!(methods::PROCESS_DELETE, "process.delete");
+        assert_eq!(methods::PROCESS_LIST, "process.list");
+        assert_eq!(methods::PROCESS_INFO, "process.info");
+        assert_eq!(methods::DAEMON_PING, "daemon.ping");
+        assert_eq!(methods::DAEMON_KILL, "daemon.kill");
+        assert_eq!(methods::DAEMON_VERSION, "daemon.version");
+        assert_eq!(methods::LOG_TAIL, "log.tail");
+        assert_eq!(methods::LOG_FLUSH, "log.flush");
+        assert_eq!(methods::HEALTH_STATUS, "health.status");
+        assert_eq!(methods::GROUP_START, "group.start");
+        assert_eq!(methods::GROUP_STOP, "group.stop");
+        assert_eq!(methods::GROUP_LIST, "group.list");
+        assert_eq!(methods::NOTIFY_TEST, "notify.test");
+        assert_eq!(methods::DEPLOY_EXECUTE, "deploy.execute");
+        assert_eq!(methods::DEPLOY_ROLLBACK, "deploy.rollback");
+    }
+
+    // -- error_codes module has expected values -----------------------------
+
+    #[test]
+    fn test_error_codes_values() {
+        assert_eq!(error_codes::PROCESS_NOT_FOUND, -32000);
+        assert_eq!(error_codes::PROCESS_ALREADY_RUNNING, -32001);
+        assert_eq!(error_codes::INVALID_CONFIG, -32002);
+        assert_eq!(error_codes::SPAWN_FAILED, -32003);
+        assert_eq!(error_codes::INTERNAL_ERROR, -32603);
+    }
 }

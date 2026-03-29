@@ -236,4 +236,75 @@ mod tests {
         assert!(dispatcher.has_channel("ch"));
         assert!(!dispatcher.has_channel("missing"));
     }
+
+    // -- Dispatch with no channels configured — no panic -------------------
+
+    #[tokio::test]
+    async fn test_dispatch_with_no_channels() {
+        let mut dispatcher = NotifyDispatcher::new(Duration::from_secs(0));
+        // Should complete without panic or error
+        dispatcher.dispatch(&make_event(EventType::Crash)).await;
+        assert_eq!(dispatcher.channel_count(), 0);
+    }
+
+    // -- dispatch_to with unknown channel returns error --------------------
+
+    #[tokio::test]
+    async fn test_dispatch_to_unknown_channel_returns_error() {
+        let dispatcher = NotifyDispatcher::new(Duration::from_secs(0));
+        let result = dispatcher.dispatch_to("nonexistent", &make_event(EventType::Crash)).await;
+        assert!(result.is_err());
+        let msg = result.unwrap_err();
+        assert!(
+            msg.contains("nonexistent"),
+            "error should mention the channel name, got: {msg}"
+        );
+    }
+
+    // -- Event filter with empty allowed list allows everything ------------
+
+    #[tokio::test]
+    async fn test_event_filter_empty_allows_all() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+
+        let mut dispatcher = NotifyDispatcher::new(Duration::from_secs(0));
+        dispatcher.add_channel(Box::new(RecordingChannel {
+            name: "all-events".to_string(),
+            events: Arc::clone(&events),
+        }));
+        // Set empty filter — should allow all events
+        dispatcher.set_event_filter("all-events", vec![]);
+
+        dispatcher.dispatch(&make_event(EventType::Crash)).await;
+        dispatcher.dispatch(&make_event(EventType::Deploy)).await;
+        dispatcher.dispatch(&make_event(EventType::Restart)).await;
+
+        assert_eq!(events.lock().unwrap().len(), 3);
+    }
+
+    // -- Multiple channels, one with filter --------------------------------
+
+    #[tokio::test]
+    async fn test_filter_only_blocks_one_channel() {
+        let events_filtered = Arc::new(Mutex::new(Vec::new()));
+        let events_open = Arc::new(Mutex::new(Vec::new()));
+
+        let mut dispatcher = NotifyDispatcher::new(Duration::from_secs(0));
+        dispatcher.add_channel(Box::new(RecordingChannel {
+            name: "crash-only".to_string(),
+            events: Arc::clone(&events_filtered),
+        }));
+        dispatcher.add_channel(Box::new(RecordingChannel {
+            name: "all-open".to_string(),
+            events: Arc::clone(&events_open),
+        }));
+        dispatcher.set_event_filter("crash-only", vec![EventType::Crash]);
+
+        // Send a Deploy event
+        dispatcher.dispatch(&make_event(EventType::Deploy)).await;
+
+        // crash-only should NOT receive it; all-open should
+        assert_eq!(events_filtered.lock().unwrap().len(), 0);
+        assert_eq!(events_open.lock().unwrap().len(), 1);
+    }
 }

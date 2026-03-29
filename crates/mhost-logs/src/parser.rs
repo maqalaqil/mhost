@@ -184,4 +184,81 @@ mod tests {
         assert_eq!(LogLevel::from_str("CRITICAL"), Some(LogLevel::Fatal));
         assert_eq!(LogLevel::from_str("unknown"), None);
     }
+
+    // -- JSON with "msg" field (not "message") ------------------------------
+
+    #[test]
+    fn parse_json_with_msg_field() {
+        let raw = r#"{"level":"info","msg":"server started","port":3000}"#;
+        let entry = parse_line(raw, "api", 0);
+        assert_eq!(entry.level, Some(LogLevel::Info));
+        assert_eq!(entry.message, "server started");
+        assert!(entry.fields.contains_key("port"));
+    }
+
+    // -- JSON with "severity" field -----------------------------------------
+
+    #[test]
+    fn parse_json_with_severity_field() {
+        let raw = r#"{"severity":"WARN","message":"disk space low"}"#;
+        let entry = parse_line(raw, "monitor", 0);
+        assert_eq!(entry.level, Some(LogLevel::Warn));
+        assert_eq!(entry.message, "disk space low");
+    }
+
+    // -- JSON with "timestamp" field ----------------------------------------
+
+    #[test]
+    fn parse_json_with_timestamp_field() {
+        let raw = r#"{"level":"info","message":"hello","timestamp":"2024-06-01T12:00:00Z"}"#;
+        let entry = parse_line(raw, "svc", 0);
+        assert_eq!(entry.level, Some(LogLevel::Info));
+        // Timestamp should have been parsed; verify it's not just "now" by
+        // checking it's before a recently-created time.
+        let expected = "2024-06-01T12:00:00Z".parse::<chrono::DateTime<Utc>>().unwrap();
+        assert_eq!(entry.timestamp, expected);
+    }
+
+    // -- Malformed JSON (partial) — falls back to plain text ----------------
+
+    #[test]
+    fn parse_malformed_json_falls_back_to_plain_text() {
+        let raw = r#"{"level":"info","message":"incomplete"#;
+        let entry = parse_line(raw, "svc", 0);
+        // Should have fallen back to plain text
+        assert!(entry.level.is_none());
+        assert_eq!(entry.message, raw);
+        assert_eq!(entry.raw_line, raw);
+    }
+
+    // -- JSON with numeric unix timestamp -----------------------------------
+
+    #[test]
+    fn parse_json_with_numeric_timestamp() {
+        let raw = r#"{"level":"debug","message":"tick","time":1704067200}"#;
+        let entry = parse_line(raw, "timer", 0);
+        assert_eq!(entry.level, Some(LogLevel::Debug));
+        assert_eq!(entry.message, "tick");
+        // Unix timestamp 1704067200 = 2024-01-01T00:00:00Z
+        let expected = chrono::DateTime::from_timestamp(1704067200, 0).unwrap();
+        assert_eq!(entry.timestamp, expected);
+    }
+
+    // -- LogLevel as_str and Display ---------------------------------------
+
+    #[test]
+    fn log_level_as_str_and_display() {
+        let cases = [
+            (LogLevel::Trace, "TRACE"),
+            (LogLevel::Debug, "DEBUG"),
+            (LogLevel::Info, "INFO"),
+            (LogLevel::Warn, "WARN"),
+            (LogLevel::Error, "ERROR"),
+            (LogLevel::Fatal, "FATAL"),
+        ];
+        for (level, expected) in cases {
+            assert_eq!(level.as_str(), expected);
+            assert_eq!(level.to_string(), expected);
+        }
+    }
 }

@@ -67,4 +67,51 @@ mod tests {
         let mhost_err: MhostError = io_err.into();
         assert!(matches!(mhost_err, MhostError::Io(_)));
     }
+
+    #[test]
+    fn test_daemon_not_running_display() {
+        let err = MhostError::DaemonNotRunning;
+        assert_eq!(err.to_string(), "Daemon is not running");
+    }
+
+    #[test]
+    fn test_daemon_connection_failed_display() {
+        let err = MhostError::DaemonConnectionFailed {
+            reason: "connection refused on /tmp/mhostd.sock".into(),
+        };
+        let s = err.to_string();
+        assert!(s.contains("Daemon connection failed"));
+        assert!(s.contains("connection refused on /tmp/mhostd.sock"));
+    }
+
+    #[test]
+    fn test_config_error_display() {
+        let err = MhostError::Config("missing required field 'command'".into());
+        let s = err.to_string();
+        assert!(s.contains("Config error"));
+        assert!(s.contains("missing required field 'command'"));
+    }
+
+    #[test]
+    fn test_database_error_display() {
+        let err = MhostError::Database("SQLITE_BUSY: database is locked".into());
+        let s = err.to_string();
+        assert!(s.contains("Database error"));
+        assert!(s.contains("SQLITE_BUSY"));
+    }
+
+    #[test]
+    fn test_ipc_error_display() {
+        let err = MhostError::Ipc("broken pipe".into());
+        let s = err.to_string();
+        assert!(s.contains("IPC error"));
+        assert!(s.contains("broken pipe"));
+    }
+
+    #[test]
+    fn test_json_error_conversion() {
+        let json_err: serde_json::Error = serde_json::from_str::<serde_json::Value>("{bad}").unwrap_err();
+        let mhost_err: MhostError = json_err.into();
+        assert!(matches!(mhost_err, MhostError::Json(_)));
+    }
 }

@@ -149,4 +149,64 @@ mod tests {
         let decoded: HealthConfig = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(original, decoded);
     }
+
+    // -- HealthConfig with all probe types via serde -------------------------
+
+    #[test]
+    fn test_health_config_all_probe_types_deserialize() {
+        // HTTP probe
+        let http_json = r#"{"kind":{"kind":"http","url":"http://localhost/health"}}"#;
+        let http: HealthConfig = serde_json::from_str(http_json).expect("http");
+        assert!(matches!(http.kind, HealthCheckKind::Http { .. }));
+
+        // TCP probe
+        let tcp_json = r#"{"kind":{"kind":"tcp","host":"127.0.0.1","port":5432}}"#;
+        let tcp: HealthConfig = serde_json::from_str(tcp_json).expect("tcp");
+        assert!(matches!(tcp.kind, HealthCheckKind::Tcp { .. }));
+
+        // Script probe
+        let script_json = r#"{"kind":{"kind":"script","command":"/bin/check.sh"}}"#;
+        let script: HealthConfig = serde_json::from_str(script_json).expect("script");
+        assert!(matches!(script.kind, HealthCheckKind::Script { .. }));
+    }
+
+    // -- HealthStatus display ------------------------------------------------
+
+    #[test]
+    fn test_health_status_all_variants_serialize() {
+        // HealthStatus uses serde rename_all = "snake_case"
+        let unknown = serde_json::to_string(&HealthStatus::Unknown).expect("serialize");
+        let healthy = serde_json::to_string(&HealthStatus::Healthy).expect("serialize");
+        let unhealthy = serde_json::to_string(&HealthStatus::Unhealthy).expect("serialize");
+        let disabled = serde_json::to_string(&HealthStatus::Disabled).expect("serialize");
+
+        assert_eq!(unknown, r#""unknown""#);
+        assert_eq!(healthy, r#""healthy""#);
+        assert_eq!(unhealthy, r#""unhealthy""#);
+        assert_eq!(disabled, r#""disabled""#);
+    }
+
+    #[test]
+    fn test_health_status_equality() {
+        assert_eq!(HealthStatus::Healthy, HealthStatus::Healthy);
+        assert_ne!(HealthStatus::Healthy, HealthStatus::Unhealthy);
+        assert_ne!(HealthStatus::Unknown, HealthStatus::Disabled);
+    }
+
+    // -- HealthConfig clone + equality --------------------------------------
+
+    #[test]
+    fn test_health_config_clone_equality() {
+        let original = HealthConfig {
+            kind: HealthCheckKind::Tcp {
+                host: "db.internal".to_string(),
+                port: 3306,
+            },
+            interval_ms: 20_000,
+            timeout_ms: 4_000,
+            retries: 2,
+        };
+        let cloned = original.clone();
+        assert_eq!(original, cloned);
+    }
 }

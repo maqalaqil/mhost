@@ -302,4 +302,93 @@ mod tests {
         let decoded: GroupConfig = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(original, decoded);
     }
+
+    // -- Empty groups (no error) --------------------------------------------
+
+    #[test]
+    fn test_empty_groups_no_error() {
+        let groups: HashMap<String, GroupConfig> = HashMap::new();
+        let order = topological_sort(&groups).expect("empty groups should succeed");
+        assert!(order.is_empty());
+    }
+
+    // -- Single group with no dependencies ----------------------------------
+
+    #[test]
+    fn test_single_group_no_deps() {
+        let mut groups = HashMap::new();
+        groups.insert(
+            "standalone".to_string(),
+            GroupConfig {
+                depends_on: vec![],
+                processes: vec!["app".to_string()],
+            },
+        );
+        let order = topological_sort(&groups).expect("single group");
+        assert_eq!(order, vec!["standalone"]);
+    }
+
+    // -- Large dependency chain (A -> B -> C -> D -> E) --------------------
+
+    #[test]
+    fn test_large_dependency_chain() {
+        let names = ["e", "d", "c", "b", "a"];
+        let deps = [
+            ("a", vec!["b"]),
+            ("b", vec!["c"]),
+            ("c", vec!["d"]),
+            ("d", vec!["e"]),
+            ("e", vec![]),
+        ];
+
+        let mut groups = HashMap::new();
+        for (name, dep_names) in &deps {
+            groups.insert(
+                name.to_string(),
+                GroupConfig {
+                    depends_on: dep_names.iter().map(|d| d.to_string()).collect(),
+                    processes: vec![format!("{name}-proc")],
+                },
+            );
+        }
+
+        let order = topological_sort(&groups).expect("large chain");
+        // e must come before d before c before b before a
+        let idx = |n: &str| order.iter().position(|x| x == n).unwrap();
+        assert!(idx("e") < idx("d"));
+        assert!(idx("d") < idx("c"));
+        assert!(idx("c") < idx("b"));
+        assert!(idx("b") < idx("a"));
+        // All 5 groups must be present
+        for name in &names {
+            assert!(order.contains(&name.to_string()), "missing group: {name}");
+        }
+    }
+
+    // -- transitive_deps returns empty set for no-dep group -----------------
+
+    #[test]
+    fn test_transitive_deps_no_deps() {
+        let mut groups = HashMap::new();
+        groups.insert(
+            "standalone".to_string(),
+            GroupConfig {
+                depends_on: vec![],
+                processes: vec!["app".to_string()],
+            },
+        );
+        let deps = transitive_deps("standalone", &groups);
+        assert!(deps.is_empty());
+    }
+
+    // -- ordered_processes_for_group with unknown group returns error --------
+
+    #[test]
+    fn test_ordered_processes_for_unknown_group_errors() {
+        let groups = make_groups();
+        let result = ordered_processes_for_group("nonexistent", &groups);
+        assert!(result.is_err());
+        let msg = result.unwrap_err().to_string();
+        assert!(msg.contains("nonexistent"), "error should name the missing group, got: {msg}");
+    }
 }

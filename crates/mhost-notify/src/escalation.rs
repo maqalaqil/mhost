@@ -95,4 +95,42 @@ mod tests {
         let chain = EscalationChain::new(vec![], Duration::from_secs(60));
         assert_eq!(chain.first_channel(), None);
     }
+
+    // -- Empty chain: next_channel on anything returns None ----------------
+
+    #[test]
+    fn test_empty_chain_next_channel_returns_none() {
+        let chain = EscalationChain::new(vec![], Duration::from_secs(60));
+        assert_eq!(chain.next_channel("slack"), None);
+    }
+
+    // -- Empty chain: contains always returns false ------------------------
+
+    #[test]
+    fn test_empty_chain_contains_returns_false() {
+        let chain = EscalationChain::new(vec![], Duration::from_secs(60));
+        assert!(!chain.contains("slack"));
+        assert!(!chain.contains(""));
+    }
+
+    // -- Single-item chain: next is None, first is the sole item -----------
+
+    #[test]
+    fn test_single_item_chain() {
+        let chain = EscalationChain::new(vec!["pagerduty".to_string()], Duration::from_secs(600));
+        assert_eq!(chain.first_channel(), Some("pagerduty"));
+        assert_eq!(chain.next_channel("pagerduty"), None);
+        assert!(chain.contains("pagerduty"));
+        assert!(!chain.contains("slack"));
+    }
+
+    // -- Clone preserves escalate_after ------------------------------------
+
+    #[test]
+    fn test_chain_clone_preserves_data() {
+        let original = make_chain();
+        let cloned = original.clone();
+        assert_eq!(original.escalate_after, cloned.escalate_after);
+        assert_eq!(original.chain, cloned.chain);
+    }
 }

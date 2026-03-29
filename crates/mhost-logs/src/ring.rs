@@ -93,4 +93,65 @@ mod tests {
         assert!(buf.is_empty());
         assert_eq!(buf.len(), 0);
     }
+
+    // -- Push exactly at capacity (no overflow yet) -------------------------
+
+    #[test]
+    fn push_exactly_at_capacity() {
+        let mut buf = RingBuffer::new(3);
+        buf.push("x".to_string());
+        buf.push("y".to_string());
+        buf.push("z".to_string());
+        // Exactly at capacity — nothing evicted yet
+        assert_eq!(buf.len(), 3);
+        assert_eq!(buf.lines(), vec!["x", "y", "z"]);
+    }
+
+    // -- last_n with n=0 returns empty slice --------------------------------
+
+    #[test]
+    fn last_n_zero_returns_empty() {
+        let mut buf = RingBuffer::new(5);
+        buf.push("a".to_string());
+        buf.push("b".to_string());
+        let result = buf.last_n(0);
+        assert!(result.is_empty());
+    }
+
+    // -- last_n with n exactly equal to len ---------------------------------
+
+    #[test]
+    fn last_n_exactly_len() {
+        let mut buf = RingBuffer::new(5);
+        buf.push("a".to_string());
+        buf.push("b".to_string());
+        buf.push("c".to_string());
+        let result = buf.last_n(3);
+        assert_eq!(result, vec!["a", "b", "c"]);
+    }
+
+    // -- After clear, push works correctly ---------------------------------
+
+    #[test]
+    fn push_after_clear() {
+        let mut buf = RingBuffer::new(3);
+        buf.push("a".to_string());
+        buf.push("b".to_string());
+        buf.clear();
+        buf.push("c".to_string());
+        assert_eq!(buf.len(), 1);
+        assert_eq!(buf.lines(), vec!["c"]);
+    }
+
+    // -- Capacity-1 buffer evicts correctly ---------------------------------
+
+    #[test]
+    fn capacity_one_always_keeps_last() {
+        let mut buf = RingBuffer::new(1);
+        buf.push("first".to_string());
+        buf.push("second".to_string());
+        buf.push("third".to_string());
+        assert_eq!(buf.len(), 1);
+        assert_eq!(buf.lines(), vec!["third"]);
+    }
 }

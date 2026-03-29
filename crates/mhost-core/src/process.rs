@@ -364,4 +364,141 @@ mod tests {
         let info = ProcessInfo::new(config, 0);
         assert_eq!(info.format_uptime(), "N/A");
     }
+
+    // -- format_uptime with various durations --------------------------------
+
+    #[test]
+    fn test_format_uptime_seconds_only() {
+        let config = ProcessConfig::default();
+        let mut info = ProcessInfo::new(config, 0);
+        info.uptime_started = Some(Utc::now() - chrono::Duration::seconds(45));
+        let uptime = info.format_uptime();
+        assert!(uptime.ends_with('s'), "expected seconds format, got: {uptime}");
+        assert!(!uptime.contains('h'), "should not contain hours");
+        assert!(!uptime.contains('m'), "should not contain minutes");
+    }
+
+    #[test]
+    fn test_format_uptime_minutes_and_seconds() {
+        let config = ProcessConfig::default();
+        let mut info = ProcessInfo::new(config, 0);
+        info.uptime_started = Some(Utc::now() - chrono::Duration::seconds(3 * 60 + 14));
+        let uptime = info.format_uptime();
+        assert!(uptime.contains('m'), "expected minutes format, got: {uptime}");
+        assert!(!uptime.contains('h'), "should not contain hours");
+    }
+
+    #[test]
+    fn test_format_uptime_hours_minutes_seconds() {
+        let config = ProcessConfig::default();
+        let mut info = ProcessInfo::new(config, 0);
+        info.uptime_started = Some(Utc::now() - chrono::Duration::seconds(2 * 3600 + 3 * 60 + 14));
+        let uptime = info.format_uptime();
+        assert!(uptime.starts_with('2'), "expected '2h ...' format, got: {uptime}");
+        assert!(uptime.contains('h'), "expected hours format, got: {uptime}");
+    }
+
+    #[test]
+    fn test_format_uptime_days_expressed_as_hours() {
+        let config = ProcessConfig::default();
+        let mut info = ProcessInfo::new(config, 0);
+        // 2 days = 48 hours
+        info.uptime_started = Some(Utc::now() - chrono::Duration::seconds(2 * 24 * 3600));
+        let uptime = info.format_uptime();
+        assert!(uptime.contains('h'), "days should be expressed as hours, got: {uptime}");
+    }
+
+    // -- ProcessConfig clone + equality -------------------------------------
+
+    #[test]
+    fn test_process_config_clone_equality() {
+        let config = ProcessConfig {
+            name: "clone-test".to_string(),
+            command: "python3".to_string(),
+            args: vec!["app.py".to_string(), "--port".to_string(), "8000".to_string()],
+            instances: 3,
+            max_restarts: 5,
+            ..Default::default()
+        };
+        let cloned = config.clone();
+        assert_eq!(config, cloned);
+    }
+
+    #[test]
+    fn test_process_config_inequality() {
+        let a = ProcessConfig {
+            name: "svc-a".to_string(),
+            command: "node".to_string(),
+            ..Default::default()
+        };
+        let b = ProcessConfig {
+            name: "svc-b".to_string(),
+            command: "node".to_string(),
+            ..Default::default()
+        };
+        assert_ne!(a, b);
+    }
+
+    // -- All ProcessStatus display strings ----------------------------------
+
+    #[test]
+    fn test_all_status_display_strings() {
+        let cases = [
+            (ProcessStatus::Stopped, "stopped"),
+            (ProcessStatus::Starting, "starting"),
+            (ProcessStatus::Online, "online"),
+            (ProcessStatus::Stopping, "stopping"),
+            (ProcessStatus::Errored, "errored"),
+        ];
+        for (status, expected) in cases {
+            assert_eq!(status.to_string(), expected);
+        }
+    }
+
+    // -- ProcessStatus display colors ---------------------------------------
+
+    #[test]
+    fn test_status_display_colors() {
+        assert_eq!(ProcessStatus::Stopped.display_color(), "red");
+        assert_eq!(ProcessStatus::Starting.display_color(), "yellow");
+        assert_eq!(ProcessStatus::Online.display_color(), "green");
+        assert_eq!(ProcessStatus::Stopping.display_color(), "yellow");
+        assert_eq!(ProcessStatus::Errored.display_color(), "red");
+    }
+
+    // -- transition_to error message format ---------------------------------
+
+    #[test]
+    fn test_transition_error_message_contains_states() {
+        let config = ProcessConfig::default();
+        let info = ProcessInfo::new(config, 0);
+        // Stopped -> Online is invalid
+        let err = info.transition_to(ProcessStatus::Online).unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("stopped") || msg.contains("Stopped"),
+            "error should mention source state, got: {msg}"
+        );
+        assert!(
+            msg.contains("online") || msg.contains("Online"),
+            "error should mention target state, got: {msg}"
+        );
+    }
+
+    #[test]
+    fn test_transition_to_returns_new_instance_not_mutation() {
+        let config = ProcessConfig {
+            name: "test".to_string(),
+            command: "echo".to_string(),
+            ..Default::default()
+        };
+        let original = ProcessInfo::new(config, 0);
+        let transitioned = original.transition_to(ProcessStatus::Starting).unwrap();
+        // original unchanged
+        assert_eq!(original.status, ProcessStatus::Stopped);
+        // new instance has updated status
+        assert_eq!(transitioned.status, ProcessStatus::Starting);
+        // IDs are the same (it's a clone)
+        assert_eq!(original.id, transitioned.id);
+    }
 }

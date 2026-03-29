@@ -240,4 +240,89 @@ mod tests {
         let eq = parse_query("count=42").expect("parse eq");
         assert!(filter_matches(&eq, &entry));
     }
+
+    // -- Parse OR query -------------------------------------------------------
+
+    #[test]
+    fn parse_or_query() {
+        let filter = parse_query("level=WARN OR level=ERROR").expect("parse OR");
+        assert_eq!(
+            filter,
+            QueryFilter::Or(
+                Box::new(QueryFilter::Eq {
+                    field: "level".into(),
+                    value: "WARN".into()
+                }),
+                Box::new(QueryFilter::Eq {
+                    field: "level".into(),
+                    value: "ERROR".into()
+                }),
+            )
+        );
+    }
+
+    // -- Evaluate OR against entries -----------------------------------------
+
+    #[test]
+    fn evaluate_or_against_entries() {
+        let warn_entry = make_entry(Some(LogLevel::Warn), "disk space low");
+        let error_entry = make_entry(Some(LogLevel::Error), "crash");
+        let info_entry = make_entry(Some(LogLevel::Info), "started");
+
+        let filter = parse_query("level=WARN OR level=ERROR").expect("parse");
+        assert!(filter_matches(&filter, &warn_entry));
+        assert!(filter_matches(&filter, &error_entry));
+        assert!(!filter_matches(&filter, &info_entry));
+    }
+
+    // -- Parse nested AND/OR -------------------------------------------------
+
+    #[test]
+    fn parse_nested_and_or() {
+        // "level=ERROR AND message=crash OR level=FATAL"
+        // Precedence: AND before OR → (level=ERROR AND message=crash) OR level=FATAL
+        let filter = parse_query("level=ERROR AND message=crash OR level=FATAL").expect("parse");
+        // The top-level node should be OR
+        assert!(
+            matches!(filter, QueryFilter::Or(_, _)),
+            "top-level should be OR, got: {:?}",
+            filter
+        );
+    }
+
+    // -- Empty query string returns error ------------------------------------
+
+    #[test]
+    fn empty_query_string_returns_error() {
+        let result = parse_query("");
+        assert!(result.is_err(), "empty query should be an error");
+    }
+
+    // -- Lte comparison -------------------------------------------------------
+
+    #[test]
+    fn parse_lte_comparison() {
+        let filter = parse_query("count<=100").expect("parse lte");
+        assert_eq!(
+            filter,
+            QueryFilter::Lte {
+                field: "count".into(),
+                value: "100".into()
+            }
+        );
+    }
+
+    // -- GT comparison --------------------------------------------------------
+
+    #[test]
+    fn parse_gt_comparison() {
+        let filter = parse_query("count>5").expect("parse gt");
+        assert_eq!(
+            filter,
+            QueryFilter::Gt {
+                field: "count".into(),
+                value: "5".into()
+            }
+        );
+    }
 }

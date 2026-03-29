@@ -108,4 +108,48 @@ mod tests {
         let home = dirs::home_dir().unwrap();
         assert_eq!(paths.root(), &home.join(".mhost"));
     }
+
+    #[test]
+    fn test_daemon_log_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(paths.daemon_log(), PathBuf::from("/tmp/mhost-test/logs/daemon.log"));
+    }
+
+    #[test]
+    fn test_dump_file_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(paths.dump_file(), PathBuf::from("/tmp/mhost-test/dump.json"));
+    }
+
+    #[test]
+    fn test_notify_config_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(paths.notify_config(), PathBuf::from("/tmp/mhost-test/notify.json"));
+    }
+
+    #[test]
+    fn test_ai_config_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(paths.ai_config(), PathBuf::from("/tmp/mhost-test/ai.json"));
+    }
+
+    #[test]
+    fn test_bot_config_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(paths.bot_config(), PathBuf::from("/tmp/mhost-test/bot.json"));
+    }
+
+    #[test]
+    fn test_fleet_config_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(paths.fleet_config(), PathBuf::from("/tmp/mhost-test/fleet.json"));
+    }
+
+    #[test]
+    fn test_paths_clone() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        let cloned = paths.clone();
+        assert_eq!(paths.root(), cloned.root());
+        assert_eq!(paths.db(), cloned.db());
+    }
 }
