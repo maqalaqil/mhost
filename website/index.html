@@ -177,6 +177,7 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
     <ul>
       <li><a href="#features">Features</a></li>
       <li><a href="#ai">AI</a></li>
+      <li><a href="#cloud">Cloud</a></li>
       <li><a href="#install">Install</a></li>
       <li><a href="#config">Config</a></li>
       <li><a href="#architecture">Architecture</a></li>
@@ -236,15 +237,15 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
   <div class="container">
     <div class="stats-bar fade-in">
       <div class="stat">
-        <div class="stat-num text-gradient" data-count="13">0</div>
+        <div class="stat-num text-gradient" data-count="14">0</div>
         <div class="stat-label">Rust Crates</div>
       </div>
       <div class="stat">
-        <div class="stat-num text-gradient" data-count="455">0</div>
+        <div class="stat-num text-gradient" data-count="528">0</div>
         <div class="stat-label">Tests Passing</div>
       </div>
       <div class="stat">
-        <div class="stat-num text-gradient" data-count="31">0</div>
+        <div class="stat-num text-gradient" data-count="49">0</div>
         <div class="stat-label">CLI Commands</div>
       </div>
       <div class="stat">
@@ -280,6 +281,7 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
         <tr><td>Process groups</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">Dependency ordering (topological sort)</td></tr>
         <tr><td>Restart strategy</td><td class="pm2">Basic</td><td class="mhost-val">Exponential backoff + circuit breaker</td></tr>
         <tr><td>AI intelligence</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">Diagnose, optimize, ask, watch (OpenAI/Claude)</td></tr>
+        <tr><td>Cloud fleet</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">SSH fleet — AWS, Azure, DO, Railway auto-import</td></tr>
         <tr><td>Config format</td><td class="pm2">JS only</td><td class="mhost-val">TOML, YAML, JSON</td></tr>
       </tbody>
     </table>
@@ -427,8 +429,65 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
   </div>
 </section>
 
+<!-- ─── Cloud Fleet ───────────────────────────────────────── -->
+<section class="section section-alt" id="cloud">
+  <div class="container">
+    <div class="text-center fade-in">
+      <span class="badge badge-green">NEW</span>
+      <h2 style="font-size:2.5rem;font-weight:800;margin-top:16px;letter-spacing:-1px">Manage your entire fleet.<br>From one terminal.</h2>
+      <p style="color:var(--text2);max-width:600px;margin:16px auto 0">Connect to EC2, Azure, DigitalOcean, Railway, or any SSH server. Deploy, monitor, and scale across your entire infrastructure.</p>
+    </div>
+
+    <div class="terminal fade-in" style="margin-top:40px">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <span class="terminal-title">mhost cloud</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">mhost cloud import</span> <span class="flag">aws</span> --region us-east-1 --tag env=production</div>
+        <div class="output">  + prod-api (54.123.45.67)</div>
+        <div class="output">  + prod-worker (54.123.45.68)</div>
+        <div class="output">  + prod-db (54.123.45.69)</div>
+        <div class="output">  Imported 3 servers from aws</div>
+        <br>
+        <div><span class="prompt">$</span> <span class="cmd">mhost cloud status</span></div>
+        <div class="output">
+<span class="dim">  Server          Status   mhost   Processes  CPU</span>
+<span class="dim">  ────────────────────────────────────────────────</span>
+  prod-api        <span class="status-online">up</span>       yes     4/4        45%
+  prod-worker     <span class="status-online">up</span>       yes     3/3        72%
+  prod-db         <span class="status-online">up</span>       yes     1/1        12%</div>
+        <br>
+        <div><span class="prompt">$</span> <span class="cmd">mhost cloud restart</span> <span class="flag">all</span> api-server</div>
+        <div class="output">  prod-api: restarted 'api-server'</div>
+        <div class="output">  prod-worker: restarted 'api-server'</div>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top:40px">
+      <div class="feature-card fade-in">
+        <div class="feature-icon cyan">&#9729;</div>
+        <h3>Cloud Providers</h3>
+        <p>Auto-import servers from AWS EC2, Azure VMs, DigitalOcean, Railway. One command to discover your entire fleet.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon green">&#8644;</div>
+        <h3>Remote Operations</h3>
+        <p>Deploy configs, stream logs, restart processes, scale instances — all via SSH. No custom agents required.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon purple">&#9733;</div>
+        <h3>AI Cloud Ops</h3>
+        <p>AI provisions infrastructure, diagnoses remote servers, and plans migrations between environments.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ─── Install ──────────────────────────────────────────── -->
-<section class="section section-alt" id="install">
+<section class="section" id="install">
   <div class="container">
     <div class="text-center fade-in">
       <span class="badge badge-green">Get Started</span>
@@ -534,9 +593,10 @@ mhost-metrics    Collector, time-series, Prometheus, alerts
 mhost-proxy      Reverse proxy, TLS, ACME, load balancing
 mhost-deploy     Git deploy, hooks, rollback, history
 mhost-ai         LLM intelligence (OpenAI / Claude) - 10 features
+mhost-cloud      Remote fleet management - SSH, AWS, Azure, DO, Railway
 mhost-tui        Terminal dashboard with sparklines (ratatui)
 mhost-daemon     Process supervisor, state store  (mhostd binary)
-mhost-cli        CLI interface with 31 commands   (mhost binary)
+mhost-cli        CLI interface with 49 commands   (mhost binary)
     </div>
   </div>
 </section>

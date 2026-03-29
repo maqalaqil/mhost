@@ -42,6 +42,7 @@ Built in Rust. Single binary. Zero runtime dependencies.
 | **Restart** | Basic | Exponential backoff + circuit breaker |
 | **Config** | JS only | TOML, YAML, JSON |
 | **AI** | None | Built-in LLM intelligence (OpenAI/Claude) — diagnose, optimize, ask |
+| **Cloud fleet** | None | SSH fleet management — AWS, Azure, DO, Railway auto-import |
 
 ---
 
@@ -599,6 +600,76 @@ Deploy history is tracked in SQLite with commit hashes, timestamps, and status.
 
 ---
 
+## Cloud Fleet Management
+
+Manage processes across any number of remote servers from your local terminal via SSH.
+
+### Add Servers
+
+```bash
+mhost cloud add prod-api --host 54.123.45.67 --key ~/.ssh/id_rsa
+mhost cloud add staging --host staging.myapp.com --user deploy
+```
+
+### Auto-Import from Cloud Providers
+
+```bash
+mhost cloud import aws --region us-east-1 --tag env=production
+mhost cloud import digitalocean --tag production
+mhost cloud import azure --resource-group myapp
+mhost cloud import railway --project myapp
+```
+
+### Remote Operations
+
+```bash
+mhost cloud list                          # Show all servers
+mhost cloud status                        # Health check entire fleet
+mhost cloud deploy prod-api mhost.toml    # Deploy config to remote
+mhost cloud exec prod-api "mhost list"    # Run command on remote
+mhost cloud logs prod-api api-server      # Stream remote logs
+mhost cloud restart all api-server        # Restart across ALL servers
+mhost cloud scale prod-api worker 4       # Scale on specific server
+mhost cloud sync mhost.toml              # Push config to all servers
+mhost cloud ssh prod-api                  # Open SSH shell
+mhost cloud install prod-api              # Install mhost on remote
+mhost cloud update all                    # Update mhost on all servers
+```
+
+### AI-Powered Cloud Operations
+
+```bash
+mhost cloud ai-setup "I need a Node API on EC2 with 2 workers"
+mhost cloud ai-diagnose prod-api          # AI analyzes remote server
+mhost cloud ai-migrate staging prod-api   # AI plans migration
+```
+
+### Fleet Config (`~/.mhost/fleet.json`)
+
+```json
+{
+  "servers": {
+    "prod-api": {
+      "host": "54.123.45.67",
+      "port": 22,
+      "user": "deploy",
+      "auth": "key",
+      "key_path": "~/.ssh/id_rsa",
+      "tags": ["production", "api"],
+      "provider": "aws",
+      "region": "us-east-1"
+    }
+  },
+  "groups": {
+    "production": ["prod-api", "prod-worker"]
+  }
+}
+```
+
+Supports: **AWS EC2**, **Azure VMs**, **DigitalOcean**, **Railway**, any SSH-accessible server.
+
+---
+
 ## AI Intelligence
 
 The first process manager with built-in LLM capabilities. Supports **OpenAI** (GPT-4o) and **Claude** (Sonnet/Opus).
@@ -827,6 +898,28 @@ mhost monit
 | `mhost ai explain [config]` | Explain config in plain English |
 | `mhost ai suggest` | Proactive improvement suggestions |
 
+### Cloud Fleet
+
+| Command | Description |
+|---|---|
+| `mhost cloud add <name> --host <ip>` | Add a remote server |
+| `mhost cloud remove <name>` | Remove a server |
+| `mhost cloud list` | List all fleet servers |
+| `mhost cloud status` | Health check all servers |
+| `mhost cloud deploy <server> <config>` | Deploy config to remote |
+| `mhost cloud exec <server> "<cmd>"` | Run command on remote |
+| `mhost cloud logs <server> <app>` | Stream remote logs |
+| `mhost cloud restart <server\|all> <app>` | Restart across servers |
+| `mhost cloud scale <server> <app> <N>` | Scale on remote |
+| `mhost cloud sync <config>` | Push config to all servers |
+| `mhost cloud ssh <server>` | Open SSH shell |
+| `mhost cloud install <server>` | Install mhost on remote |
+| `mhost cloud update <server\|all>` | Update mhost on remotes |
+| `mhost cloud import <provider>` | Import from AWS/Azure/DO/Railway |
+| `mhost cloud ai-setup "<desc>"` | AI infrastructure planning |
+| `mhost cloud ai-diagnose <server>` | AI remote diagnosis |
+| `mhost cloud ai-migrate <from> <to>` | AI migration planning |
+
 ### Infrastructure
 
 | Command | Description |
@@ -871,14 +964,15 @@ mhost monit
 │  - Git pull / hooks     - Cron restarts    - SQLite           │
 │  - Rollback             - Memory monitor   - Event history    │
 │                                                               │
-│  AI Intelligence                                              │
-│  - OpenAI / Claude      - Crash diagnosis  - Log queries      │
-│  - Config generation    - Optimization     - Anomaly watch    │
-│  - Post-mortems         - Ask anything     - Suggestions      │
+│  AI Intelligence        Cloud Fleet                           │
+│  - OpenAI / Claude      - SSH fleet mgmt   - AWS / Azure      │
+│  - Crash diagnosis      - Auto-import      - DO / Railway     │
+│  - Config generation    - AI provisioning  - Remote deploy    │
+│  - Optimization         - AI migration     - Fleet sync       │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Crate Structure (13 crates)
+### Crate Structure (14 crates)
 
 ```
 mhost/
@@ -892,6 +986,7 @@ mhost/
 ├── mhost-proxy      Reverse proxy, TLS, ACME, load balancing
 ├── mhost-deploy     Git deploy, hooks, rollback, history
 ├── mhost-ai         LLM intelligence (OpenAI/Claude) — diagnose, optimize, ask
+├── mhost-cloud      Remote fleet management — SSH, cloud providers, AI ops
 ├── mhost-tui        Terminal dashboard (ratatui)
 ├── mhost-daemon     Supervisor, handler, state store (mhostd binary)
 └── mhost-cli        CLI interface (mhost binary)
