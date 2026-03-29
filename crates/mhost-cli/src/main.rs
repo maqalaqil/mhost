@@ -1,3 +1,84 @@
-fn main() {
-    println!("mhost stub");
+mod cli;
+mod commands;
+mod daemon_launcher;
+mod output;
+
+use clap::Parser;
+use mhost_core::paths::MhostPaths;
+use mhost_ipc::IpcClient;
+
+use cli::{Cli, Commands};
+
+#[tokio::main]
+async fn main() {
+    let cli = Cli::parse();
+    let paths = MhostPaths::new();
+
+    let result = dispatch(cli, &paths).await;
+
+    if let Err(e) = result {
+        output::print_error(&e);
+        std::process::exit(1);
+    }
+}
+
+async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
+    match cli.command {
+        // ---- Commands that don't need the daemon -------------------------
+        Commands::Startup => commands::startup::run_startup(),
+        Commands::Unstartup => commands::startup::run_unstartup(),
+        Commands::SelfUpdate => commands::self_update::run(),
+        Commands::Completion { shell } => {
+            commands::completion::run(shell);
+            Ok(())
+        }
+        Commands::History { name } => commands::history::run(paths, &name),
+        Commands::Logs {
+            name,
+            lines,
+            err,
+            grep,
+        } => commands::logs::run(paths, &name, lines, err, grep.as_deref()),
+
+        // ---- Commands that require a running daemon ----------------------
+        other => {
+            daemon_launcher::ensure_daemon_running(paths)?;
+            let client = IpcClient::new(&paths.socket());
+            dispatch_daemon(other, &client, paths).await
+        }
+    }
+}
+
+async fn dispatch_daemon(
+    cmd: Commands,
+    client: &IpcClient,
+    _paths: &MhostPaths,
+) -> Result<(), String> {
+    match cmd {
+        Commands::Start { target, name } => {
+            commands::start::run(client, &target, name.as_deref()).await
+        }
+        Commands::Stop { target } => commands::stop::run(client, &target).await,
+        Commands::Restart { target } => commands::restart::run(client, &target).await,
+        Commands::Delete { target } => commands::delete::run(client, &target).await,
+        Commands::List => commands::list::run(client).await,
+        Commands::Info { name } => commands::info::run(client, &name).await,
+        Commands::Env { name } => commands::env_cmd::run(client, &name).await,
+        Commands::Scale { name, instances } => {
+            commands::scale::run(client, &name, instances).await
+        }
+        Commands::Save => commands::save::run(client).await,
+        Commands::Resurrect => commands::resurrect::run(client).await,
+        Commands::Ping => commands::ping::run(client).await,
+        Commands::Kill => commands::kill::run(client).await,
+        Commands::Config { name } => commands::config_cmd::run(client, &name).await,
+
+        // These are handled earlier; this arm is unreachable.
+        Commands::Startup
+        | Commands::Unstartup
+        | Commands::SelfUpdate
+        | Commands::Completion { .. }
+        | Commands::History { .. }
+        | Commands::Logs { .. } => unreachable!(),
+    }
 }
