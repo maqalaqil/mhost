@@ -51,6 +51,7 @@ rcgen = "0.13"
 tokio-rustls = "0.26"
 rustls = { version = "0.23", features = ["ring"] }
 bytes = "1"
+openssl = { version = "0.10", features = ["vendored"] }
 git2 = "0.19"
 ratatui = "0.29"
 crossterm = "0.28"

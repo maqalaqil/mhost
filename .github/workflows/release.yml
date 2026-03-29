@@ -138,7 +138,7 @@ jobs:
 
       - name: Install musl tools (x86_64 Linux)
         if: matrix.linux_musl
-        run: sudo apt-get update && sudo apt-get install -y musl-tools pkg-config libssl-dev cmake
+        run: sudo apt-get update && sudo apt-get install -y musl-tools pkg-config cmake perl
 
       - name: Install cross (aarch64 Linux)
         if: matrix.linux_cross
@@ -147,8 +147,6 @@ jobs:
       - name: Build (native)
         if: "!matrix.linux_cross"
         run: cargo build --release --target ${{ matrix.target }}
-        env:
-          OPENSSL_STATIC: ${{ matrix.linux_musl && '1' || '' }}
 
       - name: Build (cross aarch64)
         if: matrix.linux_cross
