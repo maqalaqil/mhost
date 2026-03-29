@@ -49,7 +49,7 @@ hyper-util = { version = "0.1", features = ["tokio", "http1", "http2"] }
 http-body-util = "0.1"
 rcgen = "0.13"
 tokio-rustls = "0.26"
-rustls = "0.23"
+rustls = { version = "0.23", features = ["ring"] }
 bytes = "1"
 git2 = "0.19"
 ratatui = "0.29"
