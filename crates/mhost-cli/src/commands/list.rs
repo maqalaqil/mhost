@@ -18,7 +18,13 @@ pub async fn run(client: &IpcClient) -> Result<(), String> {
     }
 
     let result = resp.result.unwrap_or(serde_json::Value::Array(vec![]));
-    let processes: Vec<ProcessInfo> = serde_json::from_value(result)
+    // Handler returns {"processes": [...]} — extract the array
+    let process_list = if let Some(arr) = result.get("processes") {
+        arr.clone()
+    } else {
+        result
+    };
+    let processes: Vec<ProcessInfo> = serde_json::from_value(process_list)
         .map_err(|e| format!("Failed to parse process list: {e}"))?;
 
     print_process_table(&processes);

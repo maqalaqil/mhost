@@ -1,0 +1,40 @@
+# mhost Example Ecosystem Config
+# Run with: mhost start examples/mhost.toml
+
+[process.api-server]
+command = "node server.js"
+cwd = "examples/node-api"
+env = { PORT = "3000", NODE_ENV = "development" }
+instances = 1
+max_restarts = 5
+min_uptime = "2s"
+restart_delay = "500ms"
+grace_period = "3s"
+
+[process.api-server.health.http]
+url = "http://localhost:3000/health"
+interval = "10s"
+timeout = "3s"
+retries = 3
+
+[process.worker]
+command = "python3 worker.py"
+cwd = "examples/python-worker"
+instances = 1
+max_restarts = 10
+min_uptime = "1s"
+
+[process.static-site]
+command = "sh serve.sh"
+cwd = "examples/static-site"
+env = { PORT = "8080" }
+instances = 1
+
+# Process groups
+[groups.backend]
+depends_on = []
+processes = ["api-server", "worker"]
+
+[groups.frontend]
+depends_on = ["backend"]
+processes = ["static-site"]

@@ -22,10 +22,18 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
         .result
         .ok_or("Empty response from daemon")?;
 
-    let info: ProcessInfo = serde_json::from_value(result)
+    // Handler returns {"processes": [...]}
+    let process_list = if let Some(arr) = result.get("processes") {
+        arr.clone()
+    } else {
+        result
+    };
+    let infos: Vec<ProcessInfo> = serde_json::from_value(process_list)
         .map_err(|e| format!("Failed to parse process info: {e}"))?;
 
-    print_info(&info);
+    for info in &infos {
+        print_info(info);
+    }
     Ok(())
 }
 

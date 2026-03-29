@@ -23,7 +23,7 @@ pub async fn run(
     let configs = build_configs(target, name)?;
 
     for cfg in &configs {
-        let params = json!({ "config": cfg });
+        let params = serde_json::to_value(cfg).map_err(|e| format!("Serialize error: {e}"))?;
         let resp = client
             .call(methods::PROCESS_START, params)
             .await
