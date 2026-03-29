@@ -104,7 +104,10 @@ pub async fn run_status(paths: &MhostPaths) -> Result<(), String> {
     for s in &statuses {
         let status = if s.online { "up" } else { "down" };
         let mhost = if s.mhost_installed { "yes" } else { "no" };
-        let cpu = s.cpu.map(|c| format!("{:.1}%", c)).unwrap_or_else(|| "-".into());
+        let cpu = s
+            .cpu
+            .map(|c| format!("{:.1}%", c))
+            .unwrap_or_else(|| "-".into());
         println!(
             "  {:<15} {:<10} {:<8} {:<12} {:<10}",
             s.name, status, mhost, s.process_count, cpu
@@ -124,7 +127,9 @@ pub async fn run_deploy(paths: &MhostPaths, server: &str, config_file: &str) -> 
         .ok_or_else(|| format!("Server '{}' not found", server))?;
     let host = RemoteHost::new(server, sc);
     println!("  Deploying to '{}'...", server);
-    let result = host.deploy_config(std::path::Path::new(config_file)).await?;
+    let result = host
+        .deploy_config(std::path::Path::new(config_file))
+        .await?;
     print_success(&format!("Deployed to '{}'\n{}", server, result));
     Ok(())
 }

@@ -229,11 +229,7 @@ fn row_to_process_info(row: &Row) -> SqlResult<ProcessInfo> {
     let exit_code: Option<i32> = row.get(10)?;
 
     let config: ProcessConfig = serde_json::from_str(&config_json).map_err(|e| {
-        rusqlite::Error::FromSqlConversionFailure(
-            3,
-            rusqlite::types::Type::Text,
-            Box::new(e),
-        )
+        rusqlite::Error::FromSqlConversionFailure(3, rusqlite::types::Type::Text, Box::new(e))
     })?;
 
     let status = match status_str.as_str() {
@@ -411,7 +407,9 @@ mod tests {
 
         store.log_event("api", "started", Some("boot")).unwrap();
         store.log_event("api", "restarted", Some("crash")).unwrap();
-        store.log_event("api", "restarted", Some("crash again")).unwrap();
+        store
+            .log_event("api", "restarted", Some("crash again"))
+            .unwrap();
         store.log_event("api", "stopped", Some("graceful")).unwrap();
 
         let events = store.get_events("api", 100).unwrap();

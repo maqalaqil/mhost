@@ -14,7 +14,11 @@ pub struct TelegramChannel {
 }
 
 impl TelegramChannel {
-    pub fn new(name: impl Into<String>, bot_token: impl Into<String>, chat_id: impl Into<String>) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        bot_token: impl Into<String>,
+        chat_id: impl Into<String>,
+    ) -> Self {
         Self {
             name: name.into(),
             bot_token: bot_token.into(),
@@ -36,7 +40,10 @@ impl TelegramChannel {
         let escaped_message = escape_markdownv2(&event.message);
         let escaped_event = escape_markdownv2(&event.event_type.to_string());
         let escaped_severity = escape_markdownv2(&event.severity.to_string());
-        let timestamp = event.timestamp.format("%Y\\-%-m\\-%-d %H:%M:%S UTC").to_string();
+        let timestamp = event
+            .timestamp
+            .format("%Y\\-%-m\\-%-d %H:%M:%S UTC")
+            .to_string();
 
         format!(
             "{severity_emoji} *{escaped_event}* \\| {escaped_process}\n\
@@ -49,7 +56,9 @@ impl TelegramChannel {
 
 /// Escape special characters for Telegram MarkdownV2.
 fn escape_markdownv2(text: &str) -> String {
-    let special = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
+    let special = [
+        '_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!',
+    ];
     let mut result = String::with_capacity(text.len() * 2);
     for ch in text.chars() {
         if special.contains(&ch) {

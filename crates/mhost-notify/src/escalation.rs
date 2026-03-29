@@ -12,7 +12,10 @@ pub struct EscalationChain {
 
 impl EscalationChain {
     pub fn new(chain: Vec<String>, escalate_after: Duration) -> Self {
-        Self { chain, escalate_after }
+        Self {
+            chain,
+            escalate_after,
+        }
     }
 
     /// Returns the next channel to escalate to after `current_channel`,

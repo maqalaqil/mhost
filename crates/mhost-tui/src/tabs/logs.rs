@@ -86,11 +86,7 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
 
     let total = lines.len() as u16;
     let title = if app.search_mode {
-        format!(
-            " Logs — search: {} ({} lines) ",
-            query.unwrap_or(""),
-            total
-        )
+        format!(" Logs — search: {} ({} lines) ", query.unwrap_or(""), total)
     } else {
         format!(" Logs ({} lines) ", total)
     };
@@ -108,9 +104,7 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
 // ---------------------------------------------------------------------------
 
 pub fn render_mini(f: &mut Frame, area: Rect, app: &App, max_lines: usize) {
-    let name = app
-        .selected_process_name()
-        .unwrap_or("—");
+    let name = app.selected_process_name().unwrap_or("—");
 
     let start = app.log_lines.len().saturating_sub(max_lines);
     let lines: Vec<Line> = app.log_lines[start..]

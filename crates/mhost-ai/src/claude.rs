@@ -96,14 +96,15 @@ impl LlmProvider for ClaudeProvider {
             .ok_or_else(|| format!("Unexpected Claude response shape: {json}"))?
             .to_owned();
 
-        let model = json["model"]
-            .as_str()
-            .unwrap_or(&self.model)
-            .to_owned();
+        let model = json["model"].as_str().unwrap_or(&self.model).to_owned();
 
         let usage = parse_usage(&json);
 
-        Ok(LlmResponse { content, model, usage })
+        Ok(LlmResponse {
+            content,
+            model,
+            usage,
+        })
     }
 
     fn provider_name(&self) -> &str {
@@ -120,7 +121,10 @@ fn parse_usage(json: &Value) -> Option<TokenUsage> {
     let usage = json.get("usage")?;
     let input_tokens = usage["input_tokens"].as_u64()? as u32;
     let output_tokens = usage["output_tokens"].as_u64()? as u32;
-    Some(TokenUsage { input_tokens, output_tokens })
+    Some(TokenUsage {
+        input_tokens,
+        output_tokens,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -139,8 +143,14 @@ mod tests {
     fn make_request_with_system() -> LlmRequest {
         LlmRequest {
             messages: vec![
-                LlmMessage { role: "system".into(), content: "You are a helpful assistant.".into() },
-                LlmMessage { role: "user".into(), content: "Hello!".into() },
+                LlmMessage {
+                    role: "system".into(),
+                    content: "You are a helpful assistant.".into(),
+                },
+                LlmMessage {
+                    role: "user".into(),
+                    content: "Hello!".into(),
+                },
             ],
             max_tokens: 256,
             temperature: 0.5,
@@ -149,9 +159,10 @@ mod tests {
 
     fn make_request_no_system() -> LlmRequest {
         LlmRequest {
-            messages: vec![
-                LlmMessage { role: "user".into(), content: "Hello!".into() },
-            ],
+            messages: vec![LlmMessage {
+                role: "user".into(),
+                content: "Hello!".into(),
+            }],
             max_tokens: 128,
             temperature: 0.0,
         }

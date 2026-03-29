@@ -36,11 +36,21 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         Commands::Notify { action } => match action {
             NotifyAction::Setup => commands::notify::run_setup(&paths.notify_config()),
             NotifyAction::List => commands::notify::run_list(&paths.notify_config()),
-            NotifyAction::Remove { channel } => commands::notify::run_remove(&paths.notify_config(), &channel),
-            NotifyAction::Enable { channel } => commands::notify::run_enable(&paths.notify_config(), &channel, true),
-            NotifyAction::Disable { channel } => commands::notify::run_enable(&paths.notify_config(), &channel, false),
-            NotifyAction::Events { channel } => commands::notify::run_events(&paths.notify_config(), channel.as_deref()),
-            NotifyAction::Test { channel } => commands::notify::run_test(&paths.notify_config(), &channel).await,
+            NotifyAction::Remove { channel } => {
+                commands::notify::run_remove(&paths.notify_config(), &channel)
+            }
+            NotifyAction::Enable { channel } => {
+                commands::notify::run_enable(&paths.notify_config(), &channel, true)
+            }
+            NotifyAction::Disable { channel } => {
+                commands::notify::run_enable(&paths.notify_config(), &channel, false)
+            }
+            NotifyAction::Events { channel } => {
+                commands::notify::run_events(&paths.notify_config(), channel.as_deref())
+            }
+            NotifyAction::Test { channel } => {
+                commands::notify::run_test(&paths.notify_config(), &channel).await
+            }
             NotifyAction::Start => {
                 daemon_launcher::ensure_daemon_running(paths)?;
                 let client = IpcClient::new(&paths.socket());
@@ -83,13 +93,15 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         }
 
         // ---- AI commands that don't need the daemon ----------------------
-        Commands::Ai { action: AiAction::Setup } => commands::ai::run_setup(paths),
-        Commands::Ai { action: AiAction::Config { description } } => {
-            commands::ai::run_config_gen(paths, &description).await
-        }
-        Commands::Ai { action: AiAction::Explain { file } } => {
-            commands::ai::run_explain(paths, &file).await
-        }
+        Commands::Ai {
+            action: AiAction::Setup,
+        } => commands::ai::run_setup(paths),
+        Commands::Ai {
+            action: AiAction::Config { description },
+        } => commands::ai::run_config_gen(paths, &description).await,
+        Commands::Ai {
+            action: AiAction::Explain { file },
+        } => commands::ai::run_explain(paths, &file).await,
 
         // ---- Cloud commands (remote SSH, no local daemon needed) ---------
         Commands::Cloud { action } => dispatch_cloud(action, paths).await,
@@ -101,18 +113,14 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             BotAction::Disable => commands::bot::run_disable(paths),
             BotAction::Status => commands::bot::run_status(paths),
             BotAction::Permissions => commands::bot::run_permissions(paths),
-            BotAction::AddAdmin { user_id } => {
-                commands::bot::run_add_user(paths, user_id, "admin")
-            }
+            BotAction::AddAdmin { user_id } => commands::bot::run_add_user(paths, user_id, "admin"),
             BotAction::AddOperator { user_id } => {
                 commands::bot::run_add_user(paths, user_id, "operator")
             }
             BotAction::AddViewer { user_id } => {
                 commands::bot::run_add_user(paths, user_id, "viewer")
             }
-            BotAction::RemoveUser { user_id } => {
-                commands::bot::run_remove_user(paths, user_id)
-            }
+            BotAction::RemoveUser { user_id } => commands::bot::run_remove_user(paths, user_id),
             BotAction::Logs => commands::bot::run_logs(paths),
         },
 
@@ -131,7 +139,11 @@ async fn dispatch_daemon(
     _paths: &MhostPaths,
 ) -> Result<(), String> {
     match cmd {
-        Commands::Start { target, name, group } => {
+        Commands::Start {
+            target,
+            name,
+            group,
+        } => {
             if let Some(ref g) = group {
                 commands::group::start(client, g).await
             } else {
@@ -150,9 +162,7 @@ async fn dispatch_daemon(
         Commands::List => commands::list::run(client).await,
         Commands::Info { name } => commands::info::run(client, &name).await,
         Commands::Env { name } => commands::env_cmd::run(client, &name).await,
-        Commands::Scale { name, instances } => {
-            commands::scale::run(client, &name, instances).await
-        }
+        Commands::Scale { name, instances } => commands::scale::run(client, &name, instances).await,
         Commands::Save => commands::save::run(client).await,
         Commands::Resurrect => commands::resurrect::run(client).await,
         Commands::Ping => commands::ping::run(client).await,
@@ -165,31 +175,27 @@ async fn dispatch_daemon(
 
         Commands::Metrics { action } => match action {
             MetricsAction::Show { name } => commands::metrics::show(client, &name).await,
-            MetricsAction::History { name, metric, since } => {
-                commands::metrics::history(client, &name, &metric, &since).await
-            }
+            MetricsAction::History {
+                name,
+                metric,
+                since,
+            } => commands::metrics::history(client, &name, &metric, &since).await,
             MetricsAction::Start { listen } => {
                 commands::metrics::start_prometheus(client, &listen).await
             }
         },
 
         Commands::Ai { action } => match action {
-            AiAction::Diagnose { name } => {
-                commands::ai::run_diagnose(client, _paths, &name).await
-            }
+            AiAction::Diagnose { name } => commands::ai::run_diagnose(client, _paths, &name).await,
             AiAction::Logs { name, question } => {
                 commands::ai::run_log_query(client, _paths, &name, &question).await
             }
-            AiAction::Optimize { name } => {
-                commands::ai::run_optimize(client, _paths, &name).await
-            }
+            AiAction::Optimize { name } => commands::ai::run_optimize(client, _paths, &name).await,
             AiAction::Postmortem { name } => {
                 commands::ai::run_postmortem(client, _paths, &name).await
             }
             AiAction::Watch => commands::ai::run_watch(client, _paths).await,
-            AiAction::Ask { question } => {
-                commands::ai::run_ask(client, _paths, &question).await
-            }
+            AiAction::Ask { question } => commands::ai::run_ask(client, _paths, &question).await,
             AiAction::Suggest => commands::ai::run_suggest(client, _paths).await,
             // Setup / Config / Explain are handled before the daemon is started.
             _ => unreachable!(),
@@ -221,38 +227,36 @@ async fn dispatch_cloud(action: CloudAction, paths: &MhostPaths) -> Result<(), S
     use commands::cloud;
 
     match action {
-        CloudAction::Add { name, host, user, key, port } => {
-            cloud::run_add(paths, &name, &host, user.as_deref(), key.as_deref(), port)
-        }
+        CloudAction::Add {
+            name,
+            host,
+            user,
+            key,
+            port,
+        } => cloud::run_add(paths, &name, &host, user.as_deref(), key.as_deref(), port),
         CloudAction::Remove { name } => cloud::run_remove(paths, &name),
         CloudAction::List => cloud::run_list(paths),
         CloudAction::Status => cloud::run_status(paths).await,
-        CloudAction::Deploy { server, config } => {
-            cloud::run_deploy(paths, &server, &config).await
-        }
-        CloudAction::Exec { server, command } => {
-            cloud::run_exec(paths, &server, &command).await
-        }
+        CloudAction::Deploy { server, config } => cloud::run_deploy(paths, &server, &config).await,
+        CloudAction::Exec { server, command } => cloud::run_exec(paths, &server, &command).await,
         CloudAction::Logs { server, app } => cloud::run_logs(paths, &server, &app).await,
-        CloudAction::Restart { server, app } => {
-            cloud::run_restart(paths, &server, &app).await
-        }
-        CloudAction::Scale { server, app, instances } => {
-            cloud::run_scale(paths, &server, &app, instances).await
-        }
+        CloudAction::Restart { server, app } => cloud::run_restart(paths, &server, &app).await,
+        CloudAction::Scale {
+            server,
+            app,
+            instances,
+        } => cloud::run_scale(paths, &server, &app, instances).await,
         CloudAction::Sync { config } => cloud::run_sync(paths, &config).await,
         CloudAction::Ssh { server } => cloud::run_ssh(paths, &server),
         CloudAction::Install { server } => cloud::run_install(paths, &server).await,
         CloudAction::Update { target } => cloud::run_update(paths, &target).await,
-        CloudAction::Import { provider, region, tag } => {
-            cloud::run_import(paths, &provider, region.as_deref(), tag.as_deref()).await
-        }
-        CloudAction::AiSetup { description } => {
-            cloud::run_ai_setup(paths, &description).await
-        }
+        CloudAction::Import {
+            provider,
+            region,
+            tag,
+        } => cloud::run_import(paths, &provider, region.as_deref(), tag.as_deref()).await,
+        CloudAction::AiSetup { description } => cloud::run_ai_setup(paths, &description).await,
         CloudAction::AiDiagnose { server } => cloud::run_ai_diagnose(paths, &server).await,
-        CloudAction::AiMigrate { from, to } => {
-            cloud::run_ai_migrate(paths, &from, &to).await
-        }
+        CloudAction::AiMigrate { from, to } => cloud::run_ai_migrate(paths, &from, &to).await,
     }
 }

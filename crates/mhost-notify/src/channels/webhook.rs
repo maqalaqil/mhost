@@ -37,8 +37,8 @@ impl WebhookChannel {
 
     /// Compute HMAC-SHA256 hex digest for the given body bytes.
     pub fn compute_hmac(secret: &str, body: &[u8]) -> String {
-        let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
-            .expect("HMAC accepts any key length");
+        let mut mac =
+            HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC accepts any key length");
         mac.update(body);
         let result = mac.finalize();
         hex::encode(result.into_bytes())

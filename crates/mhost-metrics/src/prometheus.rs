@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::{Router, extract::State, response::IntoResponse, routing::get};
+use axum::{extract::State, response::IntoResponse, routing::get, Router};
 use mhost_core::ProcessInfo;
 use tokio::net::TcpListener;
 use tracing::{error, info};
@@ -154,9 +154,7 @@ mod tests {
             "missing cpu_percent line in:\n{output}"
         );
         assert!(
-            output.contains(
-                "mhost_process_memory_bytes{name=\"api\",instance=\"0\"} 134217728"
-            ),
+            output.contains("mhost_process_memory_bytes{name=\"api\",instance=\"0\"} 134217728"),
             "missing memory_bytes line in:\n{output}"
         );
         assert!(

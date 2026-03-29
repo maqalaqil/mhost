@@ -39,7 +39,10 @@ pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
     };
 
     config.save(&paths.ai_config())?;
-    print_success(&format!("AI configured with {} ({})", provider, config.model));
+    print_success(&format!(
+        "AI configured with {} ({})",
+        provider, config.model
+    ));
     println!("  Config: {}", paths.ai_config().display());
     println!("  Test:   mhost ai ask \"what processes are running?\"");
     Ok(())
@@ -72,8 +75,7 @@ pub async fn run_log_query(
     let provider = load_provider(paths)?;
 
     println!("  Translating query: \"{}\"...\n", question);
-    let query =
-        mhost_ai::log_query::translate_log_query(provider.as_ref(), name, question).await?;
+    let query = mhost_ai::log_query::translate_log_query(provider.as_ref(), name, question).await?;
 
     println!("  Search: {:?}", query.search);
     println!("  Level:  {:?}", query.level);
@@ -143,7 +145,10 @@ pub async fn run_watch(client: &IpcClient, paths: &MhostPaths) -> Result<(), Str
     let provider = load_provider(paths)?;
     let processes = fetch_process_list(client).await?;
 
-    println!("  Scanning {} processes for anomalies...\n", processes.len());
+    println!(
+        "  Scanning {} processes for anomalies...\n",
+        processes.len()
+    );
 
     let mut log_batches: Vec<(String, Vec<String>)> = Vec::new();
     for proc in &processes {
@@ -175,11 +180,7 @@ pub async fn run_watch(client: &IpcClient, paths: &MhostPaths) -> Result<(), Str
 
 // ─── Ask ─────────────────────────────────────────────────────────────────────
 
-pub async fn run_ask(
-    client: &IpcClient,
-    paths: &MhostPaths,
-    question: &str,
-) -> Result<(), String> {
+pub async fn run_ask(client: &IpcClient, paths: &MhostPaths, question: &str) -> Result<(), String> {
     let provider = load_provider(paths)?;
     let processes = fetch_process_list(client).await?;
 
@@ -219,8 +220,7 @@ pub async fn run_suggest(client: &IpcClient, paths: &MhostPaths) -> Result<(), S
         .collect();
 
     println!("  Analyzing {} processes...\n", contexts.len());
-    let suggestions =
-        mhost_ai::explain::suggest_improvements(provider.as_ref(), &contexts).await?;
+    let suggestions = mhost_ai::explain::suggest_improvements(provider.as_ref(), &contexts).await?;
     println!("{}", suggestions);
     Ok(())
 }
@@ -228,8 +228,8 @@ pub async fn run_suggest(client: &IpcClient, paths: &MhostPaths) -> Result<(), S
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 fn load_provider(paths: &MhostPaths) -> Result<Box<dyn mhost_ai::LlmProvider>, String> {
-    let config = AiConfig::load(&paths.ai_config())
-        .ok_or("AI not configured. Run: mhost ai setup")?;
+    let config =
+        AiConfig::load(&paths.ai_config()).ok_or("AI not configured. Run: mhost ai setup")?;
     config.create_provider()
 }
 
@@ -299,4 +299,3 @@ async fn fetch_process_context(
         Vec::new(),
     ))
 }
-

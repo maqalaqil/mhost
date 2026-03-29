@@ -42,12 +42,16 @@ pub fn topological_sort(groups: &HashMap<String, GroupConfig>) -> Result<Vec<Str
 
     // Build in-degree map and adjacency list (dep → dependents).
     let mut in_degree: HashMap<&str, usize> = groups.keys().map(|k| (k.as_str(), 0)).collect();
-    let mut dependents: HashMap<&str, Vec<&str>> = groups.keys().map(|k| (k.as_str(), vec![])).collect();
+    let mut dependents: HashMap<&str, Vec<&str>> =
+        groups.keys().map(|k| (k.as_str(), vec![])).collect();
 
     for (name, cfg) in groups {
         for dep in &cfg.depends_on {
             *in_degree.entry(name.as_str()).or_insert(0) += 1;
-            dependents.entry(dep.as_str()).or_default().push(name.as_str());
+            dependents
+                .entry(dep.as_str())
+                .or_default()
+                .push(name.as_str());
         }
     }
 
@@ -276,8 +280,7 @@ mod tests {
     #[test]
     fn test_ordered_processes_for_group() {
         let groups = make_groups();
-        let procs =
-            ordered_processes_for_group("frontend", &groups).expect("ordered_processes");
+        let procs = ordered_processes_for_group("frontend", &groups).expect("ordered_processes");
 
         // All processes from the full chain must appear.
         assert!(procs.contains(&"postgres".to_string()));
@@ -287,8 +290,14 @@ mod tests {
 
         // Dependencies must come before their dependents.
         let idx = |p: &str| procs.iter().position(|x| x == p).unwrap();
-        assert!(idx("postgres") < idx("api-server"), "db procs before backend");
-        assert!(idx("api-server") < idx("web-app"), "backend procs before frontend");
+        assert!(
+            idx("postgres") < idx("api-server"),
+            "db procs before backend"
+        );
+        assert!(
+            idx("api-server") < idx("web-app"),
+            "backend procs before frontend"
+        );
     }
 
     #[test]
@@ -389,6 +398,9 @@ mod tests {
         let result = ordered_processes_for_group("nonexistent", &groups);
         assert!(result.is_err());
         let msg = result.unwrap_err().to_string();
-        assert!(msg.contains("nonexistent"), "error should name the missing group, got: {msg}");
+        assert!(
+            msg.contains("nonexistent"),
+            "error should name the missing group, got: {msg}"
+        );
     }
 }

@@ -13,12 +13,12 @@ pub fn run() -> Result<(), String> {
         .map_err(|e| format!("Update failed: {e}"))?;
 
     if status.updated() {
-        print_success(&format!(
-            "Updated to version {}",
-            status.version()
-        ));
+        print_success(&format!("Updated to version {}", status.version()));
     } else {
-        println!("Already on the latest version ({}).", env!("CARGO_PKG_VERSION"));
+        println!(
+            "Already on the latest version ({}).",
+            env!("CARGO_PKG_VERSION")
+        );
     }
 
     Ok(())

@@ -147,7 +147,10 @@ mod tests {
         std::env::set_var("MHOST_TEST_VAR", "expanded_value");
 
         let mut map = HashMap::new();
-        map.insert("KEY".to_string(), "prefix_${MHOST_TEST_VAR}_suffix".to_string());
+        map.insert(
+            "KEY".to_string(),
+            "prefix_${MHOST_TEST_VAR}_suffix".to_string(),
+        );
 
         let result = expand_env_map(&map);
         assert_eq!(result.get("KEY").unwrap(), "prefix_expanded_value_suffix");

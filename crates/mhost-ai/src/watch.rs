@@ -152,10 +152,7 @@ mod tests {
             response: json.to_string(),
         };
 
-        let batches = vec![(
-            "api".to_string(),
-            vec!["FATAL out of memory".to_string()],
-        )];
+        let batches = vec![("api".to_string(), vec!["FATAL out of memory".to_string()])];
         let result = detect_anomalies(&provider, &batches).await;
 
         assert!(result.is_ok());
@@ -193,12 +190,12 @@ mod tests {
         let batches = vec![
             (
                 "web-server".to_string(),
-                vec!["ERROR 500 /api/users".to_string(), "INFO GET /health 200".to_string()],
+                vec![
+                    "ERROR 500 /api/users".to_string(),
+                    "INFO GET /health 200".to_string(),
+                ],
             ),
-            (
-                "worker".to_string(),
-                vec!["INFO job started".to_string()],
-            ),
+            ("worker".to_string(), vec!["INFO job started".to_string()]),
         ];
 
         detect_anomalies(&provider, &batches).await.unwrap();

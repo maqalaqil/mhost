@@ -373,7 +373,10 @@ mod tests {
         let mut info = ProcessInfo::new(config, 0);
         info.uptime_started = Some(Utc::now() - chrono::Duration::seconds(45));
         let uptime = info.format_uptime();
-        assert!(uptime.ends_with('s'), "expected seconds format, got: {uptime}");
+        assert!(
+            uptime.ends_with('s'),
+            "expected seconds format, got: {uptime}"
+        );
         assert!(!uptime.contains('h'), "should not contain hours");
         assert!(!uptime.contains('m'), "should not contain minutes");
     }
@@ -384,7 +387,10 @@ mod tests {
         let mut info = ProcessInfo::new(config, 0);
         info.uptime_started = Some(Utc::now() - chrono::Duration::seconds(3 * 60 + 14));
         let uptime = info.format_uptime();
-        assert!(uptime.contains('m'), "expected minutes format, got: {uptime}");
+        assert!(
+            uptime.contains('m'),
+            "expected minutes format, got: {uptime}"
+        );
         assert!(!uptime.contains('h'), "should not contain hours");
     }
 
@@ -394,7 +400,10 @@ mod tests {
         let mut info = ProcessInfo::new(config, 0);
         info.uptime_started = Some(Utc::now() - chrono::Duration::seconds(2 * 3600 + 3 * 60 + 14));
         let uptime = info.format_uptime();
-        assert!(uptime.starts_with('2'), "expected '2h ...' format, got: {uptime}");
+        assert!(
+            uptime.starts_with('2'),
+            "expected '2h ...' format, got: {uptime}"
+        );
         assert!(uptime.contains('h'), "expected hours format, got: {uptime}");
     }
 
@@ -405,7 +414,10 @@ mod tests {
         // 2 days = 48 hours
         info.uptime_started = Some(Utc::now() - chrono::Duration::seconds(2 * 24 * 3600));
         let uptime = info.format_uptime();
-        assert!(uptime.contains('h'), "days should be expressed as hours, got: {uptime}");
+        assert!(
+            uptime.contains('h'),
+            "days should be expressed as hours, got: {uptime}"
+        );
     }
 
     // -- ProcessConfig clone + equality -------------------------------------
@@ -415,7 +427,11 @@ mod tests {
         let config = ProcessConfig {
             name: "clone-test".to_string(),
             command: "python3".to_string(),
-            args: vec!["app.py".to_string(), "--port".to_string(), "8000".to_string()],
+            args: vec![
+                "app.py".to_string(),
+                "--port".to_string(),
+                "8000".to_string(),
+            ],
             instances: 3,
             max_restarts: 5,
             ..Default::default()

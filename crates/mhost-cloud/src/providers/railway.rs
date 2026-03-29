@@ -12,10 +12,7 @@ impl RailwayProvider {
         Ok(Self { token })
     }
 
-    async fn list_via_api(
-        &self,
-        filters: &ImportFilters,
-    ) -> Result<Vec<CloudInstance>, String> {
+    async fn list_via_api(&self, filters: &ImportFilters) -> Result<Vec<CloudInstance>, String> {
         let client = reqwest::Client::new();
 
         // Railway GraphQL API to list services
@@ -62,10 +59,7 @@ impl RailwayProvider {
             .await
             .map_err(|e| format!("Railway API error: {e}"))?;
 
-        let body: serde_json::Value = resp
-            .json()
-            .await
-            .map_err(|e| format!("Parse error: {e}"))?;
+        let body: serde_json::Value = resp.json().await.map_err(|e| format!("Parse error: {e}"))?;
 
         parse_railway_services(&body, filters)
     }

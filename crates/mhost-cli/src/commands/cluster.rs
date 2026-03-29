@@ -16,7 +16,10 @@ pub async fn run(client: &IpcClient, name: &str, instances: u32) -> Result<(), S
     if let Some(err) = resp.error {
         print_error(&format!("Failed to cluster '{}': {}", name, err.message));
     } else {
-        print_success(&format!("Clustered '{}' to {} instance(s)", name, instances));
+        print_success(&format!(
+            "Clustered '{}' to {} instance(s)",
+            name, instances
+        ));
     }
 
     Ok(())

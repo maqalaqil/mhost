@@ -172,11 +172,7 @@ mod tests {
 
     #[test]
     fn test_request_serialization_roundtrip() {
-        let req = RpcRequest::new(
-            1,
-            methods::PROCESS_START,
-            json!({"name": "api-server"}),
-        );
+        let req = RpcRequest::new(1, methods::PROCESS_START, json!({"name": "api-server"}));
         let json_str = serde_json::to_string(&req).expect("serialize");
         let decoded: RpcRequest = serde_json::from_str(&json_str).expect("deserialize");
         assert_eq!(decoded.jsonrpc, "2.0");
@@ -212,7 +208,10 @@ mod tests {
 
     #[test]
     fn test_event_serialization() {
-        let event = RpcEvent::new(methods::EVENT_STATUS, json!({"id": "abc", "status": "online"}));
+        let event = RpcEvent::new(
+            methods::EVENT_STATUS,
+            json!({"id": "abc", "status": "online"}),
+        );
         let json_str = serde_json::to_string(&event).expect("serialize");
         let decoded: RpcEvent = serde_json::from_str(&json_str).expect("deserialize");
         assert_eq!(decoded.jsonrpc, "2.0");

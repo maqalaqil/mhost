@@ -15,11 +15,7 @@ use crate::output::{print_error, print_success};
 ///   ecosystem config and every app in it is started.
 /// - Any other string — treated as a bare command and started under `name`
 ///   (or `target` itself when no name is given).
-pub async fn run(
-    client: &IpcClient,
-    target: &str,
-    name: Option<&str>,
-) -> Result<(), String> {
+pub async fn run(client: &IpcClient, target: &str, name: Option<&str>) -> Result<(), String> {
     let configs = build_configs(target, name)?;
 
     for cfg in &configs {
@@ -51,10 +47,7 @@ fn build_configs(target: &str, name: Option<&str>) -> Result<Vec<ProcessConfig>,
     } else {
         // Treat target as command, split on whitespace for simplicity.
         let mut parts = target.split_whitespace();
-        let command = parts
-            .next()
-            .ok_or("Empty command")?
-            .to_string();
+        let command = parts.next().ok_or("Empty command")?.to_string();
         let args: Vec<String> = parts.map(String::from).collect();
         let cfg_name = name.unwrap_or(target).to_string();
 

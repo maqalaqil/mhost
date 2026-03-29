@@ -36,10 +36,25 @@ fn col_header(label: &str, sort_col: &SortColumn, ascending: bool, target: SortC
 
 pub fn render(f: &mut Frame, area: Rect, app: &App) {
     let name_hdr = col_header("Name", &app.sort_by, app.sort_ascending, SortColumn::Name);
-    let status_hdr = col_header("Status", &app.sort_by, app.sort_ascending, SortColumn::Status);
+    let status_hdr = col_header(
+        "Status",
+        &app.sort_by,
+        app.sort_ascending,
+        SortColumn::Status,
+    );
     let cpu_hdr = col_header("CPU%", &app.sort_by, app.sort_ascending, SortColumn::Cpu);
-    let mem_hdr = col_header("Memory", &app.sort_by, app.sort_ascending, SortColumn::Memory);
-    let up_hdr = col_header("Uptime", &app.sort_by, app.sort_ascending, SortColumn::Uptime);
+    let mem_hdr = col_header(
+        "Memory",
+        &app.sort_by,
+        app.sort_ascending,
+        SortColumn::Memory,
+    );
+    let up_hdr = col_header(
+        "Uptime",
+        &app.sort_by,
+        app.sort_ascending,
+        SortColumn::Uptime,
+    );
     let rst_hdr = col_header("↺", &app.sort_by, app.sort_ascending, SortColumn::Restarts);
 
     let header = Row::new(vec![
@@ -74,11 +89,7 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
                 Cell::from(display_idx.to_string()),
                 Cell::from(p.config.name.clone()),
                 Cell::from(status_text).style(Style::default().fg(dot_color)),
-                Cell::from(
-                    p.pid
-                        .map(|v| v.to_string())
-                        .unwrap_or_else(|| "-".into()),
-                ),
+                Cell::from(p.pid.map(|v| v.to_string()).unwrap_or_else(|| "-".into())),
                 Cell::from(
                     p.cpu_percent
                         .map(|v| format!("{:.1}", v))

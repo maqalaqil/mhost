@@ -31,15 +31,8 @@ impl HookRunner {
                         status.code()
                     ))
                 }
-                Ok(Err(e)) => {
-                    return Err(format!("Hook '{}' failed to execute: {}", cmd, e))
-                }
-                Err(_) => {
-                    return Err(format!(
-                        "Hook '{}' timed out after {:?}",
-                        cmd, timeout
-                    ))
-                }
+                Ok(Err(e)) => return Err(format!("Hook '{}' failed to execute: {}", cmd, e)),
+                Err(_) => return Err(format!("Hook '{}' timed out after {:?}", cmd, timeout)),
             }
         }
         Ok(())
@@ -116,8 +109,7 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         // sleep for 10 seconds but timeout is 100 ms
         let cmds = vec!["sleep 10".to_string()];
-        let result =
-            HookRunner::run(&cmds, tmp.path(), Duration::from_millis(100)).await;
+        let result = HookRunner::run(&cmds, tmp.path(), Duration::from_millis(100)).await;
         assert!(result.is_err(), "timed-out hook should return an error");
         let err = result.unwrap_err();
         assert!(

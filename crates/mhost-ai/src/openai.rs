@@ -75,14 +75,15 @@ impl LlmProvider for OpenAiProvider {
             .ok_or_else(|| format!("Unexpected OpenAI response shape: {json}"))?
             .to_owned();
 
-        let model = json["model"]
-            .as_str()
-            .unwrap_or(&self.model)
-            .to_owned();
+        let model = json["model"].as_str().unwrap_or(&self.model).to_owned();
 
         let usage = parse_usage(&json);
 
-        Ok(LlmResponse { content, model, usage })
+        Ok(LlmResponse {
+            content,
+            model,
+            usage,
+        })
     }
 
     fn provider_name(&self) -> &str {
@@ -99,7 +100,10 @@ fn parse_usage(json: &Value) -> Option<TokenUsage> {
     let usage = json.get("usage")?;
     let input_tokens = usage["prompt_tokens"].as_u64()? as u32;
     let output_tokens = usage["completion_tokens"].as_u64()? as u32;
-    Some(TokenUsage { input_tokens, output_tokens })
+    Some(TokenUsage {
+        input_tokens,
+        output_tokens,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -118,8 +122,14 @@ mod tests {
     fn make_request() -> LlmRequest {
         LlmRequest {
             messages: vec![
-                LlmMessage { role: "system".into(), content: "You are a helpful assistant.".into() },
-                LlmMessage { role: "user".into(), content: "Hello!".into() },
+                LlmMessage {
+                    role: "system".into(),
+                    content: "You are a helpful assistant.".into(),
+                },
+                LlmMessage {
+                    role: "user".into(),
+                    content: "Hello!".into(),
+                },
             ],
             max_tokens: 256,
             temperature: 0.7,

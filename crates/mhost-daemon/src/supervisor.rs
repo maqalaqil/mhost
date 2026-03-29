@@ -258,7 +258,9 @@ impl Supervisor {
             }
 
             let state_guard = state.lock().await;
-            state_guard.upsert_process(&info).map_err(|e| e.to_string())?;
+            state_guard
+                .upsert_process(&info)
+                .map_err(|e| e.to_string())?;
             state_guard
                 .log_event(&config.name, "started", Some("process started"))
                 .map_err(|e| e.to_string())?;

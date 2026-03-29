@@ -112,8 +112,10 @@ mod tests {
     #[test]
     fn test_fleet_with_groups() {
         let mut cfg = make_fleet_config(vec![("web1", "10.0.0.1"), ("web2", "10.0.0.2")]);
-        cfg.groups
-            .insert("frontend".to_string(), vec!["web1".to_string(), "web2".to_string()]);
+        cfg.groups.insert(
+            "frontend".to_string(),
+            vec!["web1".to_string(), "web2".to_string()],
+        );
         let fleet = Fleet::new(cfg);
         let members = fleet.config.servers_in_group("frontend");
         assert_eq!(members.len(), 2);

@@ -55,7 +55,10 @@ pub fn print_process_table(processes: &[ProcessInfo]) {
     println!("{}", "─".repeat(85).dimmed());
 
     for p in processes {
-        let pid_str = p.pid.map(|v| v.to_string()).unwrap_or_else(|| "-".to_string());
+        let pid_str = p
+            .pid
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| "-".to_string());
         let mem_str = p
             .memory_bytes
             .map(format_bytes)

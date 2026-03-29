@@ -84,7 +84,10 @@ pub async fn search(
 
     let result = resp.result.unwrap_or(serde_json::Value::Null);
     if format == "json" {
-        println!("{}", serde_json::to_string_pretty(&result).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&result).unwrap_or_default()
+        );
     } else {
         let empty = vec![];
         let results = result

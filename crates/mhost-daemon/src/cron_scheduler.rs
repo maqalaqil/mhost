@@ -176,7 +176,8 @@ async fn restart_via_supervisor(
                         use nix::unistd::Pid;
                         if let Some(pid) = child.id() {
                             let _ = nix_kill(Pid::from_raw(pid as i32), Signal::SIGTERM);
-                            let grace = tokio::time::Duration::from_millis(mp.info.config.grace_period_ms);
+                            let grace =
+                                tokio::time::Duration::from_millis(mp.info.config.grace_period_ms);
                             let _ = tokio::time::timeout(grace, child.wait()).await;
                         }
                     }
@@ -300,7 +301,10 @@ mod tests {
             make_state(),
             make_paths(),
         );
-        assert!(sender.is_some(), "valid cron should yield a shutdown sender");
+        assert!(
+            sender.is_some(),
+            "valid cron should yield a shutdown sender"
+        );
         // Dropping sender shuts down the scheduler task.
     }
 

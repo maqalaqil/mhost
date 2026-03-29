@@ -48,18 +48,16 @@ impl Balancer {
                 idx % healthy.len()
             }
 
-            Strategy::LeastConnections => {
-                healthy
-                    .iter()
-                    .enumerate()
-                    .min_by_key(|(_, &backend_idx)| {
-                        pool.backends[backend_idx]
-                            .active_connections
-                            .load(Ordering::Relaxed)
-                    })
-                    .map(|(pos, _)| pos)
-                    .unwrap_or(0)
-            }
+            Strategy::LeastConnections => healthy
+                .iter()
+                .enumerate()
+                .min_by_key(|(_, &backend_idx)| {
+                    pool.backends[backend_idx]
+                        .active_connections
+                        .load(Ordering::Relaxed)
+                })
+                .map(|(pos, _)| pos)
+                .unwrap_or(0),
 
             Strategy::IpHash => {
                 let hash = match client_ip {
@@ -141,9 +139,15 @@ mod tests {
     fn least_connections_picks_backend_with_lowest_active_count() {
         let pool = make_pool(3);
         // Simulate load: backends 0 and 2 are busy, backend 1 is idle.
-        pool.backends[0].active_connections.store(5, Ordering::Relaxed);
-        pool.backends[1].active_connections.store(1, Ordering::Relaxed);
-        pool.backends[2].active_connections.store(4, Ordering::Relaxed);
+        pool.backends[0]
+            .active_connections
+            .store(5, Ordering::Relaxed);
+        pool.backends[1]
+            .active_connections
+            .store(1, Ordering::Relaxed);
+        pool.backends[2]
+            .active_connections
+            .store(4, Ordering::Relaxed);
 
         let balancer = Balancer::new(Strategy::LeastConnections);
         assert_eq!(balancer.select(&pool, None), Some(1));
@@ -153,9 +157,15 @@ mod tests {
     fn least_connections_ignores_unhealthy() {
         let pool = make_pool(3);
         // Backend 1 has fewest connections but is unhealthy.
-        pool.backends[0].active_connections.store(3, Ordering::Relaxed);
-        pool.backends[1].active_connections.store(0, Ordering::Relaxed);
-        pool.backends[2].active_connections.store(2, Ordering::Relaxed);
+        pool.backends[0]
+            .active_connections
+            .store(3, Ordering::Relaxed);
+        pool.backends[1]
+            .active_connections
+            .store(0, Ordering::Relaxed);
+        pool.backends[2]
+            .active_connections
+            .store(2, Ordering::Relaxed);
         pool.mark_unhealthy(1);
 
         let balancer = Balancer::new(Strategy::LeastConnections);

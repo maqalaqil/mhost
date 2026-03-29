@@ -23,8 +23,7 @@ impl DeployEngine {
         // 1. Clone or pull
         if deploy_path.join(".git").exists() {
             tracing::info!(env, "Pulling latest changes");
-            GitOps::pull(deploy_path)
-                .map_err(|e| format!("Pull failed: {e}"))?;
+            GitOps::pull(deploy_path).map_err(|e| format!("Pull failed: {e}"))?;
         } else {
             tracing::info!(env, repo_url, branch, "Cloning repository");
             GitOps::clone_repo(repo_url, deploy_path, branch)
@@ -117,7 +116,10 @@ mod tests {
         // Pull fails because there's no remote, so the deploy should fail.
         assert!(result.is_err());
         let err = result.unwrap_err();
-        assert!(err.contains("Pull failed") || err.contains("No origin"), "unexpected: {err}");
+        assert!(
+            err.contains("Pull failed") || err.contains("No origin"),
+            "unexpected: {err}"
+        );
     }
 
     #[tokio::test]
@@ -135,7 +137,12 @@ mod tests {
         // Engine detects .git in tmp and attempts pull — will fail.
         // Test post-hook failure path instead with a git repo that has a remote
         // by recording manually and testing history state.
-        history.record("staging", "abc123", "failed", Some("Pre-hook failed: false failed"));
+        history.record(
+            "staging",
+            "abc123",
+            "failed",
+            Some("Pre-hook failed: false failed"),
+        );
         let records = history.list("staging", 10);
         assert_eq!(records[0].status, "failed");
         drop(deploy_dir);

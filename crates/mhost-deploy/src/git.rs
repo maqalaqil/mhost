@@ -23,9 +23,7 @@ impl GitOps {
         let fetch_head = repo
             .find_reference("FETCH_HEAD")
             .map_err(|e| e.to_string())?;
-        let commit = fetch_head
-            .peel_to_commit()
-            .map_err(|e| e.to_string())?;
+        let commit = fetch_head.peel_to_commit().map_err(|e| e.to_string())?;
         let commit_hash = commit.id().to_string();
         repo.reset(commit.as_object(), git2::ResetType::Hard, None)
             .map_err(|e| e.to_string())?;

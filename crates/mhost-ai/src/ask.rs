@@ -159,7 +159,9 @@ mod tests {
         assert_eq!(req.messages[0].role, "system");
         assert_eq!(req.messages[1].role, "user");
         // Question must be in the user message
-        assert!(req.messages[1].content.contains("Which processes are stopped?"));
+        assert!(req.messages[1]
+            .content
+            .contains("Which processes are stopped?"));
         // Both process names must be present in the context summary
         assert!(req.messages[1].content.contains("web"));
         assert!(req.messages[1].content.contains("worker"));
@@ -178,7 +180,9 @@ mod tests {
         ask(&provider, "What is running?", &[]).await.unwrap();
 
         let req = captured.lock().unwrap().take().unwrap();
-        assert!(req.messages[1].content.contains("No processes currently managed."));
+        assert!(req.messages[1]
+            .content
+            .contains("No processes currently managed."));
     }
 
     #[tokio::test]

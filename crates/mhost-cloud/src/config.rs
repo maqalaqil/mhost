@@ -159,7 +159,8 @@ mod tests {
     fn test_load_save_roundtrip() {
         let mut cfg = FleetConfig::default();
         cfg.add_server("web1", sample_server("192.168.1.1"));
-        cfg.groups.insert("production".to_string(), vec!["web1".to_string()]);
+        cfg.groups
+            .insert("production".to_string(), vec!["web1".to_string()]);
 
         let file = NamedTempFile::new().unwrap();
         cfg.save(file.path()).expect("save failed");

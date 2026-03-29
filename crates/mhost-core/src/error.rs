@@ -41,14 +41,22 @@ mod tests {
 
     #[test]
     fn test_process_not_found_display() {
-        let err = MhostError::ProcessNotFound { name: "api-server".into() };
+        let err = MhostError::ProcessNotFound {
+            name: "api-server".into(),
+        };
         assert_eq!(err.to_string(), "Process 'api-server' not found");
     }
 
     #[test]
     fn test_already_running_display() {
-        let err = MhostError::ProcessAlreadyRunning { name: "api".into(), pid: 1234 };
-        assert_eq!(err.to_string(), "Process 'api' is already running (PID 1234)");
+        let err = MhostError::ProcessAlreadyRunning {
+            name: "api".into(),
+            pid: 1234,
+        };
+        assert_eq!(
+            err.to_string(),
+            "Process 'api' is already running (PID 1234)"
+        );
     }
 
     #[test]
@@ -110,7 +118,8 @@ mod tests {
 
     #[test]
     fn test_json_error_conversion() {
-        let json_err: serde_json::Error = serde_json::from_str::<serde_json::Value>("{bad}").unwrap_err();
+        let json_err: serde_json::Error =
+            serde_json::from_str::<serde_json::Value>("{bad}").unwrap_err();
         let mhost_err: MhostError = json_err.into();
         assert!(matches!(mhost_err, MhostError::Json(_)));
     }

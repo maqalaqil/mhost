@@ -1,7 +1,7 @@
-use std::io::{self, Write};
+use crate::output::print_success;
 use mhost_bot::{BotConfig, Role};
 use mhost_core::MhostPaths;
-use crate::output::print_success;
+use std::io::{self, Write};
 
 pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
     println!("\n  mhost Bot Setup\n");
@@ -21,7 +21,9 @@ pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
     }
 
     let admin_id_str = prompt("Your user/chat ID (admin)");
-    let admin_id: i64 = admin_id_str.parse().map_err(|_| "Invalid ID: must be a number")?;
+    let admin_id: i64 = admin_id_str
+        .parse()
+        .map_err(|_| "Invalid ID: must be a number")?;
 
     let mut config = BotConfig::default();
     config.platform = platform.into();
@@ -37,8 +39,8 @@ pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
 }
 
 pub async fn run_enable(paths: &MhostPaths) -> Result<(), String> {
-    let config = BotConfig::load(&paths.bot_config())
-        .ok_or("Bot not configured. Run: mhost bot setup")?;
+    let config =
+        BotConfig::load(&paths.bot_config()).ok_or("Bot not configured. Run: mhost bot setup")?;
     if config.token.is_empty() {
         return Err("Bot token is empty".into());
     }
@@ -49,8 +51,7 @@ pub async fn run_enable(paths: &MhostPaths) -> Result<(), String> {
 }
 
 pub fn run_disable(paths: &MhostPaths) -> Result<(), String> {
-    let mut config = BotConfig::load(&paths.bot_config())
-        .ok_or("Bot not configured")?;
+    let mut config = BotConfig::load(&paths.bot_config()).ok_or("Bot not configured")?;
     config.enabled = false;
     config.save(&paths.bot_config())?;
     print_success("Bot disabled");
@@ -62,7 +63,10 @@ pub fn run_status(paths: &MhostPaths) -> Result<(), String> {
         Some(c) => {
             println!("\n  Bot Status\n");
             println!("  Platform:            {}", c.platform);
-            println!("  Enabled:             {}", if c.enabled { "yes" } else { "no" });
+            println!(
+                "  Enabled:             {}",
+                if c.enabled { "yes" } else { "no" }
+            );
             println!("  Admins:              {:?}", c.permissions.admins);
             println!("  Operators:           {:?}", c.permissions.operators);
             println!("  Viewers:             {:?}", c.permissions.viewers);
@@ -75,8 +79,7 @@ pub fn run_status(paths: &MhostPaths) -> Result<(), String> {
 }
 
 pub fn run_permissions(paths: &MhostPaths) -> Result<(), String> {
-    let config = BotConfig::load(&paths.bot_config())
-        .ok_or("Bot not configured")?;
+    let config = BotConfig::load(&paths.bot_config()).ok_or("Bot not configured")?;
     println!("\n  Bot Permissions\n");
     println!("  {:<12} {:<15} Users", "Role", "Commands");
     println!("  {}", "-".repeat(50));
@@ -100,13 +103,17 @@ pub fn run_permissions(paths: &MhostPaths) -> Result<(), String> {
 }
 
 pub fn run_add_user(paths: &MhostPaths, user_id: i64, role: &str) -> Result<(), String> {
-    let mut config = BotConfig::load(&paths.bot_config())
-        .ok_or("Bot not configured")?;
+    let mut config = BotConfig::load(&paths.bot_config()).ok_or("Bot not configured")?;
     let r = match role {
         "admin" => Role::Admin,
         "operator" => Role::Operator,
         "viewer" => Role::Viewer,
-        _ => return Err(format!("Invalid role: '{}'. Use: admin, operator, viewer", role)),
+        _ => {
+            return Err(format!(
+                "Invalid role: '{}'. Use: admin, operator, viewer",
+                role
+            ))
+        }
     };
     config.permissions.add_user(user_id, r);
     config.save(&paths.bot_config())?;
@@ -115,8 +122,7 @@ pub fn run_add_user(paths: &MhostPaths, user_id: i64, role: &str) -> Result<(), 
 }
 
 pub fn run_remove_user(paths: &MhostPaths, user_id: i64) -> Result<(), String> {
-    let mut config = BotConfig::load(&paths.bot_config())
-        .ok_or("Bot not configured")?;
+    let mut config = BotConfig::load(&paths.bot_config()).ok_or("Bot not configured")?;
     config.permissions.remove_user(user_id);
     config.save(&paths.bot_config())?;
     print_success(&format!("User {} removed", user_id));

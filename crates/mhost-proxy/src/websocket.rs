@@ -23,8 +23,8 @@ pub fn is_websocket_upgrade<T>(req: &Request<T>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hyper::Request;
     use hyper::header::{CONNECTION, UPGRADE};
+    use hyper::Request;
 
     fn build_request_with_upgrade(upgrade_value: &str) -> Request<()> {
         Request::builder()

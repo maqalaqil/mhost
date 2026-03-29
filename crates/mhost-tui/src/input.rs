@@ -53,11 +53,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
                     ConfirmAction::Delete(_) => Action::Delete,
                 };
                 // Keep the name in status message; caller will send IPC.
-                app.set_status(format!(
-                    "{}ing {}…",
-                    confirm.verb(),
-                    confirm.process_name()
-                ));
+                app.set_status(format!("{}ing {}…", confirm.verb(), confirm.process_name()));
                 return action;
             }
             _ => {
@@ -79,9 +75,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
                 app.search_mode = false;
             }
             KeyCode::Char(c) => {
-                app.search_query
-                    .get_or_insert_with(String::new)
-                    .push(c);
+                app.search_query.get_or_insert_with(String::new).push(c);
             }
             KeyCode::Backspace => {
                 if let Some(q) = &mut app.search_query {
@@ -394,7 +388,10 @@ mod tests {
         app.processes = vec![make_process("api")];
         let action = handle_key(&mut app, key(KeyCode::Char('r')));
         assert_eq!(action, Action::ConfirmPending);
-        assert!(matches!(app.confirm_action, Some(ConfirmAction::Restart(_))));
+        assert!(matches!(
+            app.confirm_action,
+            Some(ConfirmAction::Restart(_))
+        ));
     }
 
     #[test]

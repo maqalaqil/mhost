@@ -44,13 +44,7 @@ impl DeployHistory {
             .expect("deploy history table init");
     }
 
-    pub fn record(
-        &self,
-        env: &str,
-        commit: &str,
-        status: &str,
-        message: Option<&str>,
-    ) {
+    pub fn record(&self, env: &str, commit: &str, status: &str, message: Option<&str>) {
         let now = Utc::now().to_rfc3339();
         self.conn
             .execute(
@@ -205,7 +199,10 @@ mod tests {
 
         let records = history.list("production", 1);
         assert_eq!(records.len(), 1);
-        assert_eq!(records[0].commit_hash, "third", "limit=1 should return newest");
+        assert_eq!(
+            records[0].commit_hash, "third",
+            "limit=1 should return newest"
+        );
     }
 
     #[test]
@@ -254,7 +251,10 @@ mod tests {
             history.record("production", &format!("commit_{i}"), "success", None);
         }
         let records = history.list("production", 10);
-        assert_eq!(records[0].commit_hash, "commit_4", "newest should come first");
+        assert_eq!(
+            records[0].commit_hash, "commit_4",
+            "newest should come first"
+        );
         assert_eq!(records[4].commit_hash, "commit_0", "oldest should be last");
     }
 

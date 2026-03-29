@@ -99,10 +99,7 @@ fn install_launchd() -> Result<(), String> {
     fs::write(&plist, content)
         .map_err(|e| format!("Failed to write plist to {}: {e}", plist.display()))?;
 
-    print_success(&format!(
-        "Startup plist written to {}",
-        plist.display()
-    ));
+    print_success(&format!("Startup plist written to {}", plist.display()));
     println!("  Run: launchctl load {}", plist.display());
     Ok(())
 }
@@ -111,8 +108,7 @@ fn install_launchd() -> Result<(), String> {
 fn uninstall_launchd() -> Result<(), String> {
     let plist = plist_path();
     if plist.exists() {
-        fs::remove_file(&plist)
-            .map_err(|e| format!("Failed to remove plist: {e}"))?;
+        fs::remove_file(&plist).map_err(|e| format!("Failed to remove plist: {e}"))?;
         print_success("Startup plist removed.");
     } else {
         println!("No startup plist found at {}", plist.display());
@@ -162,8 +158,7 @@ fn install_systemd() -> Result<(), String> {
 fn uninstall_systemd() -> Result<(), String> {
     let unit = unit_path();
     if unit.exists() {
-        fs::remove_file(&unit)
-            .map_err(|e| format!("Failed to remove unit: {e}"))?;
+        fs::remove_file(&unit).map_err(|e| format!("Failed to remove unit: {e}"))?;
         print_success("Systemd unit removed.");
     } else {
         println!("No systemd unit found at {}", unit.display());

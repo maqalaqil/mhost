@@ -52,10 +52,7 @@ fn parse_droplets(
 
             // Apply tag filter — match if any tag value matches
             if !filters.tags.is_empty() {
-                let matches = filters
-                    .tags
-                    .iter()
-                    .any(|(_, v)| tags.contains(v));
+                let matches = filters.tags.iter().any(|(_, v)| tags.contains(v));
                 if !matches {
                     return None;
                 }
@@ -87,10 +84,7 @@ impl CloudProvider for DigitalOceanProvider {
             .await
             .map_err(|e| format!("DO API error: {e}"))?;
 
-        let body: serde_json::Value = resp
-            .json()
-            .await
-            .map_err(|e| format!("Parse error: {e}"))?;
+        let body: serde_json::Value = resp.json().await.map_err(|e| format!("Parse error: {e}"))?;
 
         parse_droplets(&body, filters)
     }

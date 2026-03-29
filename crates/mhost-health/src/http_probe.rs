@@ -9,7 +9,10 @@ use tracing::{debug, warn};
 /// [`HealthStatus::Disabled`] if the config is not an HTTP kind.
 pub async fn run_http_check(config: &HealthConfig) -> HealthStatus {
     let (url, expected_status) = match &config.kind {
-        HealthCheckKind::Http { url, expected_status } => (url.clone(), *expected_status),
+        HealthCheckKind::Http {
+            url,
+            expected_status,
+        } => (url.clone(), *expected_status),
         _ => {
             debug!("run_http_check called with non-HTTP config; returning Disabled");
             return HealthStatus::Disabled;
@@ -18,10 +21,7 @@ pub async fn run_http_check(config: &HealthConfig) -> HealthStatus {
 
     let timeout = Duration::from_millis(config.timeout_ms);
 
-    let client = match reqwest::Client::builder()
-        .timeout(timeout)
-        .build()
-    {
+    let client = match reqwest::Client::builder().timeout(timeout).build() {
         Ok(c) => c,
         Err(err) => {
             warn!("Failed to build HTTP client: {}", err);

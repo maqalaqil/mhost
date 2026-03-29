@@ -44,8 +44,8 @@ impl ProxyServer {
     /// `name` must match what [`ProxyRouter::add_route`] uses as the backend
     /// value.
     pub fn add_pool(&mut self, name: &str, addrs: Vec<SocketAddr>, strategy: Strategy) {
-        let pools = Arc::get_mut(&mut self.pools)
-            .expect("add_pool must be called before Arc is shared");
+        let pools =
+            Arc::get_mut(&mut self.pools).expect("add_pool must be called before Arc is shared");
         pools.insert(
             name.to_owned(),
             (BackendPool::new(addrs), Balancer::new(strategy)),

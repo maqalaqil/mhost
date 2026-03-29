@@ -120,7 +120,10 @@ mod tests {
         let result = optimize(&provider, &ctx, "cpu=80%,mem=512MB").await;
 
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "## Resource Sizing\nIncrease memory limit.");
+        assert_eq!(
+            result.unwrap(),
+            "## Resource Sizing\nIncrease memory limit."
+        );
     }
 
     #[tokio::test]

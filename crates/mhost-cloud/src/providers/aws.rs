@@ -17,10 +17,7 @@ impl AwsProvider {
         }
     }
 
-    async fn list_via_cli(
-        &self,
-        filters: &ImportFilters,
-    ) -> Result<Vec<CloudInstance>, String> {
+    async fn list_via_cli(&self, filters: &ImportFilters) -> Result<Vec<CloudInstance>, String> {
         let mut args = vec![
             "ec2".to_string(),
             "describe-instances".to_string(),
@@ -83,10 +80,7 @@ fn parse_aws_instances(
             }
 
             let instance_id = inst["InstanceId"].as_str().unwrap_or("").to_string();
-            let ip = inst["PublicIpAddress"]
-                .as_str()
-                .unwrap_or("")
-                .to_string();
+            let ip = inst["PublicIpAddress"].as_str().unwrap_or("").to_string();
 
             if ip.is_empty() {
                 continue;
@@ -95,9 +89,7 @@ fn parse_aws_instances(
             // Extract Name tag
             let name = inst["Tags"]
                 .as_array()
-                .and_then(|tags| {
-                    tags.iter().find(|t| t["Key"].as_str() == Some("Name"))
-                })
+                .and_then(|tags| tags.iter().find(|t| t["Key"].as_str() == Some("Name")))
                 .and_then(|t| t["Value"].as_str())
                 .unwrap_or(&instance_id)
                 .to_string();

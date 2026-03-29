@@ -36,22 +36,10 @@ pub async fn show(client: &IpcClient, name: &str) -> Result<(), String> {
 
     for m in metrics {
         let instance = m.get("instance").and_then(|v| v.as_u64()).unwrap_or(0);
-        let process_name = m
-            .get("name")
-            .and_then(|v| v.as_str())
-            .unwrap_or(name);
-        let cpu = m
-            .get("cpu_percent")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
-        let mem_mb = m
-            .get("memory_mb")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(0);
-        let uptime_ms = m
-            .get("uptime_ms")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(0);
+        let process_name = m.get("name").and_then(|v| v.as_str()).unwrap_or(name);
+        let cpu = m.get("cpu_percent").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let mem_mb = m.get("memory_mb").and_then(|v| v.as_u64()).unwrap_or(0);
+        let uptime_ms = m.get("uptime_ms").and_then(|v| v.as_u64()).unwrap_or(0);
 
         let uptime_display = format_uptime(uptime_ms);
 
@@ -94,7 +82,10 @@ pub async fn history(
         .unwrap_or(&empty);
 
     if series.is_empty() {
-        println!("No history available for '{}' metric on '{}'.", metric, name);
+        println!(
+            "No history available for '{}' metric on '{}'.",
+            metric, name
+        );
         return Ok(());
     }
 
@@ -102,14 +93,8 @@ pub async fn history(
     println!("{}", "-".repeat(38));
 
     for point in series {
-        let ts = point
-            .get("ts")
-            .and_then(|v| v.as_str())
-            .unwrap_or("?");
-        let value = point
-            .get("value")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
+        let ts = point.get("ts").and_then(|v| v.as_str()).unwrap_or("?");
+        let value = point.get("value").and_then(|v| v.as_f64()).unwrap_or(0.0);
         println!("{:<24} {:>12.2}", ts, value);
     }
 

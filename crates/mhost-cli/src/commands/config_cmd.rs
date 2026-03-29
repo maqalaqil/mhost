@@ -17,12 +17,10 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
         return Ok(());
     }
 
-    let result = resp
-        .result
-        .ok_or("Empty response from daemon")?;
+    let result = resp.result.ok_or("Empty response from daemon")?;
 
-    let info: ProcessInfo = serde_json::from_value(result)
-        .map_err(|e| format!("Failed to parse process info: {e}"))?;
+    let info: ProcessInfo =
+        serde_json::from_value(result).map_err(|e| format!("Failed to parse process info: {e}"))?;
 
     let pretty = serde_json::to_string_pretty(&info.config)
         .map_err(|e| format!("Serialization error: {e}"))?;

@@ -46,11 +46,7 @@ impl HealthCheckRunner {
     ///
     /// The probe is dispatched, consecutive failure count is tracked against
     /// `config.retries`, and a [`HealthEvent`] is sent after every check.
-    pub async fn run(
-        self,
-        tx: mpsc::Sender<HealthEvent>,
-        mut shutdown: oneshot::Receiver<()>,
-    ) {
+    pub async fn run(self, tx: mpsc::Sender<HealthEvent>, mut shutdown: oneshot::Receiver<()>) {
         let interval = Duration::from_millis(self.config.interval_ms);
         let mut consecutive_failures: u32 = 0;
 

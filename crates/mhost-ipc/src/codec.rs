@@ -14,10 +14,7 @@ const MAX_FRAME_SIZE: u32 = 10 * 1024 * 1024; // 10 MB
 // ---------------------------------------------------------------------------
 
 /// Write a length-prefixed frame: 4-byte big-endian length + payload bytes.
-pub async fn write_frame<W: AsyncWriteExt + Unpin>(
-    writer: &mut W,
-    data: &[u8],
-) -> io::Result<()> {
+pub async fn write_frame<W: AsyncWriteExt + Unpin>(writer: &mut W, data: &[u8]) -> io::Result<()> {
     let len = data.len() as u32;
     writer.write_u32(len).await?;
     writer.write_all(data).await?;
@@ -48,7 +45,8 @@ pub async fn write_request<W: AsyncWriteExt + Unpin>(
     writer: &mut W,
     req: &RpcRequest,
 ) -> io::Result<()> {
-    let bytes = serde_json::to_vec(req).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let bytes =
+        serde_json::to_vec(req).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     write_frame(writer, &bytes).await
 }
 
@@ -122,7 +120,9 @@ mod tests {
     async fn test_response_roundtrip() {
         let resp = RpcResponse::success(42, json!({"status": "ok"}));
         let mut buf: Vec<u8> = Vec::new();
-        write_response(&mut buf, &resp).await.expect("write_response");
+        write_response(&mut buf, &resp)
+            .await
+            .expect("write_response");
         let mut cursor = Cursor::new(buf);
         let decoded = read_response(&mut cursor).await.expect("read_response");
         assert_eq!(decoded.id, 42);
@@ -138,7 +138,9 @@ mod tests {
         let mut buf: Vec<u8> = Vec::new();
         buf.extend_from_slice(&oversized_len.to_be_bytes());
         let mut cursor = Cursor::new(buf);
-        let err = read_frame(&mut cursor).await.expect_err("should reject oversized frame");
+        let err = read_frame(&mut cursor)
+            .await
+            .expect_err("should reject oversized frame");
         assert!(
             err.to_string().contains("too large"),
             "error should mention 'too large', got: {}",
@@ -151,7 +153,10 @@ mod tests {
     #[tokio::test]
     async fn test_empty_frame_roundtrip() {
         let result = roundtrip_frame(b"").await;
-        assert!(result.is_empty(), "empty payload should roundtrip as empty vec");
+        assert!(
+            result.is_empty(),
+            "empty payload should roundtrip as empty vec"
+        );
     }
 
     // -- Multiple frames in sequence (write two, read two) -----------------
@@ -160,7 +165,9 @@ mod tests {
     async fn test_multiple_frames_in_sequence() {
         let mut buf: Vec<u8> = Vec::new();
         write_frame(&mut buf, b"first").await.expect("write first");
-        write_frame(&mut buf, b"second").await.expect("write second");
+        write_frame(&mut buf, b"second")
+            .await
+            .expect("write second");
         write_frame(&mut buf, b"third").await.expect("write third");
 
         let mut cursor = Cursor::new(buf);
@@ -210,7 +217,9 @@ mod tests {
         let max: usize = 10 * 1024 * 1024;
         let payload = vec![0u8; max];
         let mut buf: Vec<u8> = Vec::new();
-        write_frame(&mut buf, &payload).await.expect("write 10 MB frame");
+        write_frame(&mut buf, &payload)
+            .await
+            .expect("write 10 MB frame");
         let mut cursor = Cursor::new(buf);
         let result = read_frame(&mut cursor)
             .await

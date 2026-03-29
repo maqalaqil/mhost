@@ -144,8 +144,15 @@ pub fn command_allowed(role: Role, command: &str) -> bool {
         Role::Admin => true,
         Role::Operator => matches!(
             command,
-            "status" | "start" | "stop" | "restart" | "scale" | "logs"
-                | "health" | "deploy" | "help"
+            "status"
+                | "start"
+                | "stop"
+                | "restart"
+                | "scale"
+                | "logs"
+                | "health"
+                | "deploy"
+                | "help"
         ),
         Role::Viewer => matches!(command, "status" | "logs" | "health" | "help"),
     }
@@ -288,48 +295,74 @@ mod tests {
 
     #[test]
     fn test_admin_allowed_any_command() {
-        for cmd in &["status", "start", "stop", "restart", "scale", "logs", "health", "deploy", "ai", "help", "custom"] {
-            assert!(command_allowed(Role::Admin, cmd), "admin should allow {cmd}");
+        for cmd in &[
+            "status", "start", "stop", "restart", "scale", "logs", "health", "deploy", "ai",
+            "help", "custom",
+        ] {
+            assert!(
+                command_allowed(Role::Admin, cmd),
+                "admin should allow {cmd}"
+            );
         }
     }
 
     #[test]
     fn test_operator_allowed_commands() {
-        for cmd in &["status", "start", "stop", "restart", "scale", "logs", "health", "deploy", "help"] {
-            assert!(command_allowed(Role::Operator, cmd), "operator should allow {cmd}");
+        for cmd in &[
+            "status", "start", "stop", "restart", "scale", "logs", "health", "deploy", "help",
+        ] {
+            assert!(
+                command_allowed(Role::Operator, cmd),
+                "operator should allow {cmd}"
+            );
         }
     }
 
     #[test]
     fn test_operator_denied_ai() {
-        assert!(!command_allowed(Role::Operator, "ai"), "operator should not access ai");
+        assert!(
+            !command_allowed(Role::Operator, "ai"),
+            "operator should not access ai"
+        );
     }
 
     #[test]
     fn test_viewer_allowed_read_only() {
         for cmd in &["status", "logs", "health", "help"] {
-            assert!(command_allowed(Role::Viewer, cmd), "viewer should allow {cmd}");
+            assert!(
+                command_allowed(Role::Viewer, cmd),
+                "viewer should allow {cmd}"
+            );
         }
     }
 
     #[test]
     fn test_viewer_denied_start_stop_restart() {
         for cmd in &["start", "stop", "restart", "scale", "deploy", "ai"] {
-            assert!(!command_allowed(Role::Viewer, cmd), "viewer should not allow {cmd}");
+            assert!(
+                !command_allowed(Role::Viewer, cmd),
+                "viewer should not allow {cmd}"
+            );
         }
     }
 
     #[test]
     fn test_blocked_denied_all() {
         for cmd in &["status", "logs", "help", "start"] {
-            assert!(!command_allowed(Role::Blocked, cmd), "blocked should deny {cmd}");
+            assert!(
+                !command_allowed(Role::Blocked, cmd),
+                "blocked should deny {cmd}"
+            );
         }
     }
 
     #[test]
     fn test_unknown_denied_all() {
         for cmd in &["status", "logs", "help", "start"] {
-            assert!(!command_allowed(Role::Unknown, cmd), "unknown should deny {cmd}");
+            assert!(
+                !command_allowed(Role::Unknown, cmd),
+                "unknown should deny {cmd}"
+            );
         }
     }
 

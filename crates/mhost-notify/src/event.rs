@@ -133,12 +133,7 @@ mod tests {
         ];
 
         for event_type in types {
-            let event = NotifyEvent::new(
-                event_type.clone(),
-                "svc",
-                "test message",
-                Severity::Info,
-            );
+            let event = NotifyEvent::new(event_type.clone(), "svc", "test message", Severity::Info);
             assert_eq!(event.event_type, event_type);
             assert_eq!(event.process_name, "svc");
         }
@@ -208,6 +203,9 @@ mod tests {
             .with_metadata("environment", "production");
 
         assert_eq!(event.metadata.get("version"), Some(&"3.0.0".to_string()));
-        assert_eq!(event.metadata.get("environment"), Some(&"production".to_string()));
+        assert_eq!(
+            event.metadata.get("environment"),
+            Some(&"production".to_string())
+        );
     }
 }

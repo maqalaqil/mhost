@@ -88,7 +88,10 @@ mod tests {
         assert_eq!(config.region, Some("us-east-1".to_string()));
         assert_eq!(config.instance_id, Some("i-123456".to_string()));
         assert_eq!(config.provider, Some("aws".to_string()));
-        assert_eq!(config.tags, vec!["env:prod".to_string(), "role:web".to_string()]);
+        assert_eq!(
+            config.tags,
+            vec!["env:prod".to_string(), "role:web".to_string()]
+        );
     }
 
     #[test]
@@ -128,7 +131,10 @@ mod tests {
 
         assert_eq!(filters.region, Some("eu-west-1".to_string()));
         assert_eq!(filters.tags.len(), 2);
-        assert_eq!(filters.tags[0], ("env".to_string(), "production".to_string()));
+        assert_eq!(
+            filters.tags[0],
+            ("env".to_string(), "production".to_string())
+        );
         assert_eq!(filters.tags[1], ("role".to_string(), "web".to_string()));
     }
 

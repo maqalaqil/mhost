@@ -87,11 +87,7 @@ fn render_summary_table(f: &mut Frame, area: Rect, app: &App) {
                 .map(|v| v.as_slice())
                 .unwrap_or(&[]);
             let cpu_spark = sparkline_str(cpu_data, cpu_bar_width);
-            let cpu_text = format!(
-                "{} {:>5.1}%",
-                cpu_spark,
-                p.cpu_percent.unwrap_or(0.0)
-            );
+            let cpu_text = format!("{} {:>5.1}%", cpu_spark, p.cpu_percent.unwrap_or(0.0));
 
             let mem_mb = p.memory_bytes.unwrap_or(0) as f64 / 1_048_576.0;
 
@@ -121,18 +117,18 @@ fn render_summary_table(f: &mut Frame, area: Rect, app: &App) {
         Constraint::Length(10),
     ];
 
-    let table = Table::new(rows, widths)
-        .header(header)
-        .block(Block::default().borders(Borders::ALL).title(" All Process Metrics "));
+    let table = Table::new(rows, widths).header(header).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(" All Process Metrics "),
+    );
 
     f.render_widget(table, area);
 }
 
 fn render_sparklines_panel(f: &mut Frame, area: Rect, app: &App) {
     let selected = app.processes.get(app.selected_process);
-    let name = selected
-        .map(|p| p.config.name.as_str())
-        .unwrap_or("—");
+    let name = selected.map(|p| p.config.name.as_str()).unwrap_or("—");
 
     let halves = Layout::default()
         .direction(Direction::Horizontal)
@@ -147,9 +143,7 @@ fn render_sparklines_panel(f: &mut Frame, area: Rect, app: &App) {
         .unwrap_or(&[]);
     let cpu_width = (halves[0].width as usize).saturating_sub(4);
     let cpu_spark = sparkline_str(cpu_data, cpu_width);
-    let cpu_last = selected
-        .and_then(|p| p.cpu_percent)
-        .unwrap_or(0.0);
+    let cpu_last = selected.and_then(|p| p.cpu_percent).unwrap_or(0.0);
     let cpu_text = format!("{}\n{:.1}%", cpu_spark, cpu_last);
     let cpu_para = Paragraph::new(cpu_text)
         .block(
@@ -168,10 +162,7 @@ fn render_sparklines_panel(f: &mut Frame, area: Rect, app: &App) {
         .unwrap_or(&[]);
     let mem_width = (halves[1].width as usize).saturating_sub(4);
     let mem_spark = sparkline_str(mem_data, mem_width);
-    let mem_last = selected
-        .and_then(|p| p.memory_bytes)
-        .unwrap_or(0) as f64
-        / 1_048_576.0;
+    let mem_last = selected.and_then(|p| p.memory_bytes).unwrap_or(0) as f64 / 1_048_576.0;
     let mem_text = format!("{}\n{:.1}MB", mem_spark, mem_last);
     let mem_para = Paragraph::new(mem_text)
         .block(

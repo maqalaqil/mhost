@@ -186,8 +186,7 @@ pub fn evaluate(condition: &AlertCondition, history: &[(DateTime<Utc>, f64)]) ->
     }
 
     let now = Utc::now();
-    let window_start = now
-        - chrono::Duration::milliseconds(condition.duration_ms as i64);
+    let window_start = now - chrono::Duration::milliseconds(condition.duration_ms as i64);
 
     let window: Vec<f64> = history
         .iter()

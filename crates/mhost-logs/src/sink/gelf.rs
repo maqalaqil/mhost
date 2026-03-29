@@ -91,8 +91,7 @@ impl LogSink for GelfSink {
         use tokio::io::AsyncWriteExt;
         use tokio::net::TcpStream;
 
-        let payload =
-            serde_json::to_vec(&Self::build_payload(entry)).map_err(|e| e.to_string())?;
+        let payload = serde_json::to_vec(&Self::build_payload(entry)).map_err(|e| e.to_string())?;
 
         let addr = format!("{}:{}", self.host, self.port);
 
@@ -102,9 +101,7 @@ impl LogSink for GelfSink {
                 socket.send_to(&payload, &addr).map_err(|e| e.to_string())?;
             }
             GelfTransport::Tcp => {
-                let mut stream = TcpStream::connect(&addr)
-                    .await
-                    .map_err(|e| e.to_string())?;
+                let mut stream = TcpStream::connect(&addr).await.map_err(|e| e.to_string())?;
                 // GELF/TCP frames are null-byte terminated.
                 let mut framed = payload.clone();
                 framed.push(0u8);

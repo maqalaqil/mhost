@@ -77,10 +77,7 @@ impl TelegramBot {
     // Telegram API helpers
     // -----------------------------------------------------------------------
 
-    async fn get_updates(
-        &self,
-        offset: i64,
-    ) -> Result<Vec<serde_json::Value>, String> {
+    async fn get_updates(&self, offset: i64) -> Result<Vec<serde_json::Value>, String> {
         let url = format!(
             "https://api.telegram.org/bot{}/getUpdates?offset={}&timeout=30",
             self.token, offset
@@ -96,10 +93,7 @@ impl TelegramBot {
     }
 
     async fn send_message(&self, chat_id: i64, text: &str) -> Result<(), String> {
-        let url = format!(
-            "https://api.telegram.org/bot{}/sendMessage",
-            self.token
-        );
+        let url = format!("https://api.telegram.org/bot{}/sendMessage", self.token);
         self.client
             .post(&url)
             .json(&serde_json::json!({
@@ -188,8 +182,8 @@ impl TelegramBot {
             return;
         }
 
-        let is_destructive = self.config.confirm_destructive
-            && matches!(command, "stop" | "delete" | "restart");
+        let is_destructive =
+            self.config.confirm_destructive && matches!(command, "stop" | "delete" | "restart");
 
         if is_destructive {
             let action_desc = format!("/{} {}", command, args.join(" "));
@@ -261,16 +255,11 @@ impl TelegramBot {
             }
             Some(_) => {
                 let _ = self
-                    .send_message(
-                        chat_id,
-                        "Confirmation expired. Run the command again.",
-                    )
+                    .send_message(chat_id, "Confirmation expired. Run the command again.")
                     .await;
             }
             None => {
-                let _ = self
-                    .send_message(chat_id, "Nothing to confirm.")
-                    .await;
+                let _ = self.send_message(chat_id, "Nothing to confirm.").await;
             }
         }
     }
@@ -279,11 +268,7 @@ impl TelegramBot {
     // Command execution
     // -----------------------------------------------------------------------
 
-    async fn execute_command(
-        &self,
-        command: &str,
-        args: &[String],
-    ) -> Result<String, String> {
+    async fn execute_command(&self, command: &str, args: &[String]) -> Result<String, String> {
         let ipc = IpcClient::new(&self.paths.socket());
 
         match command {
@@ -327,8 +312,7 @@ impl TelegramBot {
                     command: target.clone(),
                     ..Default::default()
                 };
-                let params =
-                    serde_json::to_value(&config).map_err(|e| e.to_string())?;
+                let params = serde_json::to_value(&config).map_err(|e| e.to_string())?;
                 let resp = ipc
                     .call(methods::PROCESS_START, params)
                     .await
@@ -343,10 +327,7 @@ impl TelegramBot {
             "stop" => {
                 let target = args.first().ok_or("Usage: /stop <process>")?;
                 let resp = ipc
-                    .call(
-                        methods::PROCESS_STOP,
-                        serde_json::json!({ "name": target }),
-                    )
+                    .call(methods::PROCESS_STOP, serde_json::json!({ "name": target }))
                     .await
                     .map_err(|e| e.to_string())?;
                 if let Some(err) = resp.error {
@@ -395,10 +376,7 @@ impl TelegramBot {
 
             "logs" => {
                 let name = args.first().ok_or("Usage: /logs <process> [lines]")?;
-                let lines: usize = args
-                    .get(1)
-                    .and_then(|s| s.parse().ok())
-                    .unwrap_or(15);
+                let lines: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(15);
                 let log_path = self.paths.process_out_log(name, 0);
                 let content = if log_path.exists() {
                     mhost_logs::reader::tail(&log_path, lines)
@@ -407,19 +385,13 @@ impl TelegramBot {
                 } else {
                     "No logs found.".into()
                 };
-                Ok(format!(
-                    "<b>Logs: {}</b>\n<pre>{}</pre>",
-                    name, content
-                ))
+                Ok(format!("<b>Logs: {}</b>\n<pre>{}</pre>", name, content))
             }
 
             "health" => {
                 let name = args.first().ok_or("Usage: /health <process>")?;
                 let resp = ipc
-                    .call(
-                        methods::HEALTH_STATUS,
-                        serde_json::json!({ "name": name }),
-                    )
+                    .call(methods::HEALTH_STATUS, serde_json::json!({ "name": name }))
                     .await
                     .map_err(|e| e.to_string())?;
                 if let Some(err) = resp.error {
@@ -439,10 +411,7 @@ impl TelegramBot {
             "deploy" => {
                 let env = args.first().ok_or("Usage: /deploy <env>")?;
                 let resp = ipc
-                    .call(
-                        methods::DEPLOY_EXECUTE,
-                        serde_json::json!({ "env": env }),
-                    )
+                    .call(methods::DEPLOY_EXECUTE, serde_json::json!({ "env": env }))
                     .await
                     .map_err(|e| e.to_string())?;
                 if let Some(err) = resp.error {
@@ -458,27 +427,24 @@ impl TelegramBot {
                     .ok_or("Usage: /ai diagnose <app> OR /ai ask <question>")?;
                 match sub.as_str() {
                     "diagnose" => {
-                        let name =
-                            args.get(1).ok_or("Usage: /ai diagnose <process>")?;
+                        let name = args.get(1).ok_or("Usage: /ai diagnose <process>")?;
                         let ai_config = mhost_ai::AiConfig::load(&self.paths.ai_config())
                             .ok_or("AI not configured")?;
                         let provider = ai_config.create_provider()?;
-                        let context =
-                            mhost_ai::ProcessContext::from_process_info(
-                                &mhost_core::process::ProcessInfo::new(
-                                    mhost_core::process::ProcessConfig {
-                                        name: name.clone(),
-                                        command: "unknown".into(),
-                                        ..Default::default()
-                                    },
-                                    0,
-                                ),
-                                vec![],
-                                vec![],
-                                vec![],
-                            );
-                        mhost_ai::diagnose::diagnose(provider.as_ref(), &context)
-                            .await
+                        let context = mhost_ai::ProcessContext::from_process_info(
+                            &mhost_core::process::ProcessInfo::new(
+                                mhost_core::process::ProcessConfig {
+                                    name: name.clone(),
+                                    command: "unknown".into(),
+                                    ..Default::default()
+                                },
+                                0,
+                            ),
+                            vec![],
+                            vec![],
+                            vec![],
+                        );
+                        mhost_ai::diagnose::diagnose(provider.as_ref(), &context).await
                     }
                     "ask" => {
                         let question = args[1..].join(" ");
@@ -490,10 +456,7 @@ impl TelegramBot {
                         let provider = ai_config.create_provider()?;
                         mhost_ai::ask(provider.as_ref(), &question, &[]).await
                     }
-                    other => Err(format!(
-                        "Unknown AI command: {}. Use: diagnose, ask",
-                        other
-                    )),
+                    other => Err(format!("Unknown AI command: {}. Use: diagnose, ask", other)),
                 }
             }
 
@@ -676,9 +639,7 @@ mod tests {
     #[tokio::test]
     async fn test_execute_ai_unknown_subcommand_returns_error() {
         let bot = make_bot(default_config());
-        let result = bot
-            .execute_command("ai", &["badcmd".into()])
-            .await;
+        let result = bot.execute_command("ai", &["badcmd".into()]).await;
         assert!(result.is_err());
         assert!(result.err().unwrap().contains("Unknown AI command"));
     }

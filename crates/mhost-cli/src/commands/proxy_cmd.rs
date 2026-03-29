@@ -10,7 +10,10 @@ pub async fn run(client: &IpcClient) -> Result<(), String> {
     if let Some(err) = resp.error {
         output::print_error(&err.message);
     } else if let Some(result) = resp.result {
-        println!("{}", serde_json::to_string_pretty(&result).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&result).unwrap_or_default()
+        );
     }
     Ok(())
 }

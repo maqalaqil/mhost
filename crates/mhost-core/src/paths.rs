@@ -17,12 +17,24 @@ impl MhostPaths {
         Self { root }
     }
 
-    pub fn root(&self) -> &PathBuf { &self.root }
-    pub fn db(&self) -> PathBuf { self.root.join("mhost.db") }
-    pub fn pid_file(&self) -> PathBuf { self.root.join("mhostd.pid") }
-    pub fn socket(&self) -> PathBuf { self.root.join("mhostd.sock") }
-    pub fn logs_dir(&self) -> PathBuf { self.root.join("logs") }
-    pub fn pids_dir(&self) -> PathBuf { self.root.join("pids") }
+    pub fn root(&self) -> &PathBuf {
+        &self.root
+    }
+    pub fn db(&self) -> PathBuf {
+        self.root.join("mhost.db")
+    }
+    pub fn pid_file(&self) -> PathBuf {
+        self.root.join("mhostd.pid")
+    }
+    pub fn socket(&self) -> PathBuf {
+        self.root.join("mhostd.sock")
+    }
+    pub fn logs_dir(&self) -> PathBuf {
+        self.root.join("logs")
+    }
+    pub fn pids_dir(&self) -> PathBuf {
+        self.root.join("pids")
+    }
 
     pub fn process_out_log(&self, name: &str, instance: u32) -> PathBuf {
         self.logs_dir().join(format!("{name}-{instance}-out.log"))
@@ -36,12 +48,24 @@ impl MhostPaths {
         self.pids_dir().join(format!("{name}-{instance}.pid"))
     }
 
-    pub fn daemon_log(&self) -> PathBuf { self.logs_dir().join("daemon.log") }
-    pub fn dump_file(&self) -> PathBuf { self.root.join("dump.json") }
-    pub fn notify_config(&self) -> PathBuf { self.root.join("notify.json") }
-    pub fn ai_config(&self) -> PathBuf { self.root.join("ai.json") }
-    pub fn fleet_config(&self) -> PathBuf { self.root.join("fleet.json") }
-    pub fn bot_config(&self) -> PathBuf { self.root.join("bot.json") }
+    pub fn daemon_log(&self) -> PathBuf {
+        self.logs_dir().join("daemon.log")
+    }
+    pub fn dump_file(&self) -> PathBuf {
+        self.root.join("dump.json")
+    }
+    pub fn notify_config(&self) -> PathBuf {
+        self.root.join("notify.json")
+    }
+    pub fn ai_config(&self) -> PathBuf {
+        self.root.join("ai.json")
+    }
+    pub fn fleet_config(&self) -> PathBuf {
+        self.root.join("fleet.json")
+    }
+    pub fn bot_config(&self) -> PathBuf {
+        self.root.join("bot.json")
+    }
 
     pub fn ensure_dirs(&self) -> std::io::Result<()> {
         std::fs::create_dir_all(&self.root)?;
@@ -52,7 +76,9 @@ impl MhostPaths {
 }
 
 impl Default for MhostPaths {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[cfg(test)]
@@ -64,7 +90,10 @@ mod tests {
         let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
         assert_eq!(paths.root(), &PathBuf::from("/tmp/mhost-test"));
         assert_eq!(paths.db(), PathBuf::from("/tmp/mhost-test/mhost.db"));
-        assert_eq!(paths.pid_file(), PathBuf::from("/tmp/mhost-test/mhostd.pid"));
+        assert_eq!(
+            paths.pid_file(),
+            PathBuf::from("/tmp/mhost-test/mhostd.pid")
+        );
         assert_eq!(paths.socket(), PathBuf::from("/tmp/mhost-test/mhostd.sock"));
     }
 
@@ -112,19 +141,28 @@ mod tests {
     #[test]
     fn test_daemon_log_path() {
         let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
-        assert_eq!(paths.daemon_log(), PathBuf::from("/tmp/mhost-test/logs/daemon.log"));
+        assert_eq!(
+            paths.daemon_log(),
+            PathBuf::from("/tmp/mhost-test/logs/daemon.log")
+        );
     }
 
     #[test]
     fn test_dump_file_path() {
         let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
-        assert_eq!(paths.dump_file(), PathBuf::from("/tmp/mhost-test/dump.json"));
+        assert_eq!(
+            paths.dump_file(),
+            PathBuf::from("/tmp/mhost-test/dump.json")
+        );
     }
 
     #[test]
     fn test_notify_config_path() {
         let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
-        assert_eq!(paths.notify_config(), PathBuf::from("/tmp/mhost-test/notify.json"));
+        assert_eq!(
+            paths.notify_config(),
+            PathBuf::from("/tmp/mhost-test/notify.json")
+        );
     }
 
     #[test]
@@ -136,13 +174,19 @@ mod tests {
     #[test]
     fn test_bot_config_path() {
         let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
-        assert_eq!(paths.bot_config(), PathBuf::from("/tmp/mhost-test/bot.json"));
+        assert_eq!(
+            paths.bot_config(),
+            PathBuf::from("/tmp/mhost-test/bot.json")
+        );
     }
 
     #[test]
     fn test_fleet_config_path() {
         let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
-        assert_eq!(paths.fleet_config(), PathBuf::from("/tmp/mhost-test/fleet.json"));
+        assert_eq!(
+            paths.fleet_config(),
+            PathBuf::from("/tmp/mhost-test/fleet.json")
+        );
     }
 
     #[test]

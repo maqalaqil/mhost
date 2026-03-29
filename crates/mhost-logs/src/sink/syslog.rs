@@ -110,9 +110,7 @@ impl LogSink for SyslogSink {
                     .map_err(|e| e.to_string())?;
             }
             SyslogTransport::Tcp => {
-                let mut stream = TcpStream::connect(&addr)
-                    .await
-                    .map_err(|e| e.to_string())?;
+                let mut stream = TcpStream::connect(&addr).await.map_err(|e| e.to_string())?;
                 // RFC 6587 octet-counting framing: "<len> <msg>"
                 let framed = format!("{} {message}", message.len() + 1);
                 stream
@@ -181,7 +179,8 @@ mod tests {
     #[test]
     fn message_format_starts_with_pri_and_version() {
         let sink = make_sink("*");
-        let raw = r#"{"level":"info","message":"service started","timestamp":"2024-01-15T10:00:00Z"}"#;
+        let raw =
+            r#"{"level":"info","message":"service started","timestamp":"2024-01-15T10:00:00Z"}"#;
         let entry = parse_line(raw, "my-service", 3);
         let msg = sink.format_message(&entry);
 
@@ -207,7 +206,10 @@ mod tests {
         let entry = parse_line("the log message", "svc", 0);
         let msg = sink.format_message(&entry);
 
-        assert!(msg.ends_with("the log message"), "message body missing: {msg}");
+        assert!(
+            msg.ends_with("the log message"),
+            "message body missing: {msg}"
+        );
     }
 
     #[test]

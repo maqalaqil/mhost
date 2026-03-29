@@ -18,7 +18,10 @@ pub async fn explain_config(
             },
             LlmMessage {
                 role: "user".into(),
-                content: format!("Explain this mhost.toml:\n\n```toml\n{}\n```", config_content),
+                content: format!(
+                    "Explain this mhost.toml:\n\n```toml\n{}\n```",
+                    config_content
+                ),
             },
         ],
         max_tokens: 2048,
@@ -250,7 +253,11 @@ mod tests {
             response: "suggestions".into(),
         };
 
-        let contexts = vec![make_context("api"), make_context("worker"), make_context("db")];
+        let contexts = vec![
+            make_context("api"),
+            make_context("worker"),
+            make_context("db"),
+        ];
 
         suggest_improvements(&provider, &contexts).await.unwrap();
 
@@ -276,7 +283,9 @@ mod tests {
         suggest_improvements(&provider, &[]).await.unwrap();
 
         let req = captured.lock().unwrap().take().unwrap();
-        assert!(req.messages[1].content.contains("No processes currently managed."));
+        assert!(req.messages[1]
+            .content
+            .contains("No processes currently managed."));
     }
 
     #[tokio::test]

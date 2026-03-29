@@ -219,7 +219,10 @@ mod tests {
         let cfg = make_config("10.0.0.1", Some("/home/user/.ssh/id_ed25519"));
         let exec = SshExecutor::from_server_config(&cfg);
         let args = exec.ssh_args();
-        let i_pos = args.iter().position(|a| a == "-i").expect("-i flag missing");
+        let i_pos = args
+            .iter()
+            .position(|a| a == "-i")
+            .expect("-i flag missing");
         assert_eq!(args[i_pos + 1], "/home/user/.ssh/id_ed25519");
     }
 
@@ -228,7 +231,10 @@ mod tests {
         let cfg = make_config("10.0.0.1", Some("~/.ssh/mykey"));
         let exec = SshExecutor::from_server_config(&cfg);
         let args = exec.ssh_args();
-        let i_pos = args.iter().position(|a| a == "-i").expect("-i flag missing");
+        let i_pos = args
+            .iter()
+            .position(|a| a == "-i")
+            .expect("-i flag missing");
         // Should be expanded, not literally "~/.ssh/mykey"
         assert!(!args[i_pos + 1].starts_with("~/"));
     }
@@ -236,8 +242,14 @@ mod tests {
     #[test]
     fn test_shellexpand_home_tilde() {
         let expanded = shellexpand_home("~/.ssh/id_rsa");
-        assert!(!expanded.starts_with("~/"), "tilde should be expanded: {expanded}");
-        assert!(expanded.ends_with("/.ssh/id_rsa"), "suffix should remain: {expanded}");
+        assert!(
+            !expanded.starts_with("~/"),
+            "tilde should be expanded: {expanded}"
+        );
+        assert!(
+            expanded.ends_with("/.ssh/id_rsa"),
+            "suffix should remain: {expanded}"
+        );
     }
 
     #[test]

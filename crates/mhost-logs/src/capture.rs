@@ -168,8 +168,7 @@ mod tests {
         let rx = cap.subscribe();
         drop(rx); // not testing broadcast here
 
-        let raw =
-            r#"{"level":"error","message":"db failure","timestamp":"2024-01-15T10:00:00Z"}"#;
+        let raw = r#"{"level":"error","message":"db failure","timestamp":"2024-01-15T10:00:00Z"}"#;
         let input = raw.as_bytes();
         run_capture(&cap, input, "api", 0).await;
 
@@ -209,10 +208,7 @@ mod tests {
     #[async_trait::async_trait]
     impl LogSink for CollectorSink {
         async fn send(&self, entry: &crate::parser::LogEntry) -> Result<(), String> {
-            self.collected
-                .lock()
-                .await
-                .push(entry.message.clone());
+            self.collected.lock().await.push(entry.message.clone());
             Ok(())
         }
 

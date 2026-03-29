@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 use chrono::{DateTime, Utc};
 use tracing::{debug, info};
 
-use crate::alert::{AlertRule, evaluate};
+use crate::alert::{evaluate, AlertRule};
 
 // ---------------------------------------------------------------------------
 // RemediationAction
@@ -131,7 +131,10 @@ mod tests {
         let mut engine = RemediationEngine::new();
         let rule = make_rule(0, None);
         let action = engine.check_rule(&rule, 200.0, &above_history());
-        assert_eq!(action, Some(RemediationAction::Notify(vec!["slack".to_string()])));
+        assert_eq!(
+            action,
+            Some(RemediationAction::Notify(vec!["slack".to_string()]))
+        );
     }
 
     #[test]
@@ -162,7 +165,10 @@ mod tests {
         assert!(first.is_some(), "first call should fire");
 
         let second = engine.check_rule(&rule, 200.0, &above_history());
-        assert!(second.is_none(), "second call within cooldown should be suppressed");
+        assert!(
+            second.is_none(),
+            "second call within cooldown should be suppressed"
+        );
     }
 
     #[test]
@@ -173,7 +179,10 @@ mod tests {
         let first = engine.check_rule(&rule, 200.0, &above_history());
         let second = engine.check_rule(&rule, 200.0, &above_history());
         assert!(first.is_some());
-        assert!(second.is_some(), "zero cooldown should allow immediate re-trigger");
+        assert!(
+            second.is_some(),
+            "zero cooldown should allow immediate re-trigger"
+        );
     }
 
     #[test]
@@ -190,7 +199,10 @@ mod tests {
 
         // rule-b has never fired, so it should go through.
         let result = engine.check_rule(&rule_b, 200.0, &above_history());
-        assert!(result.is_some(), "rule-b should fire independently of rule-a");
+        assert!(
+            result.is_some(),
+            "rule-b should fire independently of rule-a"
+        );
     }
 
     #[test]

@@ -52,11 +52,7 @@ impl EmailChannel {
             Severity: {}\n\
             Message:  {}\n\
             Time:     {}\n",
-            event.event_type,
-            event.process_name,
-            event.severity,
-            event.message,
-            timestamp,
+            event.event_type, event.process_name, event.severity, event.message, timestamp,
         )
     }
 
@@ -141,9 +137,7 @@ impl NotifyChannel for EmailChannel {
         let text_body = Self::format_text_body(event);
         let html_body = Self::format_html_body(event);
 
-        let mut message_builder = Message::builder()
-            .from(from_mailbox)
-            .subject(subject);
+        let mut message_builder = Message::builder().from(from_mailbox).subject(subject);
 
         for recipient in &self.to {
             let to_addr: Address = recipient

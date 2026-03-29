@@ -215,7 +215,9 @@ mod tests {
         assert_eq!(entry.level, Some(LogLevel::Info));
         // Timestamp should have been parsed; verify it's not just "now" by
         // checking it's before a recently-created time.
-        let expected = "2024-06-01T12:00:00Z".parse::<chrono::DateTime<Utc>>().unwrap();
+        let expected = "2024-06-01T12:00:00Z"
+            .parse::<chrono::DateTime<Utc>>()
+            .unwrap();
         assert_eq!(entry.timestamp, expected);
     }
 

@@ -36,7 +36,10 @@ impl LokiSink {
     /// Build the Loki push payload for a single entry.
     ///
     /// Format: `{"streams":[{"stream":{labels},"values":[["timestamp_ns","line"]]}]}`
-    pub fn build_payload(entry: &LogEntry, extra_labels: &HashMap<String, String>) -> serde_json::Value {
+    pub fn build_payload(
+        entry: &LogEntry,
+        extra_labels: &HashMap<String, String>,
+    ) -> serde_json::Value {
         let mut labels = HashMap::new();
         labels.insert("process".to_owned(), entry.process_name.clone());
         labels.insert(
@@ -52,7 +55,11 @@ impl LokiSink {
             labels.insert(k.clone(), v.clone());
         }
 
-        let timestamp_ns = entry.timestamp.timestamp_nanos_opt().unwrap_or(0).to_string();
+        let timestamp_ns = entry
+            .timestamp
+            .timestamp_nanos_opt()
+            .unwrap_or(0)
+            .to_string();
 
         json!({
             "streams": [{
@@ -149,7 +156,10 @@ mod tests {
             .as_str()
             .expect("timestamp string");
         // A valid nanosecond timestamp is a long integer string.
-        assert!(ts.parse::<i64>().is_ok(), "timestamp is not an integer: {ts}");
+        assert!(
+            ts.parse::<i64>().is_ok(),
+            "timestamp is not an integer: {ts}"
+        );
     }
 
     #[test]

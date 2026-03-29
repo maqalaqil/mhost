@@ -1,5 +1,5 @@
 use chrono::{DateTime, Duration, Utc};
-use rusqlite::{Connection, Result as SqlResult, params};
+use rusqlite::{params, Connection, Result as SqlResult};
 use tracing::{debug, error};
 
 // ---------------------------------------------------------------------------
@@ -89,15 +89,13 @@ impl MetricsStore {
                     Ok((ts_str, value))
                 })?
                 .filter_map(|r| match r {
-                    Ok((ts_str, value)) => {
-                        match DateTime::parse_from_rfc3339(&ts_str) {
-                            Ok(dt) => Some((dt.with_timezone(&Utc), value)),
-                            Err(e) => {
-                                error!("failed to parse timestamp '{}': {}", ts_str, e);
-                                None
-                            }
+                    Ok((ts_str, value)) => match DateTime::parse_from_rfc3339(&ts_str) {
+                        Ok(dt) => Some((dt.with_timezone(&Utc), value)),
+                        Err(e) => {
+                            error!("failed to parse timestamp '{}': {}", ts_str, e);
+                            None
                         }
-                    }
+                    },
                     Err(e) => {
                         error!("row error: {}", e);
                         None
@@ -128,8 +126,7 @@ impl MetricsStore {
             })?
             .filter_map(|r| match r {
                 Ok((epoch, value)) => {
-                    let dt = DateTime::from_timestamp(epoch, 0)
-                        .unwrap_or_else(Utc::now);
+                    let dt = DateTime::from_timestamp(epoch, 0).unwrap_or_else(Utc::now);
                     Some((dt, value))
                 }
                 Err(e) => {
@@ -218,9 +215,7 @@ mod tests {
         store.record("api", "cpu_percent", 1.0, old).unwrap();
         store.record("api", "cpu_percent", 2.0, recent).unwrap();
 
-        let rows = store
-            .query("api", "cpu_percent", cutoff, 0)
-            .unwrap();
+        let rows = store.query("api", "cpu_percent", cutoff, 0).unwrap();
         assert_eq!(rows.len(), 1, "only the recent row should be returned");
         assert!((rows[0].1 - 2.0).abs() < 1e-6);
     }
@@ -238,12 +233,7 @@ mod tests {
             .unwrap();
 
         let rows = store
-            .query(
-                "api",
-                "cpu_percent",
-                base - CDuration::seconds(1),
-                60,
-            )
+            .query("api", "cpu_percent", base - CDuration::seconds(1), 60)
             .unwrap();
 
         // Should collapse to 1 bucket with average 15.0

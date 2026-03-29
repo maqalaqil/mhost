@@ -111,7 +111,10 @@ mod tests {
 
         ProcessContext::from_process_info(
             &info,
-            vec!["Starting payment service...".into(), "ERROR: DB connection failed".into()],
+            vec![
+                "Starting payment service...".into(),
+                "ERROR: DB connection failed".into(),
+            ],
             vec!["ERROR: DB connection failed".into()],
             vec!["2026-03-28T09:00:00Z process crashed".into()],
         )

@@ -81,7 +81,10 @@ mod tests {
     #[test]
     fn test_zero_limit_blocks_immediately() {
         let mut limiter = RateLimiter::new(0);
-        assert!(!limiter.check(1), "zero limit should block on first request");
+        assert!(
+            !limiter.check(1),
+            "zero limit should block on first request"
+        );
     }
 
     #[test]
@@ -101,6 +104,9 @@ mod tests {
         limiter.limits.insert(42, vec![old, old]);
 
         // Both are outside the 60-s window, so the slot should be free
-        assert!(limiter.check(42), "old timestamps should be evicted, allowing new request");
+        assert!(
+            limiter.check(42),
+            "old timestamps should be evicted, allowing new request"
+        );
     }
 }

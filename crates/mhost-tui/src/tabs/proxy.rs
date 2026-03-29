@@ -5,9 +5,10 @@ use crate::app::App;
 
 pub fn render(f: &mut Frame, area: Rect, _app: &App) {
     let text = vec![
-        Line::from(vec![
-            Span::styled("Proxy Routes", Style::default().bold().fg(Color::Cyan)),
-        ]),
+        Line::from(vec![Span::styled(
+            "Proxy Routes",
+            Style::default().bold().fg(Color::Cyan),
+        )]),
         Line::from(""),
         Line::from("No routes configured."),
         Line::from(""),

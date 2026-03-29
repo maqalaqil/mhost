@@ -13,7 +13,10 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
         .map_err(|e| format!("IPC error: {e}"))?;
 
     if let Some(err) = resp.error {
-        print_error(&format!("Failed to get health for '{}': {}", name, err.message));
+        print_error(&format!(
+            "Failed to get health for '{}': {}",
+            name, err.message
+        ));
         return Ok(());
     }
 
@@ -40,10 +43,7 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
 
     for entry in health_list {
         let inst = entry.get("instance").and_then(|v| v.as_u64()).unwrap_or(0);
-        let proc_name = entry
-            .get("name")
-            .and_then(|v| v.as_str())
-            .unwrap_or("-");
+        let proc_name = entry.get("name").and_then(|v| v.as_str()).unwrap_or("-");
         let id = entry
             .get("id")
             .and_then(|v| v.as_str())

@@ -67,7 +67,10 @@ async fn main() {
     // -----------------------------------------------------------------------
     // Handler
     // -----------------------------------------------------------------------
-    let handler = Arc::new(Handler::new(Arc::clone(&supervisor), Arc::clone(&state_store)));
+    let handler = Arc::new(Handler::new(
+        Arc::clone(&supervisor),
+        Arc::clone(&state_store),
+    ));
 
     // -----------------------------------------------------------------------
     // IPC Server

@@ -87,7 +87,10 @@ impl Handler {
                             .iter()
                             .map(|i| serde_json::to_value(i).unwrap_or(Value::Null))
                             .collect();
-                        (RpcResponse::success(id, json!({ "processes": list })), false)
+                        (
+                            RpcResponse::success(id, json!({ "processes": list })),
+                            false,
+                        )
                     }
                     Err(e) => (
                         RpcResponse::error(id, RpcError::new(error_codes::SPAWN_FAILED, e)),
@@ -115,10 +118,7 @@ impl Handler {
                 drop(state_guard);
 
                 match result {
-                    Ok(_) => (
-                        RpcResponse::success(id, json!({ "stopped": name })),
-                        false,
-                    ),
+                    Ok(_) => (RpcResponse::success(id, json!({ "stopped": name })), false),
                     Err(e) => (
                         RpcResponse::error(id, RpcError::new(error_codes::PROCESS_NOT_FOUND, e)),
                         false,
@@ -165,10 +165,7 @@ impl Handler {
                 drop(state_guard);
 
                 match result {
-                    Ok(_) => (
-                        RpcResponse::success(id, json!({ "deleted": name })),
-                        false,
-                    ),
+                    Ok(_) => (RpcResponse::success(id, json!({ "deleted": name })), false),
                     Err(e) => (
                         RpcResponse::error(id, RpcError::new(error_codes::PROCESS_NOT_FOUND, e)),
                         false,
@@ -185,7 +182,10 @@ impl Handler {
                     .iter()
                     .map(|i| serde_json::to_value(i).unwrap_or(Value::Null))
                     .collect();
-                (RpcResponse::success(id, json!({ "processes": list })), false)
+                (
+                    RpcResponse::success(id, json!({ "processes": list })),
+                    false,
+                )
             }
 
             // ----------------------------------------------------------------
@@ -214,7 +214,10 @@ impl Handler {
                     .iter()
                     .map(|i| serde_json::to_value(i).unwrap_or(Value::Null))
                     .collect();
-                (RpcResponse::success(id, json!({ "processes": list })), false)
+                (
+                    RpcResponse::success(id, json!({ "processes": list })),
+                    false,
+                )
             }
 
             // ----------------------------------------------------------------
@@ -254,7 +257,10 @@ impl Handler {
                             .iter()
                             .map(|i| serde_json::to_value(i).unwrap_or(Value::Null))
                             .collect();
-                        (RpcResponse::success(id, json!({ "processes": list })), false)
+                        (
+                            RpcResponse::success(id, json!({ "processes": list })),
+                            false,
+                        )
                     }
                     Err(e) => (
                         RpcResponse::error(id, RpcError::new(error_codes::PROCESS_NOT_FOUND, e)),
@@ -334,8 +340,7 @@ impl Handler {
                     match self.supervisor.start_process(config, &state_guard).await {
                         Ok(infos) => {
                             for info in infos {
-                                all_infos
-                                    .push(serde_json::to_value(&info).unwrap_or(Value::Null));
+                                all_infos.push(serde_json::to_value(&info).unwrap_or(Value::Null));
                             }
                         }
                         Err(e) => {
@@ -419,9 +424,7 @@ impl Handler {
             // ----------------------------------------------------------------
             // group.list
             // ----------------------------------------------------------------
-            methods::GROUP_LIST => {
-                (RpcResponse::success(id, json!({ "groups": [] })), false)
-            }
+            methods::GROUP_LIST => (RpcResponse::success(id, json!({ "groups": [] })), false),
 
             // ----------------------------------------------------------------
             // process.cluster  (alias for process.scale)
@@ -460,7 +463,10 @@ impl Handler {
                             .iter()
                             .map(|i| serde_json::to_value(i).unwrap_or(Value::Null))
                             .collect();
-                        (RpcResponse::success(id, json!({ "processes": list })), false)
+                        (
+                            RpcResponse::success(id, json!({ "processes": list })),
+                            false,
+                        )
                     }
                     Err(e) => (
                         RpcResponse::error(id, RpcError::new(error_codes::PROCESS_NOT_FOUND, e)),
@@ -473,10 +479,7 @@ impl Handler {
             // log.search  (stub — full integration needs indexer access)
             // ----------------------------------------------------------------
             methods::LOG_SEARCH => {
-                let resp = RpcResponse::success(
-                    id,
-                    json!({ "results": [], "total": 0 }),
-                );
+                let resp = RpcResponse::success(id, json!({ "results": [], "total": 0 }));
                 (resp, false)
             }
 
@@ -484,10 +487,7 @@ impl Handler {
             // log.count_by  (stub)
             // ----------------------------------------------------------------
             methods::LOG_COUNT_BY => {
-                let resp = RpcResponse::success(
-                    id,
-                    json!({ "buckets": [] }),
-                );
+                let resp = RpcResponse::success(id, json!({ "buckets": [] }));
                 (resp, false)
             }
 
@@ -517,11 +517,14 @@ impl Handler {
                 let metrics: Vec<Value> = infos
                     .iter()
                     .map(|i| {
-                        let uptime_ms = i.uptime_started.map(|t| {
-                            let now = chrono::Utc::now();
-                            let diff = now.signed_duration_since(t);
-                            diff.num_milliseconds().max(0) as u64
-                        }).unwrap_or(0);
+                        let uptime_ms = i
+                            .uptime_started
+                            .map(|t| {
+                                let now = chrono::Utc::now();
+                                let diff = now.signed_duration_since(t);
+                                diff.num_milliseconds().max(0) as u64
+                            })
+                            .unwrap_or(0);
                         json!({
                             "id": i.id,
                             "name": i.config.name,
@@ -532,17 +535,17 @@ impl Handler {
                         })
                     })
                     .collect();
-                (RpcResponse::success(id, json!({ "metrics": metrics })), false)
+                (
+                    RpcResponse::success(id, json!({ "metrics": metrics })),
+                    false,
+                )
             }
 
             // ----------------------------------------------------------------
             // metrics.history  (stub — returns empty series)
             // ----------------------------------------------------------------
             methods::METRICS_HISTORY => {
-                let resp = RpcResponse::success(
-                    id,
-                    json!({ "series": [] }),
-                );
+                let resp = RpcResponse::success(id, json!({ "series": [] }));
                 (resp, false)
             }
 
@@ -556,10 +559,8 @@ impl Handler {
                     .and_then(Value::as_str)
                     .unwrap_or("0.0.0.0:9090")
                     .to_string();
-                let resp = RpcResponse::success(
-                    id,
-                    json!({ "acknowledged": true, "listen": listen }),
-                );
+                let resp =
+                    RpcResponse::success(id, json!({ "acknowledged": true, "listen": listen }));
                 (resp, false)
             }
 
@@ -573,10 +574,8 @@ impl Handler {
                     .and_then(Value::as_str)
                     .unwrap_or("default")
                     .to_string();
-                let resp = RpcResponse::success(
-                    id,
-                    json!({ "acknowledged": true, "channel": channel }),
-                );
+                let resp =
+                    RpcResponse::success(id, json!({ "acknowledged": true, "channel": channel }));
                 (resp, false)
             }
 

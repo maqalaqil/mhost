@@ -1,11 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-use crate::{
-    claude::ClaudeProvider,
-    openai::OpenAiProvider,
-    provider::LlmProvider,
-};
+use crate::{claude::ClaudeProvider, openai::OpenAiProvider, provider::LlmProvider};
 
 /// Configuration for the AI integration layer.
 ///
@@ -73,8 +69,7 @@ impl AiConfig {
 fn resolve_api_key(raw: &str) -> Result<String, String> {
     if raw.starts_with("${") && raw.ends_with('}') {
         let var_name = &raw[2..raw.len() - 1];
-        std::env::var(var_name)
-            .map_err(|_| format!("Environment variable '{var_name}' not set"))
+        std::env::var(var_name).map_err(|_| format!("Environment variable '{var_name}' not set"))
     } else {
         Ok(raw.to_owned())
     }

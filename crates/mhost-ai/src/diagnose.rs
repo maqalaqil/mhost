@@ -18,10 +18,7 @@ pub async fn diagnose(
             },
             LlmMessage {
                 role: "user".into(),
-                content: format!(
-                    "Diagnose this process:\n\n{}",
-                    context.to_prompt_text()
-                ),
+                content: format!("Diagnose this process:\n\n{}", context.to_prompt_text()),
             },
         ],
         max_tokens: 2048,
@@ -236,10 +233,7 @@ mod tests {
 
         #[async_trait]
         impl LlmProvider for EchoUserMessageProvider {
-            async fn complete(
-                &self,
-                request: LlmRequest,
-            ) -> Result<LlmResponse, String> {
+            async fn complete(&self, request: LlmRequest) -> Result<LlmResponse, String> {
                 let user_msg = request
                     .messages
                     .iter()

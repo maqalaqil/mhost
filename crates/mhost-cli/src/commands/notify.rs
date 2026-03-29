@@ -101,7 +101,11 @@ fn prompt_default(label: &str, default: &str) -> String {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
     let val = input.trim();
-    if val.is_empty() { default.to_string() } else { val.to_string() }
+    if val.is_empty() {
+        default.to_string()
+    } else {
+        val.to_string()
+    }
 }
 
 fn prompt_events() -> Vec<String> {
@@ -204,7 +208,11 @@ fn setup_slack() -> Result<(String, ChannelConfig), String> {
     }
 
     let channel = prompt_default("Slack channel", "#alerts");
-    let channel = if channel.is_empty() { None } else { Some(channel) };
+    let channel = if channel.is_empty() {
+        None
+    } else {
+        Some(channel)
+    };
 
     let name = prompt_default("Channel name", "slack");
     let events = prompt_events();
@@ -294,10 +302,18 @@ pub fn run_list(config_path: &Path) -> Result<(), String> {
 
     for (name, channel) in &config.channels {
         let (ch_type, enabled, events) = match channel {
-            ChannelConfig::Telegram { enabled, events, .. } => ("telegram", *enabled, events),
-            ChannelConfig::Slack { enabled, events, .. } => ("slack", *enabled, events),
-            ChannelConfig::Discord { enabled, events, .. } => ("discord", *enabled, events),
-            ChannelConfig::Webhook { enabled, events, .. } => ("webhook", *enabled, events),
+            ChannelConfig::Telegram {
+                enabled, events, ..
+            } => ("telegram", *enabled, events),
+            ChannelConfig::Slack {
+                enabled, events, ..
+            } => ("slack", *enabled, events),
+            ChannelConfig::Discord {
+                enabled, events, ..
+            } => ("discord", *enabled, events),
+            ChannelConfig::Webhook {
+                enabled, events, ..
+            } => ("webhook", *enabled, events),
         };
         let status = if enabled { "active" } else { "disabled" };
         let event_str = if events.len() == ALL_EVENTS.len() {
@@ -305,7 +321,10 @@ pub fn run_list(config_path: &Path) -> Result<(), String> {
         } else {
             events.join(", ")
         };
-        println!("  {:<15} {:<12} {:<10} {}", name, ch_type, status, event_str);
+        println!(
+            "  {:<15} {:<12} {:<10} {}",
+            name, ch_type, status, event_str
+        );
     }
     println!();
     Ok(())
@@ -314,26 +333,22 @@ pub fn run_list(config_path: &Path) -> Result<(), String> {
 pub async fn run_test(config_path: &Path, channel_name: &str) -> Result<(), String> {
     let config = load_config(config_path);
 
-    let channel = config
-        .channels
-        .get(channel_name)
-        .ok_or_else(|| format!("Channel '{}' not found. Run: mhost notify list", channel_name))?;
+    let channel = config.channels.get(channel_name).ok_or_else(|| {
+        format!(
+            "Channel '{}' not found. Run: mhost notify list",
+            channel_name
+        )
+    })?;
 
     println!("  Sending test notification to '{channel_name}'...");
 
     match channel {
-        ChannelConfig::Telegram { bot_token, chat_id, .. } => {
-            send_telegram_test(bot_token, chat_id).await
-        }
-        ChannelConfig::Slack { webhook_url, .. } => {
-            send_slack_test(webhook_url).await
-        }
-        ChannelConfig::Discord { webhook_url, .. } => {
-            send_discord_test(webhook_url).await
-        }
-        ChannelConfig::Webhook { url, headers, .. } => {
-            send_webhook_test(url, headers).await
-        }
+        ChannelConfig::Telegram {
+            bot_token, chat_id, ..
+        } => send_telegram_test(bot_token, chat_id).await,
+        ChannelConfig::Slack { webhook_url, .. } => send_slack_test(webhook_url).await,
+        ChannelConfig::Discord { webhook_url, .. } => send_discord_test(webhook_url).await,
+        ChannelConfig::Webhook { url, headers, .. } => send_webhook_test(url, headers).await,
     }
 }
 
@@ -346,7 +361,12 @@ async fn send_telegram_test(bot_token: &str, chat_id: &str) -> Result<(), String
     });
 
     let client = reqwest::Client::new();
-    let resp = client.post(&url).json(&body).send().await.map_err(|e| format!("Request failed: {e}"))?;
+    let resp = client
+        .post(&url)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {e}"))?;
 
     if resp.status().is_success() {
         print_success("Test message sent to Telegram!");
@@ -376,7 +396,12 @@ async fn send_slack_test(webhook_url: &str) -> Result<(), String> {
     });
 
     let client = reqwest::Client::new();
-    let resp = client.post(webhook_url).json(&body).send().await.map_err(|e| format!("Request failed: {e}"))?;
+    let resp = client
+        .post(webhook_url)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {e}"))?;
 
     if resp.status().is_success() {
         print_success("Test message sent to Slack!");
@@ -398,7 +423,12 @@ async fn send_discord_test(webhook_url: &str) -> Result<(), String> {
     });
 
     let client = reqwest::Client::new();
-    let resp = client.post(webhook_url).json(&body).send().await.map_err(|e| format!("Request failed: {e}"))?;
+    let resp = client
+        .post(webhook_url)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {e}"))?;
 
     if resp.status().is_success() || resp.status().as_u16() == 204 {
         print_success("Test message sent to Discord!");
@@ -423,7 +453,10 @@ async fn send_webhook_test(url: &str, headers: &HashMap<String, String>) -> Resu
     for (k, v) in headers {
         req = req.header(k, v);
     }
-    let resp = req.send().await.map_err(|e| format!("Request failed: {e}"))?;
+    let resp = req
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {e}"))?;
 
     if resp.status().is_success() {
         print_success("Test message sent to webhook!");
@@ -476,9 +509,15 @@ pub fn run_events(config_path: &Path, channel_name: Option<&str>) -> Result<(), 
     println!("  {}", "─".repeat(55));
     println!("  {:<18} Process crashed (non-zero exit)", "crash");
     println!("  {:<18} Process auto-restarted by mhost", "restart");
-    println!("  {:<18} Process hit max restarts (circuit breaker)", "errored");
+    println!(
+        "  {:<18} Process hit max restarts (circuit breaker)",
+        "errored"
+    );
     println!("  {:<18} Process was stopped", "stopped");
-    println!("  {:<18} Process came back online after failure", "recovered");
+    println!(
+        "  {:<18} Process came back online after failure",
+        "recovered"
+    );
     println!("  {:<18} Health check probe failed", "health_fail");
     println!("  {:<18} Process restarted 5+ times", "high_restarts");
     println!("  {:<18} Health endpoint returned HTTP 5xx", "5xx_error");
@@ -498,7 +537,10 @@ pub fn run_events(config_path: &Path, channel_name: Option<&str>) -> Result<(), 
             for e in events {
                 println!("    [x] {}", e);
             }
-            let missing: Vec<&&str> = ALL_EVENTS.iter().filter(|e| !events.contains(&e.to_string())).collect();
+            let missing: Vec<&&str> = ALL_EVENTS
+                .iter()
+                .filter(|e| !events.contains(&e.to_string()))
+                .collect();
             for e in missing {
                 println!("    [ ] {}", e);
             }
@@ -539,7 +581,12 @@ pub async fn run_start(config_path: &Path, client: &mhost_ipc::IpcClient) -> Res
     let mut env_vars = HashMap::new();
     for (_name, ch) in &config.channels {
         match ch {
-            ChannelConfig::Telegram { bot_token, chat_id, enabled, .. } if *enabled => {
+            ChannelConfig::Telegram {
+                bot_token,
+                chat_id,
+                enabled,
+                ..
+            } if *enabled => {
                 env_vars.insert("MHOST_TELEGRAM_TOKEN".to_string(), bot_token.clone());
                 env_vars.insert("MHOST_TELEGRAM_CHAT".to_string(), chat_id.clone());
                 break;

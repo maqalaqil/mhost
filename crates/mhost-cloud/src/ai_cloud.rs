@@ -247,7 +247,10 @@ mod tests {
 
         let provider = AllMessagesEcho;
         let result = ai_setup_infra(&provider, "run a blog").await.unwrap();
-        assert!(result.contains("[system]:"), "system message must be present");
+        assert!(
+            result.contains("[system]:"),
+            "system message must be present"
+        );
         assert!(result.contains("[user]:"), "user message must be present");
         assert!(
             result.contains("infrastructure advisor"),
@@ -331,9 +334,7 @@ mod tests {
         let to_host = RemoteHost::new("new-server", &make_cfg("10.0.0.2"));
         let provider = EchoProvider;
 
-        let result = ai_migrate(&provider, &from_host, &to_host)
-            .await
-            .unwrap();
+        let result = ai_migrate(&provider, &from_host, &to_host).await.unwrap();
 
         assert!(
             result.contains("prod-server"),

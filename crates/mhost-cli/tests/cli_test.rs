@@ -37,10 +37,7 @@ fn test_help() {
 
 #[test]
 fn test_completion_bash() {
-    let output = mhost_bin()
-        .args(["completion", "bash"])
-        .output()
-        .unwrap();
+    let output = mhost_bin().args(["completion", "bash"]).output().unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("mhost"));
@@ -48,19 +45,13 @@ fn test_completion_bash() {
 
 #[test]
 fn test_completion_zsh() {
-    let output = mhost_bin()
-        .args(["completion", "zsh"])
-        .output()
-        .unwrap();
+    let output = mhost_bin().args(["completion", "zsh"]).output().unwrap();
     assert!(output.status.success());
 }
 
 #[test]
 fn test_completion_fish() {
-    let output = mhost_bin()
-        .args(["completion", "fish"])
-        .output()
-        .unwrap();
+    let output = mhost_bin().args(["completion", "fish"]).output().unwrap();
     assert!(output.status.success());
 }
 
@@ -135,7 +126,10 @@ fn ai_help_exits_successfully() {
 #[test]
 fn ai_help_shows_diagnose() {
     let (stdout, _stderr, _ok) = run(&["ai", "--help"]);
-    assert!(stdout.contains("diagnose"), "ai --help should list diagnose");
+    assert!(
+        stdout.contains("diagnose"),
+        "ai --help should list diagnose"
+    );
 }
 
 #[test]

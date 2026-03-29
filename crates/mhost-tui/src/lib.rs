@@ -284,9 +284,7 @@ fn draw_sparklines(f: &mut Frame, area: Rect, app: &App) {
         .copied()
         .or_else(|| app.processes.first());
 
-    let name = process
-        .map(|p| p.config.name.as_str())
-        .unwrap_or("—");
+    let name = process.map(|p| p.config.name.as_str()).unwrap_or("—");
 
     // Split into CPU (top) and Memory (bottom).
     let halves = Layout::default()
@@ -303,9 +301,7 @@ fn draw_sparklines(f: &mut Frame, area: Rect, app: &App) {
             .unwrap_or(&[]);
         let inner_width = (halves[0].width as usize).saturating_sub(4);
         let spark = sparkline_str(data, inner_width);
-        let last_cpu = process
-            .and_then(|p| p.cpu_percent)
-            .unwrap_or(0.0);
+        let last_cpu = process.and_then(|p| p.cpu_percent).unwrap_or(0.0);
         let text = format!("{} {:>5.1}%", spark, last_cpu);
         let para = Paragraph::new(text)
             .block(Block::default().borders(Borders::ALL).title(" CPU "))
@@ -322,10 +318,7 @@ fn draw_sparklines(f: &mut Frame, area: Rect, app: &App) {
             .unwrap_or(&[]);
         let inner_width = (halves[1].width as usize).saturating_sub(4);
         let spark = sparkline_str(data, inner_width);
-        let last_mem = process
-            .and_then(|p| p.memory_bytes)
-            .unwrap_or(0) as f64
-            / 1_048_576.0;
+        let last_mem = process.and_then(|p| p.memory_bytes).unwrap_or(0) as f64 / 1_048_576.0;
         let text = format!("{} {:>7.1}MB", spark, last_mem);
         let para = Paragraph::new(text)
             .block(Block::default().borders(Borders::ALL).title(" Memory "))
@@ -368,20 +361,14 @@ fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
 
 fn kv_line(key: &str, val: &str) -> Line<'static> {
     Line::from(vec![
-        Span::styled(
-            format!("{:<12}", key),
-            Style::default().fg(Color::DarkGray),
-        ),
+        Span::styled(format!("{:<12}", key), Style::default().fg(Color::DarkGray)),
         Span::raw(val.to_string()),
     ])
 }
 
 fn kv_colored_line(key: &str, val: &str, color: Color) -> Line<'static> {
     Line::from(vec![
-        Span::styled(
-            format!("{:<12}", key),
-            Style::default().fg(Color::DarkGray),
-        ),
+        Span::styled(format!("{:<12}", key), Style::default().fg(Color::DarkGray)),
         Span::styled(val.to_string(), Style::default().fg(color)),
     ])
 }
@@ -407,9 +394,7 @@ async fn fetch_processes(client: &IpcClient, app: &mut App) {
             if let Some(procs) = procs {
                 app.processes = procs;
                 // Clamp selection to valid range.
-                if !app.processes.is_empty()
-                    && app.selected_process >= app.processes.len()
-                {
+                if !app.processes.is_empty() && app.selected_process >= app.processes.len() {
                     app.selected_process = app.processes.len() - 1;
                 }
             }

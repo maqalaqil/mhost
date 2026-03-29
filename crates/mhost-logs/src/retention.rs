@@ -117,12 +117,7 @@ mod tests {
     use chrono::{Duration, Utc};
     use std::collections::HashMap;
 
-    fn entry_at(
-        process: &str,
-        level: LogLevel,
-        message: &str,
-        age_days: i64,
-    ) -> LogEntry {
+    fn entry_at(process: &str, level: LogLevel, message: &str, age_days: i64) -> LogEntry {
         LogEntry {
             timestamp: Utc::now() - Duration::days(age_days),
             level: Some(level),
@@ -161,7 +156,9 @@ mod tests {
         let deleted = enforce_retention(&indexer, &RetentionPolicy::defaults()).expect("retain");
         let _ = deleted; // May be 0.
 
-        let remaining = indexer.search("recent info", None, None, 10).expect("search");
+        let remaining = indexer
+            .search("recent info", None, None, 10)
+            .expect("search");
         assert_eq!(remaining.len(), 1, "recent entry should be kept");
     }
 
@@ -179,19 +176,30 @@ mod tests {
         let old_error = entry_at("svc", LogLevel::Error, "old error log", 100);
 
         indexer.index_entry(&old_info).expect("index old_info");
-        indexer.index_entry(&recent_warn).expect("index recent_warn");
+        indexer
+            .index_entry(&recent_warn)
+            .expect("index recent_warn");
         indexer.index_entry(&old_error).expect("index old_error");
 
         let deleted = enforce_retention(&indexer, &RetentionPolicy::defaults()).expect("retain");
-        assert!(deleted >= 2, "expected at least 2 deletions (old info + old error), got {deleted}");
+        assert!(
+            deleted >= 2,
+            "expected at least 2 deletions (old info + old error), got {deleted}"
+        );
 
-        let remaining_warn = indexer.search("recent warn log", None, None, 10).expect("search");
+        let remaining_warn = indexer
+            .search("recent warn log", None, None, 10)
+            .expect("search");
         assert_eq!(remaining_warn.len(), 1, "recent warn should be kept");
 
-        let remaining_info = indexer.search("old info log", None, None, 10).expect("search");
+        let remaining_info = indexer
+            .search("old info log", None, None, 10)
+            .expect("search");
         assert!(remaining_info.is_empty(), "old info should be deleted");
 
-        let remaining_error = indexer.search("old error log", None, None, 10).expect("search");
+        let remaining_error = indexer
+            .search("old error log", None, None, 10)
+            .expect("search");
         assert!(remaining_error.is_empty(), "old error should be deleted");
     }
 
@@ -211,7 +219,10 @@ mod tests {
         // A custom policy targeting all processes (glob = "*") with 7-day INFO retention
         let policies = RetentionPolicy::defaults();
         let deleted = enforce_retention(&indexer, &policies).expect("retain");
-        assert!(deleted >= 2, "both old entries should be deleted, got {deleted}");
+        assert!(
+            deleted >= 2,
+            "both old entries should be deleted, got {deleted}"
+        );
     }
 
     // -- RetentionPolicy defaults structure ---------------------------------
@@ -222,19 +233,31 @@ mod tests {
         assert_eq!(policies.len(), 4);
 
         // INFO: 7 days
-        let info_policy = policies.iter().find(|p| p.level == Some(LogLevel::Info)).unwrap();
+        let info_policy = policies
+            .iter()
+            .find(|p| p.level == Some(LogLevel::Info))
+            .unwrap();
         assert_eq!(info_policy.max_age_days, 7);
 
         // WARN: 30 days
-        let warn_policy = policies.iter().find(|p| p.level == Some(LogLevel::Warn)).unwrap();
+        let warn_policy = policies
+            .iter()
+            .find(|p| p.level == Some(LogLevel::Warn))
+            .unwrap();
         assert_eq!(warn_policy.max_age_days, 30);
 
         // ERROR: 30 days
-        let error_policy = policies.iter().find(|p| p.level == Some(LogLevel::Error)).unwrap();
+        let error_policy = policies
+            .iter()
+            .find(|p| p.level == Some(LogLevel::Error))
+            .unwrap();
         assert_eq!(error_policy.max_age_days, 30);
 
         // FATAL: 90 days
-        let fatal_policy = policies.iter().find(|p| p.level == Some(LogLevel::Fatal)).unwrap();
+        let fatal_policy = policies
+            .iter()
+            .find(|p| p.level == Some(LogLevel::Fatal))
+            .unwrap();
         assert_eq!(fatal_policy.max_age_days, 90);
     }
 }

@@ -148,7 +148,11 @@ mod tests {
         // On Linux and macOS this must succeed.
         #[cfg(any(target_os = "linux", target_os = "macos"))]
         {
-            assert!(rss.is_some(), "get_rss_bytes returned None for current PID {}", pid);
+            assert!(
+                rss.is_some(),
+                "get_rss_bytes returned None for current PID {}",
+                pid
+            );
             assert!(
                 rss.unwrap() > 0,
                 "RSS for current process should be > 0, got {}",

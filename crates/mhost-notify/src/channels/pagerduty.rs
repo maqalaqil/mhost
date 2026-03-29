@@ -31,7 +31,11 @@ impl PagerDutyChannel {
     }
 
     /// Map mhost severity to PagerDuty severity string.
-    pub fn map_severity(severity: &Severity, event_type: &EventType, overrides: &HashMap<String, String>) -> String {
+    pub fn map_severity(
+        severity: &Severity,
+        event_type: &EventType,
+        overrides: &HashMap<String, String>,
+    ) -> String {
         let key = event_type.to_string();
         if let Some(mapped) = overrides.get(&key) {
             return mapped.clone();
@@ -144,7 +148,8 @@ mod tests {
     #[test]
     fn test_severity_mapping_critical() {
         let overrides = HashMap::new();
-        let result = PagerDutyChannel::map_severity(&Severity::Critical, &EventType::Crash, &overrides);
+        let result =
+            PagerDutyChannel::map_severity(&Severity::Critical, &EventType::Crash, &overrides);
         assert_eq!(result, "critical");
     }
 
@@ -152,7 +157,8 @@ mod tests {
     fn test_severity_mapping_override() {
         let mut overrides = HashMap::new();
         overrides.insert("Crash".to_string(), "high".to_string());
-        let result = PagerDutyChannel::map_severity(&Severity::Critical, &EventType::Crash, &overrides);
+        let result =
+            PagerDutyChannel::map_severity(&Severity::Critical, &EventType::Crash, &overrides);
         assert_eq!(result, "high");
     }
 

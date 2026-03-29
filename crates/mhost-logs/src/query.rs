@@ -88,9 +88,7 @@ fn resolve_field<'a>(field: &str, entry: &'a LogEntry) -> Option<std::borrow::Co
             .as_ref()
             .map(|l| std::borrow::Cow::Borrowed(l.as_str())),
         "message" | "msg" => Some(std::borrow::Cow::Borrowed(entry.message.as_str())),
-        "process" | "process_name" => {
-            Some(std::borrow::Cow::Borrowed(entry.process_name.as_str()))
-        }
+        "process" | "process_name" => Some(std::borrow::Cow::Borrowed(entry.process_name.as_str())),
         other => entry
             .fields
             .get(other)
@@ -114,20 +112,14 @@ pub fn filter_matches(filter: &QueryFilter, entry: &LogEntry) -> bool {
             .unwrap_or(false),
 
         QueryFilter::Gt { field, value } => compare_values(field, value, entry, |ord| ord.is_gt()),
-        QueryFilter::Gte { field, value } => {
-            compare_values(field, value, entry, |ord| ord.is_ge())
-        }
+        QueryFilter::Gte { field, value } => compare_values(field, value, entry, |ord| ord.is_ge()),
         QueryFilter::Lt { field, value } => compare_values(field, value, entry, |ord| ord.is_lt()),
-        QueryFilter::Lte { field, value } => {
-            compare_values(field, value, entry, |ord| ord.is_le())
-        }
+        QueryFilter::Lte { field, value } => compare_values(field, value, entry, |ord| ord.is_le()),
 
         QueryFilter::And(left, right) => {
             filter_matches(left, entry) && filter_matches(right, entry)
         }
-        QueryFilter::Or(left, right) => {
-            filter_matches(left, entry) || filter_matches(right, entry)
-        }
+        QueryFilter::Or(left, right) => filter_matches(left, entry) || filter_matches(right, entry),
     }
 }
 

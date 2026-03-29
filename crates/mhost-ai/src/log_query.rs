@@ -148,7 +148,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_translate_log_query_strips_markdown_fences() {
-        let json = "```json\n{\"search\":\"timeout\",\"level\":null,\"since\":\"24h\",\"limit\":100}\n```";
+        let json =
+            "```json\n{\"search\":\"timeout\",\"level\":null,\"since\":\"24h\",\"limit\":100}\n```";
         let provider = EchoProvider {
             response: json.to_string(),
         };
@@ -193,7 +194,9 @@ mod tests {
 
         let result = translate_log_query(&provider, "proc", "anything").await;
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Failed to parse LLM response as query"));
+        assert!(result
+            .unwrap_err()
+            .contains("Failed to parse LLM response as query"));
     }
 
     #[tokio::test]

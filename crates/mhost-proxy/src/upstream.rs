@@ -128,11 +128,23 @@ mod tests {
     #[test]
     fn active_connections_can_be_incremented_and_decremented() {
         let pool = make_pool(2);
-        pool.backends[0].active_connections.fetch_add(1, Ordering::Relaxed);
-        pool.backends[0].active_connections.fetch_add(1, Ordering::Relaxed);
-        assert_eq!(pool.backends[0].active_connections.load(Ordering::Relaxed), 2);
-        pool.backends[0].active_connections.fetch_sub(1, Ordering::Relaxed);
-        assert_eq!(pool.backends[0].active_connections.load(Ordering::Relaxed), 1);
+        pool.backends[0]
+            .active_connections
+            .fetch_add(1, Ordering::Relaxed);
+        pool.backends[0]
+            .active_connections
+            .fetch_add(1, Ordering::Relaxed);
+        assert_eq!(
+            pool.backends[0].active_connections.load(Ordering::Relaxed),
+            2
+        );
+        pool.backends[0]
+            .active_connections
+            .fetch_sub(1, Ordering::Relaxed);
+        assert_eq!(
+            pool.backends[0].active_connections.load(Ordering::Relaxed),
+            1
+        );
     }
 
     #[test]

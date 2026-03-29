@@ -769,7 +769,10 @@ expected_status = 200
         assert_eq!(health.retries, 5);
 
         match &health.kind {
-            mhost_core::health::HealthCheckKind::Http { url, expected_status } => {
+            mhost_core::health::HealthCheckKind::Http {
+                url,
+                expected_status,
+            } => {
                 assert_eq!(url, "http://localhost:8080/health");
                 assert_eq!(*expected_status, 200);
             }
@@ -804,7 +807,12 @@ port = 12201
 
         let tg = cfg.notifications.get("telegram").expect("telegram channel");
         match tg {
-            NotificationChannelConfig::Telegram { bot_token, chat_id, events, throttle } => {
+            NotificationChannelConfig::Telegram {
+                bot_token,
+                chat_id,
+                events,
+                throttle,
+            } => {
                 assert_eq!(bot_token, "abc123");
                 assert_eq!(chat_id, "-100999");
                 assert_eq!(events, &["crash", "restart"]);
@@ -815,7 +823,11 @@ port = 12201
 
         let sl = cfg.notifications.get("slack").expect("slack channel");
         match sl {
-            NotificationChannelConfig::Slack { webhook, events, throttle } => {
+            NotificationChannelConfig::Slack {
+                webhook,
+                events,
+                throttle,
+            } => {
                 assert!(webhook.contains("slack.com"));
                 assert!(events.is_empty());
                 assert_eq!(throttle, "60s");
@@ -826,7 +838,12 @@ port = 12201
         let logs_cfg = cfg.logs.as_ref().expect("logs config present");
         let graylog = logs_cfg.sinks.get("graylog").expect("graylog sink");
         match graylog {
-            LogSinkConfig::Gelf { host, port, transport, processes } => {
+            LogSinkConfig::Gelf {
+                host,
+                port,
+                transport,
+                processes,
+            } => {
                 assert_eq!(host, "logs.example.com");
                 assert_eq!(*port, 12201);
                 assert_eq!(transport, "udp");
@@ -857,8 +874,8 @@ cert = "/etc/mhost/server.crt"
 key = "/etc/mhost/server.key"
 ca = "/etc/mhost/ca.crt"
 "#;
-        let cfg = EcosystemConfig::from_str(toml, "toml")
-            .expect("parse toml with deploy and remote");
+        let cfg =
+            EcosystemConfig::from_str(toml, "toml").expect("parse toml with deploy and remote");
 
         let prod = cfg.deploy.get("production").expect("production deploy");
         assert_eq!(prod.repo, "https://github.com/example/app");

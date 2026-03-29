@@ -92,7 +92,10 @@ mod tests {
         assert_eq!(config.retries, 3);
 
         match &config.kind {
-            HealthCheckKind::Http { url, expected_status } => {
+            HealthCheckKind::Http {
+                url,
+                expected_status,
+            } => {
                 assert_eq!(url, "http://localhost:8080/health");
                 assert_eq!(*expected_status, 200);
             }

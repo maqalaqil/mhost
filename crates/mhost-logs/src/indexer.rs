@@ -205,10 +205,9 @@ impl LogIndexer {
     /// Delete entries older than `cutoff`. Returns the number of rows deleted.
     pub fn delete_before(&self, cutoff: DateTime<Utc>) -> rusqlite::Result<u64> {
         let ts = cutoff.to_rfc3339();
-        let affected = self.conn.execute(
-            "DELETE FROM log_entries WHERE timestamp < ?1",
-            params![ts],
-        )?;
+        let affected = self
+            .conn
+            .execute("DELETE FROM log_entries WHERE timestamp < ?1", params![ts])?;
         Ok(affected as u64)
     }
 }
@@ -232,9 +231,7 @@ mod tests {
         let entry = make_entry("myapp", "ERROR", "database connection failed");
         indexer.index_entry(&entry).expect("index");
 
-        let results = indexer
-            .search("database", None, None, 10)
-            .expect("search");
+        let results = indexer.search("database", None, None, 10).expect("search");
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].message, "database connection failed");
     }
@@ -291,8 +288,10 @@ mod tests {
 
         let indexer = LogIndexer::in_memory().expect("in_memory");
 
-        let old_raw = r#"{"level":"INFO","message":"old event","timestamp":"2020-01-01T00:00:00Z"}"#;
-        let new_raw = r#"{"level":"INFO","message":"new event","timestamp":"2024-06-01T00:00:00Z"}"#;
+        let old_raw =
+            r#"{"level":"INFO","message":"old event","timestamp":"2020-01-01T00:00:00Z"}"#;
+        let new_raw =
+            r#"{"level":"INFO","message":"new event","timestamp":"2024-06-01T00:00:00Z"}"#;
 
         let old_entry = parse_line(old_raw, "svc", 0);
         let new_entry = parse_line(new_raw, "svc", 0);
@@ -302,7 +301,9 @@ mod tests {
 
         // Search for events after 2023-01-01 — should only return the new one
         let since = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-        let results = indexer.search("event", None, Some(since), 10).expect("search");
+        let results = indexer
+            .search("event", None, Some(since), 10)
+            .expect("search");
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].message, "new event");
     }
@@ -326,7 +327,9 @@ mod tests {
         assert!(results.len() <= 10, "limit should be respected");
 
         // Search with limit 100 — must return all 50
-        let all_results = indexer.search("message", None, None, 100).expect("search all");
+        let all_results = indexer
+            .search("message", None, None, 100)
+            .expect("search all");
         assert_eq!(all_results.len(), 50);
     }
 
@@ -338,11 +341,17 @@ mod tests {
 
         let indexer = LogIndexer::in_memory().expect("in_memory");
 
-        let old_raw = r#"{"level":"INFO","message":"stale log","timestamp":"2020-01-01T00:00:00Z"}"#;
-        let new_raw = r#"{"level":"INFO","message":"fresh log","timestamp":"2024-01-01T00:00:00Z"}"#;
+        let old_raw =
+            r#"{"level":"INFO","message":"stale log","timestamp":"2020-01-01T00:00:00Z"}"#;
+        let new_raw =
+            r#"{"level":"INFO","message":"fresh log","timestamp":"2024-01-01T00:00:00Z"}"#;
 
-        indexer.index_entry(&parse_line(old_raw, "svc", 0)).expect("index old");
-        indexer.index_entry(&parse_line(new_raw, "svc", 0)).expect("index new");
+        indexer
+            .index_entry(&parse_line(old_raw, "svc", 0))
+            .expect("index old");
+        indexer
+            .index_entry(&parse_line(new_raw, "svc", 0))
+            .expect("index new");
 
         let cutoff = "2022-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
         let deleted = indexer.delete_before(cutoff).expect("delete_before");

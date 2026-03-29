@@ -14,7 +14,10 @@ pub async fn start(client: &IpcClient, group: &str) -> Result<(), String> {
         .map_err(|e| format!("IPC error: {e}"))?;
 
     if let Some(err) = resp.error {
-        print_error(&format!("Failed to start group '{}': {}", group, err.message));
+        print_error(&format!(
+            "Failed to start group '{}': {}",
+            group, err.message
+        ));
     } else {
         print_success(&format!("Started group '{}'", group));
     }
@@ -32,7 +35,10 @@ pub async fn stop(client: &IpcClient, group: &str) -> Result<(), String> {
         .map_err(|e| format!("IPC error: {e}"))?;
 
     if let Some(err) = resp.error {
-        print_error(&format!("Failed to stop group '{}': {}", group, err.message));
+        print_error(&format!(
+            "Failed to stop group '{}': {}",
+            group, err.message
+        ));
     } else {
         print_success(&format!("Stopped group '{}'", group));
     }

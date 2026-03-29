@@ -14,11 +14,8 @@ use crate::transport::{bind, IpcStream};
 // ---------------------------------------------------------------------------
 
 /// A type-erased async handler: takes an `RpcRequest`, returns an `RpcResponse`.
-pub type HandlerFn = Arc<
-    dyn Fn(RpcRequest) -> Pin<Box<dyn Future<Output = RpcResponse> + Send>>
-        + Send
-        + Sync,
->;
+pub type HandlerFn =
+    Arc<dyn Fn(RpcRequest) -> Pin<Box<dyn Future<Output = RpcResponse> + Send>> + Send + Sync>;
 
 // ---------------------------------------------------------------------------
 // IpcServer
@@ -148,7 +145,10 @@ mod tests {
             .call("unknown.method", json!(null))
             .await
             .expect("call unknown");
-        assert!(resp.result.is_none(), "unknown method should not return result");
+        assert!(
+            resp.result.is_none(),
+            "unknown method should not return result"
+        );
         let err = resp.error.expect("should have error field");
         assert_eq!(err.code, -32601);
         assert!(err.message.contains("unknown method"));

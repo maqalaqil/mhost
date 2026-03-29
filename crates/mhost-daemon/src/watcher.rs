@@ -46,9 +46,7 @@ impl ExitWatcher {
             // -----------------------------------------------------------------
             let child_taken = {
                 let mut procs = processes.write().await;
-                procs
-                    .get_mut(&key)
-                    .and_then(|mp| mp.child.take())
+                procs.get_mut(&key).and_then(|mp| mp.child.take())
             };
 
             let Some(mut child) = child_taken else {
@@ -168,8 +166,7 @@ impl ExitWatcher {
             // -----------------------------------------------------------------
             // Phase 5: sleep with exponential back-off, then respawn.
             // -----------------------------------------------------------------
-            let delay_ms =
-                backoff_delay(new_restart_count, config.restart_delay_ms, 30_000);
+            let delay_ms = backoff_delay(new_restart_count, config.restart_delay_ms, 30_000);
             tracing::info!(
                 key = %key,
                 attempt = new_restart_count,

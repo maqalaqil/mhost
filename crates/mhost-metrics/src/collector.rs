@@ -25,8 +25,8 @@ pub struct ProcessMetrics {
 /// Poll sysinfo for a single PID and return a `ProcessMetrics` snapshot.
 /// Returns `None` when the PID is not found on the current system.
 pub fn collect_once(pid: u32) -> Option<ProcessMetrics> {
-    let refresh_kind = RefreshKind::new()
-        .with_processes(ProcessRefreshKind::new().with_cpu().with_memory());
+    let refresh_kind =
+        RefreshKind::new().with_processes(ProcessRefreshKind::new().with_cpu().with_memory());
     let mut sys = System::new_with_specifics(refresh_kind);
 
     // sysinfo requires at least two CPU polls to produce a non-zero reading.
@@ -73,9 +73,8 @@ impl MetricsCollector {
     pub fn start(self) {
         tokio::spawn(async move {
             loop {
-                let refresh_kind = RefreshKind::new().with_processes(
-                    ProcessRefreshKind::new().with_cpu().with_memory(),
-                );
+                let refresh_kind = RefreshKind::new()
+                    .with_processes(ProcessRefreshKind::new().with_cpu().with_memory());
                 let mut sys = System::new_with_specifics(refresh_kind);
                 let kind = ProcessRefreshKind::new().with_cpu().with_memory();
                 sys.refresh_processes_specifics(ProcessesToUpdate::All, false, kind);
@@ -117,8 +116,8 @@ mod tests {
     #[test]
     fn collect_once_current_process_has_memory() {
         let pid = process::id();
-        let metrics = collect_once(pid)
-            .expect("current process should always be visible to sysinfo");
+        let metrics =
+            collect_once(pid).expect("current process should always be visible to sysinfo");
         assert!(
             metrics.memory_bytes > 0,
             "memory_bytes should be > 0 for running process, got {}",

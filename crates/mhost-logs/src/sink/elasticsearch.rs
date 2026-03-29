@@ -66,11 +66,7 @@ impl ElasticsearchSink {
 impl LogSink for ElasticsearchSink {
     async fn send(&self, entry: &LogEntry) -> Result<(), String> {
         let resolved = self.resolve_index();
-        let bulk_url = format!(
-            "{}/{}/_bulk",
-            self.url.trim_end_matches('/'),
-            resolved
-        );
+        let bulk_url = format!("{}/{}/_bulk", self.url.trim_end_matches('/'), resolved);
         let body = Self::build_ndjson(entry, &resolved);
 
         self.client
@@ -133,8 +129,7 @@ mod tests {
         assert_eq!(action["index"]["_index"], "logs-2024.01.15");
 
         // Second line: document
-        let doc: serde_json::Value =
-            serde_json::from_str(lines[1]).expect("doc is valid JSON");
+        let doc: serde_json::Value = serde_json::from_str(lines[1]).expect("doc is valid JSON");
         assert_eq!(doc["message"], "started");
         assert_eq!(doc["level"], "INFO");
         assert_eq!(doc["process"], "api");
@@ -148,8 +143,7 @@ mod tests {
         let lines: Vec<&str> = ndjson.trim_end_matches('\n').split('\n').collect();
         assert_eq!(lines.len(), 2);
 
-        let doc: serde_json::Value =
-            serde_json::from_str(lines[1]).expect("doc is valid JSON");
+        let doc: serde_json::Value = serde_json::from_str(lines[1]).expect("doc is valid JSON");
         assert_eq!(doc["message"], "plain text log");
         assert_eq!(doc["level"], serde_json::Value::Null);
         assert_eq!(doc["instance"], 2u64);
@@ -157,11 +151,7 @@ mod tests {
 
     #[test]
     fn glob_matching() {
-        let sink = ElasticsearchSink::new(
-            "http://localhost:9200",
-            "logs-{date}",
-            "worker-*",
-        );
+        let sink = ElasticsearchSink::new("http://localhost:9200", "logs-{date}", "worker-*");
         assert!(sink.matches("worker-1"));
         assert!(sink.matches("worker-main"));
         assert!(!sink.matches("api-service"));

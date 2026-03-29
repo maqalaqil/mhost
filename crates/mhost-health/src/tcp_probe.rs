@@ -31,7 +31,10 @@ pub async fn run_tcp_check(config: &HealthConfig) -> HealthStatus {
             HealthStatus::Unhealthy
         }
         Err(_elapsed) => {
-            warn!("TCP health check {} timed out after {}ms", addr, config.timeout_ms);
+            warn!(
+                "TCP health check {} timed out after {}ms",
+                addr, config.timeout_ms
+            );
             HealthStatus::Unhealthy
         }
     }

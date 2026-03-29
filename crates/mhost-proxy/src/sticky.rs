@@ -44,9 +44,7 @@ impl StickySession {
     /// The cookie is scoped to all paths (`Path=/`), inaccessible to JavaScript
     /// (`HttpOnly`), and restricted to same-site requests (`SameSite=Lax`).
     pub fn set_backend_on_response<T>(resp: &mut Response<T>, backend_idx: usize) {
-        let cookie = format!(
-            "{STICKY_COOKIE}={backend_idx}; Path=/; HttpOnly; SameSite=Lax"
-        );
+        let cookie = format!("{STICKY_COOKIE}={backend_idx}; Path=/; HttpOnly; SameSite=Lax");
         resp.headers_mut()
             .insert(SET_COOKIE, cookie.parse().unwrap());
     }
@@ -135,7 +133,10 @@ mod tests {
         );
         assert!(cookie.contains("Path=/"), "cookie must have Path=/");
         assert!(cookie.contains("HttpOnly"), "cookie must be HttpOnly");
-        assert!(cookie.contains("SameSite=Lax"), "cookie must be SameSite=Lax");
+        assert!(
+            cookie.contains("SameSite=Lax"),
+            "cookie must be SameSite=Lax"
+        );
     }
 
     #[test]
@@ -144,12 +145,7 @@ mod tests {
             let mut resp = Response::builder().body(()).unwrap();
             StickySession::set_backend_on_response(&mut resp, idx);
 
-            let cookie = resp
-                .headers()
-                .get(SET_COOKIE)
-                .unwrap()
-                .to_str()
-                .unwrap();
+            let cookie = resp.headers().get(SET_COOKIE).unwrap().to_str().unwrap();
 
             assert!(
                 cookie.contains(&format!("MHOST_STICKY={idx}")),

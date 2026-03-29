@@ -163,8 +163,7 @@ mod tests {
     #[test]
     fn test_from_process_info_config_cloned() {
         let info = make_info_online();
-        let ctx =
-            ProcessContext::from_process_info(&info, vec![], vec![], vec![]);
+        let ctx = ProcessContext::from_process_info(&info, vec![], vec![], vec![]);
 
         assert_eq!(ctx.config.command, "node");
         assert_eq!(ctx.config.args, vec!["server.js", "--port=3000"]);
@@ -179,8 +178,7 @@ mod tests {
             ..Default::default()
         };
         let info = ProcessInfo::new(config, 0);
-        let ctx =
-            ProcessContext::from_process_info(&info, vec![], vec![], vec![]);
+        let ctx = ProcessContext::from_process_info(&info, vec![], vec![], vec![]);
 
         assert!(ctx.pid.is_none());
         assert!(ctx.memory_mb.is_none());
@@ -224,8 +222,7 @@ mod tests {
     fn test_to_prompt_text_includes_error_logs_section() {
         let info = make_info_online();
         let error_logs = vec!["ERROR: ECONNREFUSED 127.0.0.1:5432".into()];
-        let ctx =
-            ProcessContext::from_process_info(&info, vec![], error_logs, vec![]);
+        let ctx = ProcessContext::from_process_info(&info, vec![], error_logs, vec![]);
         let text = ctx.to_prompt_text();
 
         assert!(text.contains("### Error Logs"));
@@ -239,8 +236,7 @@ mod tests {
             "2026-03-28T10:00:00Z process started".into(),
             "2026-03-28T10:05:00Z process exited with code 1".into(),
         ];
-        let ctx =
-            ProcessContext::from_process_info(&info, vec![], vec![], events);
+        let ctx = ProcessContext::from_process_info(&info, vec![], vec![], events);
         let text = ctx.to_prompt_text();
 
         assert!(text.contains("### Event History"));
@@ -255,8 +251,7 @@ mod tests {
     #[test]
     fn test_to_prompt_text_empty_logs_omit_sections() {
         let info = make_info_online();
-        let ctx =
-            ProcessContext::from_process_info(&info, vec![], vec![], vec![]);
+        let ctx = ProcessContext::from_process_info(&info, vec![], vec![], vec![]);
         let text = ctx.to_prompt_text();
 
         assert!(!text.contains("### Recent Logs"));
@@ -273,8 +268,7 @@ mod tests {
             ..Default::default()
         };
         let info = ProcessInfo::new(config, 0);
-        let ctx =
-            ProcessContext::from_process_info(&info, vec![], vec![], vec![]);
+        let ctx = ProcessContext::from_process_info(&info, vec![], vec![], vec![]);
         let text = ctx.to_prompt_text();
 
         assert!(!text.contains("Exit Code:"));

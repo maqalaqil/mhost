@@ -10,8 +10,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use rcgen::{generate_simple_self_signed, CertifiedKey};
-use rustls::ServerConfig;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
+use rustls::ServerConfig;
 
 use mhost_core::MhostPaths;
 
@@ -146,20 +146,15 @@ mod tests {
     fn cache_cert_path_returns_expected_path() {
         let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
         let path = cache_cert_path(&paths, "example.com");
-        assert_eq!(
-            path,
-            PathBuf::from("/tmp/mhost-test/certs/example.com.pem")
-        );
+        assert_eq!(path, PathBuf::from("/tmp/mhost-test/certs/example.com.pem"));
     }
 
     // --- AcmeCertManager ---
 
     #[test]
     fn acme_manager_get_or_create_cert_returns_valid_cert() {
-        let manager = AcmeCertManager::new(
-            "admin@example.com",
-            PathBuf::from("/tmp/mhost-test/certs"),
-        );
+        let manager =
+            AcmeCertManager::new("admin@example.com", PathBuf::from("/tmp/mhost-test/certs"));
         let result = manager.get_or_create_cert("example.com");
         assert!(result.is_ok(), "ACME stub must succeed: {result:?}");
         let (certs, _key) = result.unwrap();

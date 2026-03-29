@@ -13,8 +13,7 @@ pub fn run(paths: &MhostPaths, name: &str) -> Result<(), String> {
         return Ok(());
     }
 
-    let conn = Connection::open(&db_path)
-        .map_err(|e| format!("Cannot open database: {e}"))?;
+    let conn = Connection::open(&db_path).map_err(|e| format!("Cannot open database: {e}"))?;
 
     let mut stmt = conn
         .prepare(

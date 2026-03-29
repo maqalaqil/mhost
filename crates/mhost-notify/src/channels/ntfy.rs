@@ -13,11 +13,7 @@ pub struct NtfyChannel {
 }
 
 impl NtfyChannel {
-    pub fn new(
-        name: impl Into<String>,
-        url: impl Into<String>,
-        topic: impl Into<String>,
-    ) -> Self {
+    pub fn new(name: impl Into<String>, url: impl Into<String>, topic: impl Into<String>) -> Self {
         Self {
             name: name.into(),
             url: url.into(),
@@ -59,7 +55,10 @@ impl NtfyChannel {
 impl NotifyChannel for NtfyChannel {
     async fn send(&self, event: &NotifyEvent) -> Result<(), String> {
         let url = self.endpoint_url();
-        let title = format!("[{}] {} — {}", event.severity, event.event_type, event.process_name);
+        let title = format!(
+            "[{}] {} — {}",
+            event.severity, event.event_type, event.process_name
+        );
         let priority = Self::priority(&event.severity);
         let tags = Self::tags(event);
 

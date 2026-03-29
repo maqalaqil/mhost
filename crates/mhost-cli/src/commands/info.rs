@@ -18,9 +18,7 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
         return Ok(());
     }
 
-    let result = resp
-        .result
-        .ok_or("Empty response from daemon")?;
+    let result = resp.result.ok_or("Empty response from daemon")?;
 
     // Handler returns {"processes": [...]}
     let process_list = if let Some(arr) = result.get("processes") {
@@ -38,7 +36,10 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
 }
 
 fn print_info(p: &ProcessInfo) {
-    println!("{}", "──── Process Info ────────────────────────────".dimmed());
+    println!(
+        "{}",
+        "──── Process Info ────────────────────────────".dimmed()
+    );
     println!("  {:20} {}", "id:".bold(), p.id);
     println!("  {:20} {}", "name:".bold(), p.config.name);
     println!("  {:20} {}", "status:".bold(), format_status(&p.status));
@@ -55,7 +56,9 @@ fn print_info(p: &ProcessInfo) {
     println!(
         "  {:20} {}",
         "pid:".bold(),
-        p.pid.map(|v| v.to_string()).unwrap_or_else(|| "N/A".to_string())
+        p.pid
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| "N/A".to_string())
     );
     println!("  {:20} {}", "instance:".bold(), p.instance);
     println!("  {:20} {}", "instances:".bold(), p.config.instances);
@@ -76,5 +79,8 @@ fn print_info(p: &ProcessInfo) {
         println!("  {:20} {:.1}%", "cpu:".bold(), cpu);
     }
 
-    println!("{}", "──────────────────────────────────────────────".dimmed());
+    println!(
+        "{}",
+        "──────────────────────────────────────────────".dimmed()
+    );
 }

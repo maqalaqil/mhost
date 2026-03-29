@@ -88,16 +88,20 @@ mod tests {
         let client = IpcClient::new(Path::new("/tmp/mhost-counter-test.sock"));
         let initial = client.counter.load(Ordering::Relaxed);
         // Attempt a call (will fail — no server), but the counter fetch_add runs first.
-        let _ = client
-            .call("daemon.ping", serde_json::Value::Null)
-            .await;
+        let _ = client.call("daemon.ping", serde_json::Value::Null).await;
         let after_first = client.counter.load(Ordering::Relaxed);
-        let _ = client
-            .call("daemon.ping", serde_json::Value::Null)
-            .await;
+        let _ = client.call("daemon.ping", serde_json::Value::Null).await;
         let after_second = client.counter.load(Ordering::Relaxed);
 
-        assert_eq!(after_first, initial + 1, "counter should increment by 1 per call");
-        assert_eq!(after_second, initial + 2, "counter should increment by 1 per call");
+        assert_eq!(
+            after_first,
+            initial + 1,
+            "counter should increment by 1 per call"
+        );
+        assert_eq!(
+            after_second,
+            initial + 2,
+            "counter should increment by 1 per call"
+        );
     }
 }

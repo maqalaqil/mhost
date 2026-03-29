@@ -13,10 +13,7 @@ impl AzureProvider {
         }
     }
 
-    async fn list_via_cli(
-        &self,
-        filters: &ImportFilters,
-    ) -> Result<Vec<CloudInstance>, String> {
+    async fn list_via_cli(&self, filters: &ImportFilters) -> Result<Vec<CloudInstance>, String> {
         let mut args = vec![
             "vm".to_string(),
             "list".to_string(),
@@ -92,9 +89,10 @@ fn parse_azure_vms(
 
         // Apply tag filter
         if !filters.tags.is_empty() {
-            let matches = filters.tags.iter().any(|(k, v)| {
-                tags.contains(&format!("{k}={v}"))
-            });
+            let matches = filters
+                .tags
+                .iter()
+                .any(|(k, v)| tags.contains(&format!("{k}={v}")));
             if !matches {
                 continue;
             }

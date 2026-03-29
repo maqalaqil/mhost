@@ -466,10 +466,18 @@ mod tests {
     #[test]
     fn test_sorted_processes_by_name_ascending() {
         let mut app = App::new();
-        app.processes = vec![make_process("zebra"), make_process("alpha"), make_process("mango")];
+        app.processes = vec![
+            make_process("zebra"),
+            make_process("alpha"),
+            make_process("mango"),
+        ];
         app.sort_by = SortColumn::Name;
         app.sort_ascending = true;
-        let names: Vec<&str> = app.sorted_processes().iter().map(|p| p.config.name.as_str()).collect();
+        let names: Vec<&str> = app
+            .sorted_processes()
+            .iter()
+            .map(|p| p.config.name.as_str())
+            .collect();
         assert_eq!(names, vec!["alpha", "mango", "zebra"]);
     }
 
@@ -479,7 +487,11 @@ mod tests {
         app.processes = vec![make_process("alpha"), make_process("zebra")];
         app.sort_by = SortColumn::Name;
         app.sort_ascending = false;
-        let names: Vec<&str> = app.sorted_processes().iter().map(|p| p.config.name.as_str()).collect();
+        let names: Vec<&str> = app
+            .sorted_processes()
+            .iter()
+            .map(|p| p.config.name.as_str())
+            .collect();
         assert_eq!(names, vec!["zebra", "alpha"]);
     }
 
@@ -488,9 +500,17 @@ mod tests {
     #[test]
     fn test_filtered_processes_with_query() {
         let mut app = App::new();
-        app.processes = vec![make_process("api-server"), make_process("worker"), make_process("api-proxy")];
+        app.processes = vec![
+            make_process("api-server"),
+            make_process("worker"),
+            make_process("api-proxy"),
+        ];
         app.search_query = Some("api".into());
-        let names: Vec<&str> = app.filtered_processes().iter().map(|p| p.config.name.as_str()).collect();
+        let names: Vec<&str> = app
+            .filtered_processes()
+            .iter()
+            .map(|p| p.config.name.as_str())
+            .collect();
         assert_eq!(names.len(), 2);
         assert!(names.contains(&"api-server"));
         assert!(names.contains(&"api-proxy"));

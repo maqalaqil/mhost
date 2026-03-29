@@ -102,9 +102,9 @@ impl NotifyDispatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::event::{EventType, NotifyEvent, Severity};
     use async_trait::async_trait;
     use std::sync::{Arc, Mutex};
-    use crate::event::{EventType, NotifyEvent, Severity};
 
     /// A test channel that records all received events.
     struct RecordingChannel {
@@ -252,7 +252,9 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_to_unknown_channel_returns_error() {
         let dispatcher = NotifyDispatcher::new(Duration::from_secs(0));
-        let result = dispatcher.dispatch_to("nonexistent", &make_event(EventType::Crash)).await;
+        let result = dispatcher
+            .dispatch_to("nonexistent", &make_event(EventType::Crash))
+            .await;
         assert!(result.is_err());
         let msg = result.unwrap_err();
         assert!(
