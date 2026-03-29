@@ -1,32 +1,18 @@
 name: Feature Request
-description: Suggest a new feature for mhost
+description: Suggest a new feature or improvement
 title: "[Feature]: "
 labels: ["enhancement"]
+assignees: []
 body:
   - type: markdown
     attributes:
-      value: Thanks for suggesting a feature! Tell us what you'd like.
-
-  - type: textarea
-    id: problem
-    attributes:
-      label: Problem
-      description: What problem does this feature solve?
-    validations:
-      required: true
-
-  - type: textarea
-    id: solution
-    attributes:
-      label: Proposed solution
-      description: How should this work? Include CLI examples if possible.
-    validations:
-      required: true
+      value: |
+        Have an idea for mhost? We'd love to hear it!
 
   - type: dropdown
     id: area
     attributes:
-      label: Area
+      label: Feature Area
       options:
         - Process management
         - Health checks
@@ -37,16 +23,65 @@ body:
         - Deploy engine
         - TUI dashboard
         - AI features
-        - Cloud fleet
-        - Chat bot
-        - CLI
-        - Config
+        - Cloud fleet management
+        - Chat bot (Telegram/Discord)
+        - CLI / UX
+        - Configuration
+        - Performance
+        - New platform / integration
+        - Documentation
         - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How important is this to you?
+      options:
+        - Nice to have
+        - Would use regularly
+        - Blocking my workflow
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: What problem does this solve? Why do you need it?
+      placeholder: "I frequently need to ... but currently mhost doesn't support ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How should this work? Include CLI examples, config samples, or mockups.
+      placeholder: |
+        ```bash
+        mhost <new-command> --flag value
+        ```
     validations:
       required: true
 
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternatives considered
-      description: Any other approaches you've thought about?
+      label: Alternatives Considered
+      description: Any other tools or approaches you've looked at?
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional Context
+      description: Screenshots, links, references, etc.
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to submit a PR for this feature
+          required: false

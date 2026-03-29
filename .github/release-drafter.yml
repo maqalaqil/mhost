@@ -1,0 +1,45 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/maheralaqil/mhost/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+categories:
+  - title: "New Features"
+    labels: ["enhancement"]
+  - title: "Bug Fixes"
+    labels: ["bug"]
+  - title: "Performance"
+    labels: ["performance"]
+  - title: "Documentation"
+    labels: ["documentation"]
+  - title: "Security"
+    labels: ["security"]
+  - title: "Dependencies"
+    labels: ["dependencies"]
+  - title: "CI/CD"
+    labels: ["ci"]
+  - title: "Other"
+    labels: ["*"]
+
+version-resolver:
+  major:
+    labels: ["breaking"]
+  minor:
+    labels: ["enhancement"]
+  patch:
+    labels: ["bug", "documentation", "dependencies", "ci", "performance"]
+  default: patch
+
+autolabeler:
+  - label: "ci"
+    files: [".github/**"]
+  - label: "documentation"
+    files: ["*.md", "docs/**"]
+  - label: "rust"
+    files: ["**/*.rs", "Cargo.toml", "Cargo.lock"]
+  - label: "npm"
+    files: ["npm-package/**"]

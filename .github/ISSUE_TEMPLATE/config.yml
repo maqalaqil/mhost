@@ -2,7 +2,10 @@ blank_issues_enabled: false
 contact_links:
   - name: Documentation
     url: https://github.com/maheralaqil/mhost#readme
-    about: Check the README for usage and configuration docs.
+    about: Read the full documentation in the README
   - name: Discussions
     url: https://github.com/maheralaqil/mhost/discussions
-    about: Ask questions and share ideas in Discussions.
+    about: Ask questions and share ideas with the community
+  - name: Security Vulnerabilities
+    url: https://github.com/maheralaqil/mhost/security/policy
+    about: Report security issues privately (do not open a public issue)

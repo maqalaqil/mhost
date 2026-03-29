@@ -1,17 +1,19 @@
 name: Bug Report
-description: Report a bug in mhost
+description: Something isn't working correctly
 title: "[Bug]: "
-labels: ["bug"]
+labels: ["bug", "triage"]
+assignees: []
 body:
   - type: markdown
     attributes:
-      value: Thanks for reporting a bug! Please fill out the details below.
+      value: |
+        Thanks for helping improve mhost! Please fill out the details below so we can fix this quickly.
 
   - type: input
     id: version
     attributes:
-      label: mhost version
-      description: Run `mhost --version`
+      label: mhost Version
+      description: "Run `mhost --version` and paste the output"
       placeholder: "mhost 0.1.0"
     validations:
       required: true
@@ -27,36 +29,106 @@ body:
         - Linux (ARM64)
         - Windows (x86_64)
         - Windows (ARM64)
+        - Docker
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Installation Method
+      options:
+        - Homebrew
+        - npm
+        - Cargo
+        - curl install script
+        - From source
+        - GitHub Release binary
+        - Docker
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Which part of mhost is affected?
+      multiple: true
+      options:
+        - Process management (start/stop/restart)
+        - Health checks
+        - Notifications (Telegram/Slack/etc)
+        - Log engine
+        - Metrics / Prometheus
+        - Reverse proxy
+        - Deploy engine
+        - TUI dashboard (monit)
+        - AI features
+        - Cloud fleet management
+        - Chat bot
+        - CLI
+        - Configuration
+        - Daemon (mhostd)
+        - Installation
     validations:
       required: true
 
   - type: textarea
     id: description
     attributes:
-      label: Bug description
-      description: What happened? What did you expect?
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: "When I run `mhost start mhost.toml`, the process starts but immediately shows as 'errored'..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: "The process should start and show 'online' status."
     validations:
       required: true
 
   - type: textarea
     id: reproduce
     attributes:
-      label: Steps to reproduce
-      description: How can we reproduce this?
+      label: Steps to Reproduce
       value: |
-        1. Run `mhost ...`
-        2. ...
-        3. See error
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Relevant logs
-      description: Paste any error output, daemon logs, or relevant output.
-      render: shell
+        1. Create a config file: `...`
+        2. Run: `mhost start ...`
+        3. Run: `mhost list`
+        4. See error
+    validations:
+      required: true
 
   - type: textarea
     id: config
     attributes:
-      label: Config file (if relevant)
+      label: Config File
+      description: Paste your mhost.toml (remove any secrets/tokens)
       render: toml
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Output / Logs
+      description: "Paste relevant output from `mhost list`, error messages, or `~/.mhost/logs/daemon.log`"
+      render: shell
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional Context
+      description: Anything else that might help (workarounds tried, similar issues, etc.)
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched existing issues and this hasn't been reported
+          required: true
+        - label: I am using the latest version of mhost
+          required: false

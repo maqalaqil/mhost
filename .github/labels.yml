@@ -1,0 +1,135 @@
+# Run with: gh label create -R maheralaqil/mhost <name> -c <color> -d <description>
+# Or use: https://github.com/EndBug/label-sync
+
+# Type
+- name: bug
+  color: "d73a4a"
+  description: Something isn't working
+
+- name: enhancement
+  color: "a2eeef"
+  description: New feature or improvement
+
+- name: question
+  color: "d876e3"
+  description: Help or clarification needed
+
+- name: documentation
+  color: "0075ca"
+  description: Documentation improvements
+
+- name: performance
+  color: "fbca04"
+  description: Performance improvement
+
+- name: security
+  color: "e11d48"
+  description: Security related
+
+# Priority
+- name: "priority: critical"
+  color: "b60205"
+  description: Must fix immediately
+
+- name: "priority: high"
+  color: "d93f0b"
+  description: Fix in next release
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: Fix when possible
+
+- name: "priority: low"
+  color: "0e8a16"
+  description: Nice to have
+
+# Status
+- name: triage
+  color: "ededed"
+  description: Needs triage
+
+- name: confirmed
+  color: "0e8a16"
+  description: Bug confirmed and reproducible
+
+- name: "wont-fix"
+  color: "ffffff"
+  description: This will not be fixed
+
+- name: duplicate
+  color: "cfd3d7"
+  description: Duplicate of another issue
+
+- name: "good first issue"
+  color: "7057ff"
+  description: Good for newcomers
+
+- name: "help wanted"
+  color: "008672"
+  description: Extra attention needed
+
+# Area
+- name: "area: core"
+  color: "1d76db"
+  description: Core process management
+
+- name: "area: health"
+  color: "1d76db"
+  description: Health probes
+
+- name: "area: notify"
+  color: "1d76db"
+  description: Notification system
+
+- name: "area: logs"
+  color: "1d76db"
+  description: Log engine
+
+- name: "area: metrics"
+  color: "1d76db"
+  description: Metrics & Prometheus
+
+- name: "area: proxy"
+  color: "1d76db"
+  description: Reverse proxy
+
+- name: "area: deploy"
+  color: "1d76db"
+  description: Deploy engine
+
+- name: "area: tui"
+  color: "1d76db"
+  description: TUI dashboard
+
+- name: "area: ai"
+  color: "1d76db"
+  description: AI features
+
+- name: "area: cloud"
+  color: "1d76db"
+  description: Cloud fleet management
+
+- name: "area: bot"
+  color: "1d76db"
+  description: Chat bot
+
+- name: "area: cli"
+  color: "1d76db"
+  description: CLI interface
+
+# Dependencies
+- name: dependencies
+  color: "0366d6"
+  description: Dependency update
+
+- name: rust
+  color: "dea584"
+  description: Rust related
+
+- name: ci
+  color: "ededed"
+  description: CI/CD pipeline
+
+- name: npm
+  color: "cb3837"
+  description: npm package

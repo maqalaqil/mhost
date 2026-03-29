@@ -1,0 +1,47 @@
+name: Question / Help
+description: Ask a question about using mhost
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Need help with mhost? Ask here! For quick questions, also check the [README](https://github.com/maheralaqil/mhost#readme).
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Topic
+      options:
+        - Installation / Setup
+        - Configuration (mhost.toml)
+        - Process management
+        - Health checks
+        - Notifications setup
+        - Log search / sinks
+        - Metrics / Prometheus
+        - Reverse proxy / TLS
+        - Deploy / Rollback
+        - AI features
+        - Cloud fleet
+        - Chat bot
+        - TUI dashboard
+        - Performance / Scaling
+        - Migration from PM2
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What do you need help with?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: What have you tried?
+      description: Share what you've already tried or read.
