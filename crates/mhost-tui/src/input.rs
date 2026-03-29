@@ -223,8 +223,10 @@ mod tests {
     }
 
     fn make_process(name: &str) -> ProcessInfo {
-        let mut config = ProcessConfig::default();
-        config.name = name.to_string();
+        let config = ProcessConfig {
+            name: name.to_string(),
+            ..Default::default()
+        };
         ProcessInfo::new(config, 0)
     }
 
