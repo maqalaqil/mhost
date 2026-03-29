@@ -10,7 +10,7 @@ pub struct FleetConfig {
     pub groups: HashMap<String, Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ServerConfig {
     pub host: String,
     #[serde(default = "default_port")]
