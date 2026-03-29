@@ -1,0 +1,18 @@
+[package]
+name = "mhost-bot"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+mhost-ipc = { path = "../mhost-ipc" }
+mhost-ai = { path = "../mhost-ai" }
+mhost-logs = { path = "../mhost-logs" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+async-trait = "0.1"

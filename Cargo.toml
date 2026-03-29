@@ -15,6 +15,7 @@ members = [
     "crates/mhost-tui",
     "crates/mhost-ai",
     "crates/mhost-cloud",
+    "crates/mhost-bot",
 ]
 
 [workspace.package]

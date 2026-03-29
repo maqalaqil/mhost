@@ -41,6 +41,7 @@ impl MhostPaths {
     pub fn notify_config(&self) -> PathBuf { self.root.join("notify.json") }
     pub fn ai_config(&self) -> PathBuf { self.root.join("ai.json") }
     pub fn fleet_config(&self) -> PathBuf { self.root.join("fleet.json") }
+    pub fn bot_config(&self) -> PathBuf { self.root.join("bot.json") }
 
     pub fn ensure_dirs(&self) -> std::io::Result<()> {
         std::fs::create_dir_all(&self.root)?;
