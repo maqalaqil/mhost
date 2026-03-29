@@ -261,6 +261,7 @@ fn row_to_process_info(row: &Row) -> SqlResult<ProcessInfo> {
         exit_code,
         memory_bytes: None,
         cpu_percent: None,
+        health_status: mhost_core::HealthStatus::Unknown,
     })
 }
 

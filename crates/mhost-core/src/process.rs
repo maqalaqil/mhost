@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::{MhostError, Result};
+use crate::health::{HealthConfig, HealthStatus};
 
 // ---------------------------------------------------------------------------
 // ProcessStatus
@@ -82,6 +83,8 @@ pub struct ProcessConfig {
     pub grace_period_ms: u64,
     pub cron_restart: Option<String>,
     pub interpreter: Option<String>,
+    #[serde(default)]
+    pub health_config: Option<HealthConfig>,
 }
 
 impl Default for ProcessConfig {
@@ -100,6 +103,7 @@ impl Default for ProcessConfig {
             grace_period_ms: 5000,
             cron_restart: None,
             interpreter: None,
+            health_config: None,
         }
     }
 }
@@ -122,6 +126,8 @@ pub struct ProcessInfo {
     pub exit_code: Option<i32>,
     pub memory_bytes: Option<u64>,
     pub cpu_percent: Option<f32>,
+    #[serde(default)]
+    pub health_status: HealthStatus,
 }
 
 impl ProcessInfo {
@@ -140,6 +146,7 @@ impl ProcessInfo {
             exit_code: None,
             memory_bytes: None,
             cpu_percent: None,
+            health_status: HealthStatus::Unknown,
         }
     }
 

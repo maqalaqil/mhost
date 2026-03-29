@@ -105,6 +105,7 @@ impl RawProcessConfig {
             grace_period_ms: parse_duration_ms(&self.grace_period).unwrap_or(5000),
             cron_restart: self.cron_restart.clone(),
             interpreter: self.interpreter.clone(),
+            health_config: None,
         }
     }
 }
