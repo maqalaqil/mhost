@@ -1,0 +1,32 @@
+[package]
+name = "mhost-daemon"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Daemon process for mhost process manager"
+
+[[bin]]
+name = "mhostd"
+path = "src/main.rs"
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+mhost-config = { path = "../mhost-config" }
+mhost-ipc = { path = "../mhost-ipc" }
+mhost-logs = { path = "../mhost-logs" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+rusqlite = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.29", features = ["signal", "process"] }
+daemonize = "0.5"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Pipes"] }

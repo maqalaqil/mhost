@@ -1,0 +1,15 @@
+[package]
+name = "mhost-config"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Configuration parsing for mhost process manager"
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+serde_yaml = { workspace = true }
+thiserror = { workspace = true }

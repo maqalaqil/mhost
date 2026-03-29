@@ -1,0 +1,13 @@
+[package]
+name = "mhost-logs"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Log capture and rotation for mhost process manager"
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }

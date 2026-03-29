@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/mhost-core",
+    "crates/mhost-config",
+    "crates/mhost-ipc",
+    "crates/mhost-logs",
+    "crates/mhost-daemon",
+    "crates/mhost-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Maher Al-Aqil"]
+license = "MIT"
+repository = "https://github.com/maheralaqil/mhost"
+description = "Advanced process manager — PM2 replacement written in Rust"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+serde_yaml = "0.9"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive", "env"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+dirs = "6"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }

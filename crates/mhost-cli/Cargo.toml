@@ -1,0 +1,27 @@
+[package]
+name = "mhost-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "CLI for mhost process manager"
+
+[[bin]]
+name = "mhost"
+path = "src/main.rs"
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+mhost-config = { path = "../mhost-config" }
+mhost-ipc = { path = "../mhost-ipc" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+chrono = { workspace = true }
+colored = "3"
+tabled = "0.17"
+reqwest = { version = "0.12", features = ["json"] }
+self_update = "0.42"
