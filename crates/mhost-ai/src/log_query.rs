@@ -29,7 +29,7 @@ pub async fn translate_log_query(
             },
             LlmMessage {
                 role: "user".into(),
-                content: format!("Process: {}\nQuery: {}", process_name, natural_query),
+                content: format!("Process: {process_name}\nQuery: {natural_query}"),
             },
         ],
         max_tokens: 256,

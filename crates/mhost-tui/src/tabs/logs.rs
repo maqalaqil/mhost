@@ -88,7 +88,7 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
     let title = if app.search_mode {
         format!(" Logs — search: {} ({} lines) ", query.unwrap_or(""), total)
     } else {
-        format!(" Logs ({} lines) ", total)
+        format!(" Logs ({total} lines) ")
     };
 
     let paragraph = Paragraph::new(lines)
@@ -115,7 +115,7 @@ pub fn render_mini(f: &mut Frame, area: Rect, app: &App, max_lines: usize) {
         })
         .collect();
 
-    let title = format!(" Live Logs — {} ", name);
+    let title = format!(" Live Logs — {name} ");
     let paragraph = Paragraph::new(lines)
         .block(Block::default().borders(Borders::ALL).title(title))
         .wrap(Wrap { trim: true });

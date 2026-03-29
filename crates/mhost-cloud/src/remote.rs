@@ -48,8 +48,7 @@ impl RemoteHost {
 
     pub async fn stream_logs(&self, process_name: &str) -> Result<String, String> {
         let cmd = format!(
-            "tail -50 ~/.mhost/logs/{}-0-out.log 2>/dev/null || echo 'No logs found'",
-            process_name
+            "tail -50 ~/.mhost/logs/{process_name}-0-out.log 2>/dev/null || echo 'No logs found'"
         );
         self.ssh.exec(&cmd).await.map(|o| o.stdout)
     }

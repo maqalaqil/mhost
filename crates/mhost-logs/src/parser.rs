@@ -18,7 +18,7 @@ impl LogLevel {
     /// Parse a level string, case-insensitively.
     /// Accepts: TRACE/trace, DEBUG/debug, INFO/info, WARN/warn/WARNING/warning,
     /// ERROR/error/ERR/err, FATAL/fatal/CRIT/critical.
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s.to_ascii_uppercase().as_str() {
             "TRACE" => Some(Self::Trace),
             "DEBUG" | "DBG" => Some(Self::Debug),
@@ -90,7 +90,7 @@ pub fn parse_line(raw: &str, process_name: &str, instance: u32) -> LogEntry {
             .get("level")
             .or_else(|| obj.get("severity"))
             .and_then(|v| v.as_str())
-            .and_then(LogLevel::from_str);
+            .and_then(LogLevel::parse);
 
         let message = obj
             .get("message")
@@ -172,17 +172,17 @@ mod tests {
 
     #[test]
     fn detect_log_level_variants() {
-        assert_eq!(LogLevel::from_str("ERROR"), Some(LogLevel::Error));
-        assert_eq!(LogLevel::from_str("error"), Some(LogLevel::Error));
-        assert_eq!(LogLevel::from_str("ERR"), Some(LogLevel::Error));
-        assert_eq!(LogLevel::from_str("warn"), Some(LogLevel::Warn));
-        assert_eq!(LogLevel::from_str("WARNING"), Some(LogLevel::Warn));
-        assert_eq!(LogLevel::from_str("TRACE"), Some(LogLevel::Trace));
-        assert_eq!(LogLevel::from_str("DEBUG"), Some(LogLevel::Debug));
-        assert_eq!(LogLevel::from_str("INFO"), Some(LogLevel::Info));
-        assert_eq!(LogLevel::from_str("FATAL"), Some(LogLevel::Fatal));
-        assert_eq!(LogLevel::from_str("CRITICAL"), Some(LogLevel::Fatal));
-        assert_eq!(LogLevel::from_str("unknown"), None);
+        assert_eq!(LogLevel::parse("ERROR"), Some(LogLevel::Error));
+        assert_eq!(LogLevel::parse("error"), Some(LogLevel::Error));
+        assert_eq!(LogLevel::parse("ERR"), Some(LogLevel::Error));
+        assert_eq!(LogLevel::parse("warn"), Some(LogLevel::Warn));
+        assert_eq!(LogLevel::parse("WARNING"), Some(LogLevel::Warn));
+        assert_eq!(LogLevel::parse("TRACE"), Some(LogLevel::Trace));
+        assert_eq!(LogLevel::parse("DEBUG"), Some(LogLevel::Debug));
+        assert_eq!(LogLevel::parse("INFO"), Some(LogLevel::Info));
+        assert_eq!(LogLevel::parse("FATAL"), Some(LogLevel::Fatal));
+        assert_eq!(LogLevel::parse("CRITICAL"), Some(LogLevel::Fatal));
+        assert_eq!(LogLevel::parse("unknown"), None);
     }
 
     // -- JSON with "msg" field (not "message") ------------------------------

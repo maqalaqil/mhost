@@ -138,7 +138,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
         KeyCode::Char('r') => {
             if let Some(name) = app.selected_process_name().map(String::from) {
                 app.confirm_action = Some(ConfirmAction::Restart(name.clone()));
-                app.set_status(format!("Restart '{}'? (y/n)", name));
+                app.set_status(format!("Restart '{name}'? (y/n)"));
                 Action::ConfirmPending
             } else {
                 Action::None
@@ -147,7 +147,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
         KeyCode::Char('s') => {
             if let Some(name) = app.selected_process_name().map(String::from) {
                 app.confirm_action = Some(ConfirmAction::Stop(name.clone()));
-                app.set_status(format!("Stop '{}'? (y/n)", name));
+                app.set_status(format!("Stop '{name}'? (y/n)"));
                 Action::ConfirmPending
             } else {
                 Action::None
@@ -156,7 +156,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> Action {
         KeyCode::Char('d') => {
             if let Some(name) = app.selected_process_name().map(String::from) {
                 app.confirm_action = Some(ConfirmAction::Delete(name.clone()));
-                app.set_status(format!("Delete '{}'? (y/n)", name));
+                app.set_status(format!("Delete '{name}'? (y/n)"));
                 Action::ConfirmPending
             } else {
                 Action::None

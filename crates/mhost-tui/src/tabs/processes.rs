@@ -24,7 +24,7 @@ fn status_dot_and_label(status: &ProcessStatus) -> (char, Color) {
 fn col_header(label: &str, sort_col: &SortColumn, ascending: bool, target: SortColumn) -> String {
     if *sort_col == target {
         let arrow = if ascending { "▲" } else { "▼" };
-        format!("{} {}", label, arrow)
+        format!("{label} {arrow}")
     } else {
         label.to_string()
     }
@@ -83,7 +83,7 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
             };
 
             let (dot, dot_color) = status_dot_and_label(&p.status);
-            let status_text = format!("{} {}", dot, p.status);
+            let status_text = format!("{dot} {}", p.status);
 
             Row::new(vec![
                 Cell::from(display_idx.to_string()),
@@ -92,7 +92,7 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
                 Cell::from(p.pid.map(|v| v.to_string()).unwrap_or_else(|| "-".into())),
                 Cell::from(
                     p.cpu_percent
-                        .map(|v| format!("{:.1}", v))
+                        .map(|v| format!("{v:.1}"))
                         .unwrap_or_else(|| "-".into()),
                 ),
                 Cell::from(
@@ -125,7 +125,7 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
         )
     } else if let Some(q) = &app.search_query {
         if !q.is_empty() {
-            format!(" Processes [filter: {}] ", q)
+            format!(" Processes [filter: {q}] ")
         } else {
             " Processes ".into()
         }

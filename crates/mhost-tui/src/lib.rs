@@ -220,11 +220,11 @@ fn draw_detail_panel(f: &mut Frame, area: Rect, app: &App) {
         let cmd = if p.config.args.is_empty() {
             p.config.command.clone()
         } else {
-            format!("{} {}", p.config.command, p.config.args.join(" "))
+            format!("{cmd_val} {args_val}", cmd_val = p.config.command, args_val = p.config.args.join(" "))
         };
         DetailStrings {
             pid: p.pid.map(|v| v.to_string()).unwrap_or_else(|| "-".into()),
-            status: format!("● {}", p.status),
+            status: format!("● {status}", status = p.status),
             status_color,
             uptime: p.format_uptime(),
             restarts: p.restart_count.to_string(),
@@ -234,7 +234,7 @@ fn draw_detail_panel(f: &mut Frame, area: Rect, app: &App) {
                 .unwrap_or_else(|| "-".into()),
             cpu: p
                 .cpu_percent
-                .map(|v| format!("{:.1}%", v))
+                .map(|v| format!("{v:.1}%"))
                 .unwrap_or_else(|| "-".into()),
             command: cmd,
             cwd: p.config.cwd.clone().unwrap_or_else(|| "-".into()),
@@ -246,7 +246,7 @@ fn draw_detail_panel(f: &mut Frame, area: Rect, app: &App) {
 
     let title = detail
         .as_ref()
-        .map(|d| format!(" Details: {} ", d.name))
+        .map(|d| format!(" Details: {name} ", name = d.name))
         .unwrap_or_else(|| " Details ".into());
 
     let content: Vec<Line> = match &detail {
@@ -302,7 +302,7 @@ fn draw_sparklines(f: &mut Frame, area: Rect, app: &App) {
         let inner_width = (halves[0].width as usize).saturating_sub(4);
         let spark = sparkline_str(data, inner_width);
         let last_cpu = process.and_then(|p| p.cpu_percent).unwrap_or(0.0);
-        let text = format!("{} {:>5.1}%", spark, last_cpu);
+        let text = format!("{spark} {last_cpu:>5.1}%");
         let para = Paragraph::new(text)
             .block(Block::default().borders(Borders::ALL).title(" CPU "))
             .style(Style::default().fg(Color::Cyan));
@@ -319,7 +319,7 @@ fn draw_sparklines(f: &mut Frame, area: Rect, app: &App) {
         let inner_width = (halves[1].width as usize).saturating_sub(4);
         let spark = sparkline_str(data, inner_width);
         let last_mem = process.and_then(|p| p.memory_bytes).unwrap_or(0) as f64 / 1_048_576.0;
-        let text = format!("{} {:>7.1}MB", spark, last_mem);
+        let text = format!("{spark} {last_mem:>7.1}MB");
         let para = Paragraph::new(text)
             .block(Block::default().borders(Borders::ALL).title(" Memory "))
             .style(Style::default().fg(Color::Magenta));
@@ -335,13 +335,13 @@ fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
     // If there is a status message, show it (overrides normal help text).
     let text = if let Some((msg, _)) = &app.status_message {
         Span::styled(
-            format!(" {}", msg),
+            format!(" {msg}"),
             Style::default().fg(Color::Yellow).bold(),
         )
     } else if app.search_mode {
         let q = app.search_query.as_deref().unwrap_or("");
         Span::styled(
-            format!(" /{}_  Esc:cancel  Enter:confirm", q),
+            format!(" /{q}_  Esc:cancel  Enter:confirm"),
             Style::default().fg(Color::Cyan),
         )
     } else {
@@ -361,14 +361,14 @@ fn draw_footer(f: &mut Frame, area: Rect, app: &App) {
 
 fn kv_line(key: &str, val: &str) -> Line<'static> {
     Line::from(vec![
-        Span::styled(format!("{:<12}", key), Style::default().fg(Color::DarkGray)),
+        Span::styled(format!("{key:<12}"), Style::default().fg(Color::DarkGray)),
         Span::raw(val.to_string()),
     ])
 }
 
 fn kv_colored_line(key: &str, val: &str, color: Color) -> Line<'static> {
     Line::from(vec![
-        Span::styled(format!("{:<12}", key), Style::default().fg(Color::DarkGray)),
+        Span::styled(format!("{key:<12}"), Style::default().fg(Color::DarkGray)),
         Span::styled(val.to_string(), Style::default().fg(color)),
     ])
 }
@@ -425,17 +425,17 @@ async fn send_action(client: &IpcClient, method: &str, name: &str, app: &mut App
         .await
     {
         Ok(resp) if resp.error.is_none() => {
-            app.set_status(format!("OK: {}", name));
+            app.set_status(format!("OK: {name}"));
         }
         Ok(resp) => {
             let msg = resp
                 .error
                 .map(|e| e.message)
                 .unwrap_or_else(|| "unknown error".into());
-            app.set_status(format!("Error: {}", msg));
+            app.set_status(format!("Error: {msg}"));
         }
         Err(e) => {
-            app.set_status(format!("IPC error: {}", e));
+            app.set_status(format!("IPC error: {e}"));
         }
     }
 }

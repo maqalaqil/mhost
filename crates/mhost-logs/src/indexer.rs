@@ -134,7 +134,7 @@ impl LogIndexer {
             let level = if level_str.is_empty() {
                 None
             } else {
-                LogLevel::from_str(&level_str)
+                LogLevel::parse(&level_str)
             };
 
             let fields: HashMap<String, serde_json::Value> =

@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
-use chrono::Utc;
 use tokio::sync::RwLock;
 
 use mhost_core::process::{ProcessConfig, ProcessInfo, ProcessStatus};
@@ -100,7 +99,7 @@ impl ExitWatcher {
             let is_crash = uptime_ms < config.min_uptime_ms;
 
             // Read current restart_count, then decide.
-            let (current_restart_count, current_pid) = {
+            let (current_restart_count, _current_pid) = {
                 let procs = processes.read().await;
                 match procs.get(&key) {
                     Some(mp) => (mp.info.restart_count, mp.info.pid),

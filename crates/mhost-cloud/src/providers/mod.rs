@@ -12,8 +12,7 @@ pub fn create_provider(name: &str) -> Result<Box<dyn CloudProvider>, String> {
         "azure" => Ok(Box::new(azure::AzureProvider::new())),
         "railway" => Ok(Box::new(railway::RailwayProvider::new()?)),
         _ => Err(format!(
-            "Unknown provider: '{}'. Supported: aws, digitalocean, azure, railway",
-            name
+            "Unknown provider: '{name}'. Supported: aws, digitalocean, azure, railway"
         )),
     }
 }

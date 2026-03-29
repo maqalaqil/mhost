@@ -35,7 +35,7 @@ impl GelfSink {
     ) -> Self {
         Self {
             host: host.into(),
-            port: port,
+            port,
             transport,
             process_filter: process_filter.into(),
         }

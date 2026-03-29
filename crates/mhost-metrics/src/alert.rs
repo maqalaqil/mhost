@@ -143,17 +143,17 @@ fn parse_threshold(raw: &str) -> Result<f64, String> {
 
 fn parse_duration_ms(raw: &str) -> Result<u64, String> {
     if raw.ends_with('h') {
-        let n = raw[..raw.len() - 1]
+        let n = raw.strip_suffix('h').unwrap()
             .parse::<u64>()
             .map_err(|e| format!("invalid hours {raw:?}: {e}"))?;
         Ok(n * 3_600_000)
     } else if raw.ends_with('m') {
-        let n = raw[..raw.len() - 1]
+        let n = raw.strip_suffix('m').unwrap()
             .parse::<u64>()
             .map_err(|e| format!("invalid minutes {raw:?}: {e}"))?;
         Ok(n * 60_000)
     } else if raw.ends_with('s') {
-        let n = raw[..raw.len() - 1]
+        let n = raw.strip_suffix('s').unwrap()
             .parse::<u64>()
             .map_err(|e| format!("invalid seconds {raw:?}: {e}"))?;
         Ok(n * 1_000)

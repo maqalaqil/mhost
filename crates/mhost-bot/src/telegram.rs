@@ -168,8 +168,7 @@ impl TelegramBot {
                 .send_message(
                     chat_id,
                     &format!(
-                        "Permission denied. Your role ({:?}) cannot use /{}",
-                        role, command
+                        "Permission denied. Your role ({role:?}) cannot use /{command}"
                     ),
                 )
                 .await;
@@ -186,7 +185,7 @@ impl TelegramBot {
             self.config.confirm_destructive && matches!(command, "stop" | "delete" | "restart");
 
         if is_destructive {
-            let action_desc = format!("/{} {}", command, args.join(" "));
+            let action_desc = format!("/{command} {}", args.join(" "));
             {
                 let mut confirms = self.pending_confirms.lock().await;
                 confirms.insert(
@@ -202,8 +201,7 @@ impl TelegramBot {
                 .send_message(
                     chat_id,
                     &format!(
-                        "Are you sure you want to run <code>{}</code>?\nSend /confirm within 30 seconds.",
-                        action_desc
+                        "Are you sure you want to run <code>{action_desc}</code>?\nSend /confirm within 30 seconds."
                     ),
                 )
                 .await;
@@ -214,7 +212,7 @@ impl TelegramBot {
         let result = self.execute_command(command, &args).await;
         let result_text = match &result {
             Ok(output) => output.clone(),
-            Err(e) => format!("Error: {}", e),
+            Err(e) => format!("Error: {e}"),
         };
 
         let _ = self.send_message(chat_id, &result_text).await;
@@ -224,7 +222,7 @@ impl TelegramBot {
             timestamp: Utc::now(),
             user_id,
             username,
-            command: format!("/{} {}", command, args.join(" ")),
+            command: format!("/{command} {}", args.join(" ")),
             result: if result.is_ok() {
                 "ok".into()
             } else {
@@ -249,7 +247,7 @@ impl TelegramBot {
                 let result = self.execute_command(&a.command, &a.args).await;
                 let text = match result {
                     Ok(out) => out,
-                    Err(e) => format!("Error: {}", e),
+                    Err(e) => format!("Error: {e}"),
                 };
                 let _ = self.send_message(chat_id, &text).await;
             }
@@ -298,8 +296,7 @@ impl TelegramBot {
                         _ => "\u{26AB}",
                     };
                     out.push_str(&format!(
-                        "{} <b>{}</b> \u{2014} {} (PID: {})\n",
-                        icon, name, status, pid
+                        "{icon} <b>{name}</b> \u{2014} {status} (PID: {pid})\n"
                     ));
                 }
                 Ok(out)
@@ -320,7 +317,7 @@ impl TelegramBot {
                 if let Some(err) = resp.error {
                     Err(err.message)
                 } else {
-                    Ok(format!("Started '{}'", target))
+                    Ok(format!("Started '{target}'"))
                 }
             }
 
@@ -333,7 +330,7 @@ impl TelegramBot {
                 if let Some(err) = resp.error {
                     Err(err.message)
                 } else {
-                    Ok(format!("Stopped '{}'", target))
+                    Ok(format!("Stopped '{target}'"))
                 }
             }
 
@@ -349,7 +346,7 @@ impl TelegramBot {
                 if let Some(err) = resp.error {
                     Err(err.message)
                 } else {
-                    Ok(format!("Restarted '{}'", target))
+                    Ok(format!("Restarted '{target}'"))
                 }
             }
 
@@ -370,7 +367,7 @@ impl TelegramBot {
                 if let Some(err) = resp.error {
                     Err(err.message)
                 } else {
-                    Ok(format!("Scaled '{}' to {} instances", name, n))
+                    Ok(format!("Scaled '{name}' to {n} instances"))
                 }
             }
 
@@ -385,7 +382,7 @@ impl TelegramBot {
                 } else {
                     "No logs found.".into()
                 };
-                Ok(format!("<b>Logs: {}</b>\n<pre>{}</pre>", name, content))
+                Ok(format!("<b>Logs: {name}</b>\n<pre>{content}</pre>"))
             }
 
             "health" => {
@@ -417,7 +414,7 @@ impl TelegramBot {
                 if let Some(err) = resp.error {
                     Err(err.message)
                 } else {
-                    Ok(format!("Deploy '{}' triggered", env))
+                    Ok(format!("Deploy '{env}' triggered"))
                 }
             }
 
@@ -456,7 +453,7 @@ impl TelegramBot {
                         let provider = ai_config.create_provider()?;
                         mhost_ai::ask(provider.as_ref(), &question, &[]).await
                     }
-                    other => Err(format!("Unknown AI command: {}. Use: diagnose, ask", other)),
+                    other => Err(format!("Unknown AI command: {other}. Use: diagnose, ask")),
                 }
             }
 
@@ -475,7 +472,7 @@ impl TelegramBot {
                 /help \u{2014} This message"
                 .to_string()),
 
-            _ => Err(format!("Unknown command: /{}. Try /help", command)),
+            _ => Err(format!("Unknown command: /{command}. Try /help")),
         }
     }
 }

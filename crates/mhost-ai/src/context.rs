@@ -67,13 +67,13 @@ impl ProcessContext {
         ));
 
         if let Some(exit) = self.exit_code {
-            text.push_str(&format!("Exit Code: {}\n", exit));
+            text.push_str(&format!("Exit Code: {exit}\n"));
         }
         if let Some(cpu) = self.cpu_percent {
-            text.push_str(&format!("CPU: {:.1}%\n", cpu));
+            text.push_str(&format!("CPU: {cpu:.1}%\n"));
         }
         if let Some(mem) = self.memory_mb {
-            text.push_str(&format!("Memory: {:.1} MB\n", mem));
+            text.push_str(&format!("Memory: {mem:.1} MB\n"));
         }
 
         if !self.recent_logs.is_empty() {
@@ -97,7 +97,7 @@ impl ProcessContext {
         if !self.events.is_empty() {
             text.push_str("\n### Event History\n");
             for event in &self.events {
-                text.push_str(&format!("- {}\n", event));
+                text.push_str(&format!("- {event}\n"));
             }
         }
 

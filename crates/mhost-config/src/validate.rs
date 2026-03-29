@@ -36,14 +36,14 @@ pub fn validate_config(config: &EcosystemConfig) -> Vec<ValidationError> {
     for (name, raw) in &config.process {
         if raw.command.trim().is_empty() {
             errors.push(ValidationError::new(
-                format!("process.{}.command", name),
+                format!("process.{name}.command"),
                 "command must not be empty".to_string(),
             ));
         }
 
         if raw.instances == 0 {
             errors.push(ValidationError::new(
-                format!("process.{}.instances", name),
+                format!("process.{name}.instances"),
                 "instances must be >= 1".to_string(),
             ));
         }

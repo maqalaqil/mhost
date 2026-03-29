@@ -28,7 +28,7 @@ pub async fn read_frame<R: AsyncReadExt + Unpin>(reader: &mut R) -> io::Result<V
     if len > MAX_FRAME_SIZE {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("frame too large: {} bytes (max {})", len, MAX_FRAME_SIZE),
+            format!("frame too large: {len} bytes (max {MAX_FRAME_SIZE})"),
         ));
     }
     let mut buf = vec![0u8; len as usize];

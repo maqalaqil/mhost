@@ -204,7 +204,7 @@ impl Handler {
                             id,
                             RpcError::new(
                                 error_codes::PROCESS_NOT_FOUND,
-                                format!("Process '{}' not found", name),
+                                format!("Process '{name}' not found"),
                             ),
                         ),
                         false,
@@ -372,7 +372,7 @@ impl Handler {
                             id,
                             RpcError::new(
                                 error_codes::PROCESS_NOT_FOUND,
-                                format!("Process '{}' not found", name),
+                                format!("Process '{name}' not found"),
                             ),
                         ),
                         false,
@@ -507,7 +507,7 @@ impl Handler {
                             id,
                             RpcError::new(
                                 error_codes::PROCESS_NOT_FOUND,
-                                format!("Process '{}' not found", name),
+                                format!("Process '{name}' not found"),
                             ),
                         ),
                         false,
@@ -662,7 +662,7 @@ fn string_param(params: &Value, key: &str) -> Result<String, RpcResponse> {
             0,
             RpcError::new(
                 error_codes::INVALID_CONFIG,
-                format!("Missing or invalid '{}' parameter", key),
+                format!("Missing or invalid '{key}' parameter"),
             ),
         )),
     }

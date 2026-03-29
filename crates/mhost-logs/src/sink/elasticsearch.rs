@@ -58,7 +58,7 @@ impl ElasticsearchSink {
             "raw_line": entry.raw_line,
         });
 
-        format!("{}\n{}\n", action, doc)
+        format!("{action}\n{doc}\n")
     }
 }
 

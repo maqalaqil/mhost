@@ -15,7 +15,7 @@ impl RemoteInstaller {
             ("linux", "aarch64") | ("linux", "arm64") => "aarch64-unknown-linux-musl",
             ("darwin", "x86_64") => "x86_64-apple-darwin",
             ("darwin", "arm64") | ("darwin", "aarch64") => "aarch64-apple-darwin",
-            _ => return Err(format!("Unsupported remote platform: {} {}", os, arch)),
+            _ => return Err(format!("Unsupported remote platform: {os} {arch}")),
         };
 
         let version_cmd = r#"curl -fsSL https://api.github.com/repos/maheralaqil/mhost/releases/latest 2>/dev/null | grep '"tag_name"' | cut -d'"' -f4"#;

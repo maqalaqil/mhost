@@ -18,7 +18,7 @@ pub async fn run_tcp_check(config: &HealthConfig) -> HealthStatus {
         }
     };
 
-    let addr = format!("{}:{}", host, port);
+    let addr = format!("{host}:{port}");
     let duration = Duration::from_millis(config.timeout_ms);
 
     match timeout(duration, TcpStream::connect(&addr)).await {

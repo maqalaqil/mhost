@@ -95,7 +95,7 @@ fn render_summary_table(f: &mut Frame, area: Rect, app: &App) {
                 Cell::from(p.config.name.clone()),
                 Cell::from(p.status.to_string()).style(Style::default().fg(status_color)),
                 Cell::from(cpu_text),
-                Cell::from(format!("{:.1}MB", mem_mb)),
+                Cell::from(format!("{mem_mb:.1}MB")),
                 Cell::from(p.format_uptime()),
                 Cell::from(p.restart_count.to_string()),
             ])
@@ -144,12 +144,12 @@ fn render_sparklines_panel(f: &mut Frame, area: Rect, app: &App) {
     let cpu_width = (halves[0].width as usize).saturating_sub(4);
     let cpu_spark = sparkline_str(cpu_data, cpu_width);
     let cpu_last = selected.and_then(|p| p.cpu_percent).unwrap_or(0.0);
-    let cpu_text = format!("{}\n{:.1}%", cpu_spark, cpu_last);
+    let cpu_text = format!("{cpu_spark}\n{cpu_last:.1}%");
     let cpu_para = Paragraph::new(cpu_text)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(format!(" CPU — {} ", name)),
+                .title(format!(" CPU — {name} ")),
         )
         .style(Style::default().fg(Color::Cyan));
     f.render_widget(cpu_para, halves[0]);
@@ -163,12 +163,12 @@ fn render_sparklines_panel(f: &mut Frame, area: Rect, app: &App) {
     let mem_width = (halves[1].width as usize).saturating_sub(4);
     let mem_spark = sparkline_str(mem_data, mem_width);
     let mem_last = selected.and_then(|p| p.memory_bytes).unwrap_or(0) as f64 / 1_048_576.0;
-    let mem_text = format!("{}\n{:.1}MB", mem_spark, mem_last);
+    let mem_text = format!("{mem_spark}\n{mem_last:.1}MB");
     let mem_para = Paragraph::new(mem_text)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(format!(" Memory — {} ", name)),
+                .title(format!(" Memory — {name} ")),
         )
         .style(Style::default().fg(Color::Magenta));
     f.render_widget(mem_para, halves[1]);

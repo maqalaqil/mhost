@@ -50,7 +50,7 @@ impl ProxyRouter {
         self.routes
             .get(&key)
             .map(String::as_str)
-            .or_else(|| self.default_backend.as_deref())
+            .or(self.default_backend.as_deref())
     }
 }
 

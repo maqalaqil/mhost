@@ -31,8 +31,8 @@ impl HookRunner {
                         status.code()
                     ))
                 }
-                Ok(Err(e)) => return Err(format!("Hook '{}' failed to execute: {}", cmd, e)),
-                Err(_) => return Err(format!("Hook '{}' timed out after {:?}", cmd, timeout)),
+                Ok(Err(e)) => return Err(format!("Hook '{cmd}' failed to execute: {e}")),
+                Err(_) => return Err(format!("Hook '{cmd}' timed out after {timeout:?}")),
             }
         }
         Ok(())

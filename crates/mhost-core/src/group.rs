@@ -33,8 +33,7 @@ pub fn topological_sort(groups: &HashMap<String, GroupConfig>) -> Result<Vec<Str
         for dep in &cfg.depends_on {
             if !groups.contains_key(dep) {
                 return Err(MhostError::Config(format!(
-                    "Group '{}' depends on unknown group '{}'",
-                    name, dep
+                    "Group '{name}' depends on unknown group '{dep}'"
                 )));
             }
         }
@@ -147,8 +146,7 @@ pub fn ordered_processes_for_group(
 ) -> Result<Vec<String>> {
     if !groups.contains_key(group_name) {
         return Err(MhostError::Config(format!(
-            "Group '{}' not found",
-            group_name
+            "Group '{group_name}' not found"
         )));
     }
 

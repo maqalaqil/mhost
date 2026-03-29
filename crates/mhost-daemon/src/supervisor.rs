@@ -49,7 +49,7 @@ impl Supervisor {
 
     /// Canonical key for a process instance: "name:instance".
     pub fn process_key(name: &str, instance: u32) -> String {
-        format!("{}:{}", name, instance)
+        format!("{name}:{instance}")
     }
 
     // -----------------------------------------------------------------------
@@ -282,13 +282,13 @@ impl Supervisor {
             let procs = self.processes.read().await;
             procs
                 .keys()
-                .filter(|k| k.starts_with(&format!("{}:", name)))
+                .filter(|k| k.starts_with(&format!("{name}:")))
                 .cloned()
                 .collect()
         };
 
         if keys.is_empty() {
-            return Err(format!("Process '{}' not found", name));
+            return Err(format!("Process '{name}' not found"));
         }
 
         // Build list of updated infos (async write)
@@ -363,9 +363,9 @@ impl Supervisor {
             let procs = self.processes.read().await;
             procs
                 .iter()
-                .find(|(k, _)| k.starts_with(&format!("{}:", name)))
+                .find(|(k, _)| k.starts_with(&format!("{name}:")))
                 .map(|(_, mp)| mp.info.config.clone())
-                .ok_or_else(|| format!("Process '{}' not found", name))?
+                .ok_or_else(|| format!("Process '{name}' not found"))?
         };
 
         self.stop_process(name, state).await?;
@@ -385,7 +385,7 @@ impl Supervisor {
         // Remove from map (async write)
         {
             let mut procs = self.processes.write().await;
-            procs.retain(|k, _| !k.starts_with(&format!("{}:", name)));
+            procs.retain(|k, _| !k.starts_with(&format!("{name}:")));
         }
 
         // Sync DB
@@ -408,16 +408,16 @@ impl Supervisor {
             let procs = self.processes.read().await;
             procs
                 .iter()
-                .find(|(k, _)| k.starts_with(&format!("{}:", name)))
+                .find(|(k, _)| k.starts_with(&format!("{name}:")))
                 .map(|(_, mp)| mp.info.config.clone())
-                .ok_or_else(|| format!("Process '{}' not found", name))?
+                .ok_or_else(|| format!("Process '{name}' not found"))?
         };
 
         self.stop_process(name, state).await?;
 
         {
             let mut procs = self.processes.write().await;
-            procs.retain(|k, _| !k.starts_with(&format!("{}:", name)));
+            procs.retain(|k, _| !k.starts_with(&format!("{name}:")));
         }
 
         let new_config = ProcessConfig {
@@ -525,7 +525,7 @@ impl Supervisor {
         let procs = self.processes.read().await;
         let mut lines = Vec::new();
         for (key, mp) in procs.iter() {
-            if key.starts_with(&format!("{}:", name)) {
+            if key.starts_with(&format!("{name}:")) {
                 for line in mp.ring_out.last_n(n) {
                     lines.push(line.to_string());
                 }
@@ -575,7 +575,7 @@ pub async fn spawn_child_static(
         cmd.env(k, v);
     }
 
-    let child = cmd.spawn().map_err(|e| format!("spawn failed: {}", e))?;
+    let child = cmd.spawn().map_err(|e| format!("spawn failed: {e}"))?;
     let pid = child.id();
 
     // Task 7: set to Starting when a health check is configured; the health

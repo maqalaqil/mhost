@@ -46,7 +46,7 @@ impl AuditLog {
             .append(true)
             .open(&self.path)
         {
-            let _ = writeln!(file, "{}", line);
+            let _ = writeln!(file, "{line}");
         }
     }
 

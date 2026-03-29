@@ -112,7 +112,7 @@ async fn kill_process_instances(
 ) {
     let procs = processes.read().await;
     for (key, mp) in procs.iter() {
-        if !key.starts_with(&format!("{}:", name)) {
+        if !key.starts_with(&format!("{name}:")) {
             continue;
         }
         if let Some(pid) = mp.info.pid {
@@ -147,7 +147,7 @@ async fn restart_via_supervisor(
         let procs = processes.read().await;
         procs
             .keys()
-            .filter(|k| k.starts_with(&format!("{}:", name)))
+            .filter(|k| k.starts_with(&format!("{name}:")))
             .cloned()
             .collect()
     };

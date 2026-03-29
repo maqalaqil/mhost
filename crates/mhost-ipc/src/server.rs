@@ -72,19 +72,11 @@ impl IpcServer {
 
 /// Read requests from `stream` in a loop, call `handler`, and write responses back.
 async fn handle_connection(mut stream: IpcStream, handler: HandlerFn) {
-    loop {
-        match read_request(&mut stream).await {
-            Ok(req) => {
-                let resp = handler(req).await;
-                if let Err(e) = write_response(&mut stream, &resp).await {
-                    tracing::warn!("IpcServer write_response error: {}", e);
-                    break;
-                }
-            }
-            Err(_) => {
-                // EOF or parse error — close the connection silently.
-                break;
-            }
+    while let Ok(req) = read_request(&mut stream).await {
+        let resp = handler(req).await;
+        if let Err(e) = write_response(&mut stream, &resp).await {
+            tracing::warn!("IpcServer write_response error: {}", e);
+            break;
         }
     }
 }

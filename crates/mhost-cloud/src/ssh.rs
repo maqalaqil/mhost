@@ -165,9 +165,9 @@ impl SshExecutor {
 
 /// Expand a leading `~/` to the user's home directory.
 pub fn shellexpand_home(path: &str) -> String {
-    if path.starts_with("~/") {
+    if let Some(rest) = path.strip_prefix("~/") {
         if let Some(home) = dirs::home_dir() {
-            return format!("{}/{}", home.display(), &path[2..]);
+            return format!("{}/{}", home.display(), rest);
         }
     }
     path.to_string()

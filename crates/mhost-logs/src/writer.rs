@@ -15,7 +15,7 @@ pub struct LogWriter {
 /// e.g. "app.log" -> "app.log.1", "app.log.2", etc.
 pub fn rotated_path(base: &Path, n: u32) -> PathBuf {
     let mut s = base.as_os_str().to_os_string();
-    s.push(format!(".{}", n));
+    s.push(format!(".{n}"));
     PathBuf::from(s)
 }
 
@@ -42,7 +42,7 @@ impl LogWriter {
     /// Write a line followed by a newline, rotating if the file exceeds `max_size`.
     pub fn write_line(&mut self, line: &str) -> io::Result<()> {
         let bytes = line.len() as u64 + 1; // +1 for newline
-        writeln!(self.writer, "{}", line)?;
+        writeln!(self.writer, "{line}")?;
         self.writer.flush()?;
         self.current_size += bytes;
         if self.current_size >= self.max_size {

@@ -19,8 +19,7 @@ pub async fn explain_config(
             LlmMessage {
                 role: "user".into(),
                 content: format!(
-                    "Explain this mhost.toml:\n\n```toml\n{}\n```",
-                    config_content
+                    "Explain this mhost.toml:\n\n```toml\n{config_content}\n```"
                 ),
             },
         ],
@@ -48,7 +47,7 @@ pub async fn suggest_improvements(
             },
             LlmMessage {
                 role: "user".into(),
-                content: format!("Current process state:\n{}", summary),
+                content: format!("Current process state:\n{summary}"),
             },
         ],
         max_tokens: 2048,

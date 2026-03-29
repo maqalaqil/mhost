@@ -60,7 +60,7 @@ pub async fn detect_anomalies(
 fn format_log_batches(batches: &[(String, Vec<String>)]) -> String {
     let mut text = String::new();
     for (name, lines) in batches {
-        text.push_str(&format!("### Process: {}\n```\n", name));
+        text.push_str(&format!("### Process: {name}\n```\n"));
         for line in lines {
             text.push_str(line);
             text.push('\n');
