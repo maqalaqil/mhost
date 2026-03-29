@@ -1,0 +1,21 @@
+[package]
+name = "mhost-notify"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+async-trait = "0.1"
+tracing = { workspace = true }
+lettre = { version = "0.11", features = ["smtp-transport", "tokio1", "tokio1-native-tls", "builder"] }
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+
+[dev-dependencies]
+tokio = { workspace = true }

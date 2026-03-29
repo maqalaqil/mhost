@@ -8,6 +8,7 @@ members = [
     "crates/mhost-logs",
     "crates/mhost-daemon",
     "crates/mhost-cli",
+    "crates/mhost-notify",
 ]
 
 [workspace.package]
