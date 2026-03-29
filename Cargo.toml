@@ -9,6 +9,7 @@ members = [
     "crates/mhost-daemon",
     "crates/mhost-cli",
     "crates/mhost-notify",
+    "crates/mhost-metrics",
 ]
 
 [workspace.package]
@@ -35,3 +36,5 @@ chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 cron = "0.12"
+sysinfo = "0.32"
+axum = { version = "0.7", features = ["tokio"] }
