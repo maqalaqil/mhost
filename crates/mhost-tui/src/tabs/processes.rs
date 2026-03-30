@@ -77,7 +77,10 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
         .enumerate()
         .map(|(display_idx, p)| {
             let row_style = if display_idx == app.selected_process {
-                Style::default().bg(Color::DarkGray).bold()
+                Style::default()
+                    .bg(Color::Rgb(40, 40, 80))
+                    .fg(Color::White)
+                    .bold()
             } else {
                 Style::default()
             };
@@ -136,7 +139,7 @@ pub fn render(f: &mut Frame, area: Rect, app: &App) {
     let table = Table::new(rows, widths)
         .header(header)
         .block(Block::default().borders(Borders::ALL).title(title))
-        .row_highlight_style(Style::default().bg(Color::DarkGray));
+        .row_highlight_style(Style::default().bg(Color::Rgb(40, 40, 80)).fg(Color::White));
 
     f.render_widget(table, area);
 }
