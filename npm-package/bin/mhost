@@ -1,2 +1,10 @@
 #!/bin/sh
-exec "$(dirname "$0")/../vendor/mhost" "$@"
+# Resolve symlink to find the actual package directory
+SCRIPT="$0"
+while [ -L "$SCRIPT" ]; do
+  DIR="$(cd -P "$(dirname "$SCRIPT")" && pwd)"
+  SCRIPT="$(readlink "$SCRIPT")"
+  case "$SCRIPT" in /*) ;; *) SCRIPT="$DIR/$SCRIPT" ;; esac
+done
+DIR="$(cd -P "$(dirname "$SCRIPT")" && pwd)"
+exec "$DIR/../vendor/mhost" "$@"
