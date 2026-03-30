@@ -127,6 +127,26 @@ pub fn run(
         .collect();
 
     if all_lines.is_empty() {
+        // If stdout is empty and user didn't explicitly ask for stderr, auto-check stderr
+        if !err_stream {
+            let err_path = paths.process_err_log(&name, 0);
+            if err_path.exists() {
+                let err_file = File::open(&err_path).ok();
+                let has_stderr = err_file
+                    .map(|f| BufReader::new(f).lines().next().is_some())
+                    .unwrap_or(false);
+                if has_stderr {
+                    println!(
+                        "  {}  No stdout for '{}', showing {} instead:",
+                        "○".dimmed(),
+                        name.cyan(),
+                        "stderr".yellow()
+                    );
+                    println!();
+                    return run(paths, &name, lines, true, grep);
+                }
+            }
+        }
         println!(
             "  {}  No log output yet for '{}'",
             "○".dimmed(),
