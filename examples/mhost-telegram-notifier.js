@@ -18,8 +18,14 @@ const { execSync } = require("child_process");
 const path = require("path");
 
 // ─── Config ─────────────────────────────────────────────────────
-const BOT_TOKEN = process.env.MHOST_TELEGRAM_TOKEN || "8718281972:AAGwiutuWmOjGcKLYelgwOgbizBm3acJhEQ";
-const CHAT_ID = process.env.MHOST_TELEGRAM_CHAT || "8334527535";
+const BOT_TOKEN = process.env.MHOST_TELEGRAM_TOKEN;
+const CHAT_ID = process.env.MHOST_TELEGRAM_CHAT;
+
+if (!BOT_TOKEN || !CHAT_ID) {
+  console.error("Error: MHOST_TELEGRAM_TOKEN and MHOST_TELEGRAM_CHAT environment variables are required.");
+  console.error("Run: mhost notify setup");
+  process.exit(1);
+}
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "10") * 1000; // 10s default
 const MHOST_BIN = process.env.MHOST_BIN || path.join(__dirname, "..", "target", "release", "mhost");
 

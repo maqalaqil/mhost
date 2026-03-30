@@ -4,3 +4,12 @@
 *.swo
 .DS_Store
 .env
+
+# mhost runtime files — may contain secrets
+dump.json
+notify.json
+ai.json
+bot.json
+fleet.json
+*.pid
+*.sock
