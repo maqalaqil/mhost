@@ -70,12 +70,13 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         } => {
             // --search and --count-by require daemon access
             if search.is_some() || count_by.is_some() {
+                let n = name.as_deref().unwrap_or("*");
                 daemon_launcher::ensure_daemon_running(paths)?;
                 let client = IpcClient::new(&paths.socket());
                 if let Some(ref query) = search {
                     commands::logs::search(
                         &client,
-                        &name,
+                        n,
                         query,
                         r#where.as_deref(),
                         since.as_deref(),
@@ -83,12 +84,15 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
                     )
                     .await
                 } else if let Some(ref field) = count_by {
-                    commands::logs::count_by(&client, &name, field, since.as_deref()).await
+                    commands::logs::count_by(&client, n, field, since.as_deref()).await
                 } else {
                     unreachable!()
                 }
             } else {
-                commands::logs::run(paths, &name, lines, err, grep.as_deref())
+                match name {
+                    Some(n) => commands::logs::run(paths, &n, lines, err, grep.as_deref()),
+                    None => commands::logs::run_all(paths, lines, err, grep.as_deref()),
+                }
             }
         }
 

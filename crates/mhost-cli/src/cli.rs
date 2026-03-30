@@ -336,10 +336,10 @@ pub enum Commands {
     #[command(alias = "ls")]
     List,
 
-    /// Tail log output for a process, or search/aggregate via the daemon.
+    /// Tail log output for a process (or all processes if no name given).
     Logs {
-        /// Process name.
-        name: String,
+        /// Process name or ID (omit to show all).
+        name: Option<String>,
         /// Number of lines to show (file-tail mode).
         #[arg(short = 'n', long, default_value = "50")]
         lines: usize,

@@ -8,18 +8,112 @@ use mhost_core::paths::MhostPaths;
 use mhost_core::protocol::methods;
 use mhost_ipc::IpcClient;
 
-/// Tail log lines for a process (reads from file).
-pub fn run(
+/// Show logs for ALL processes (when no name given).
+pub fn run_all(
     paths: &MhostPaths,
-    name: &str,
     lines: usize,
     err_stream: bool,
     grep: Option<&str>,
 ) -> Result<(), String> {
+    let logs_dir = paths.logs_dir();
+    if !logs_dir.exists() {
+        println!("  {}  {}", "○".dimmed(), "No logs yet".dimmed());
+        return Ok(());
+    }
+
+    let suffix = if err_stream { "-err.log" } else { "-out.log" };
+    let mut found = false;
+
+    let mut entries: Vec<_> = std::fs::read_dir(&logs_dir)
+        .map_err(|e| format!("Cannot read logs dir: {e}"))?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_name().to_string_lossy().ends_with(suffix))
+        .collect();
+    entries.sort_by_key(|e| e.file_name());
+
+    for entry in &entries {
+        let fname = entry.file_name().to_string_lossy().to_string();
+        // Extract process name from filename: "api-server-0-out.log" -> "api-server"
+        let name = fname
+            .strip_suffix(suffix)
+            .unwrap_or(&fname)
+            .rsplit_once('-')
+            .map(|(name, _instance)| name)
+            .unwrap_or(&fname);
+
+        let file = match std::fs::File::open(entry.path()) {
+            Ok(f) => f,
+            Err(_) => continue,
+        };
+        let reader = std::io::BufReader::new(file);
+        let all_lines: Vec<String> = reader
+            .lines()
+            .map_while(|l| l.ok())
+            .filter(|l| grep.map(|g| l.contains(g)).unwrap_or(true))
+            .collect();
+
+        if all_lines.is_empty() {
+            continue;
+        }
+        found = true;
+
+        let per_process = lines.min(20); // cap per-process in "all" mode
+        let start = all_lines.len().saturating_sub(per_process);
+        let showing = all_lines.len() - start;
+
+        let stream_label = if err_stream { "stderr" } else { "stdout" };
+        println!();
+        println!(
+            "  {} {} {} {} {} {}",
+            "▸".cyan().bold(),
+            name.white().bold(),
+            "│".dimmed(),
+            stream_label.dimmed(),
+            "│".dimmed(),
+            format!("{showing} lines").dimmed(),
+        );
+        println!("  {}", "─".repeat(72).dimmed());
+
+        for (i, line) in all_lines[start..].iter().enumerate() {
+            let line_num = format!("{:>4}", start + i + 1).dimmed();
+            let formatted = format_log_line(line);
+            println!("  {} {} {}", line_num, "│".dimmed(), formatted);
+        }
+        println!("  {}", "─".repeat(72).dimmed());
+    }
+
+    if !found {
+        println!(
+            "  {}  {}",
+            "○".dimmed(),
+            "No log output from any process".dimmed()
+        );
+    }
+
+    println!();
+    Ok(())
+}
+
+/// Tail log lines for a process (reads from file). Accepts name or ID prefix.
+pub fn run(
+    paths: &MhostPaths,
+    name_or_id: &str,
+    lines: usize,
+    err_stream: bool,
+    grep: Option<&str>,
+) -> Result<(), String> {
+    // Try direct name first
     let log_path = if err_stream {
-        paths.process_err_log(name, 0)
+        paths.process_err_log(name_or_id, 0)
     } else {
-        paths.process_out_log(name, 0)
+        paths.process_out_log(name_or_id, 0)
+    };
+
+    // If not found by name, try to find by scanning log files for an ID prefix match
+    let (log_path, name) = if log_path.exists() {
+        (log_path, name_or_id.to_string())
+    } else {
+        resolve_log_by_id(paths, name_or_id, err_stream)?
     };
 
     let file = File::open(&log_path)
@@ -273,6 +367,44 @@ pub async fn count_by(
     }
 
     Ok(())
+}
+
+/// Try to find a log file by matching a process ID prefix against log filenames.
+/// Falls back to checking the daemon's state DB for ID → name mapping.
+fn resolve_log_by_id(
+    paths: &MhostPaths,
+    id_prefix: &str,
+    err_stream: bool,
+) -> Result<(std::path::PathBuf, String), String> {
+    // Scan log directory for files and try to match
+    let logs_dir = paths.logs_dir();
+    let suffix = if err_stream { "-out.log" } else { "-out.log" };
+
+    if logs_dir.exists() {
+        // Try the state DB to resolve ID -> name
+        let db_path = paths.db();
+        if db_path.exists() {
+            if let Ok(conn) = rusqlite::Connection::open(&db_path) {
+                let query = "SELECT name FROM processes WHERE id LIKE ?1 LIMIT 1";
+                let pattern = format!("{id_prefix}%");
+                if let Ok(name) = conn.query_row(query, [&pattern], |row| row.get::<_, String>(0)) {
+                    let log_path = if err_stream {
+                        paths.process_err_log(&name, 0)
+                    } else {
+                        paths.process_out_log(&name, 0)
+                    };
+                    if log_path.exists() {
+                        return Ok((log_path, name));
+                    }
+                }
+            }
+        }
+    }
+
+    Err(format!(
+        "No logs found for '{}'. Use process name or run: mhost list",
+        id_prefix
+    ))
 }
 
 #[allow(dead_code)]
