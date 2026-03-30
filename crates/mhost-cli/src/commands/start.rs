@@ -39,10 +39,33 @@ pub async fn run(client: &IpcClient, target: &str, name: Option<&str>) -> Result
 // ---------------------------------------------------------------------------
 
 fn build_configs(target: &str, name: Option<&str>) -> Result<Vec<ProcessConfig>, String> {
+    let caller_cwd = std::env::current_dir().ok();
+
     if is_config_file(target) {
-        let eco = EcosystemConfig::from_file(Path::new(target))
+        // Resolve config file path relative to caller's CWD
+        let config_path = resolve_path(target, caller_cwd.as_deref());
+        let eco = EcosystemConfig::from_file(&config_path)
             .map_err(|e| format!("Failed to parse ecosystem config '{target}': {e}"))?;
-        Ok(eco.to_process_configs())
+        let mut configs = eco.to_process_configs();
+        // Set CWD on configs that don't have one — relative to config file's parent
+        let config_dir = config_path
+            .parent()
+            .map(|p| p.to_string_lossy().to_string());
+        for cfg in &mut configs {
+            if cfg.cwd.is_none() {
+                cfg.cwd = config_dir.clone();
+            } else if let Some(ref cwd) = cfg.cwd {
+                // Resolve relative CWD against config file location
+                let cwd_path = Path::new(cwd);
+                if cwd_path.is_relative() {
+                    if let Some(ref dir) = config_dir {
+                        let resolved = Path::new(dir).join(cwd_path);
+                        cfg.cwd = Some(resolved.to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+        Ok(configs)
     } else {
         // Treat target as command, split on whitespace for simplicity.
         let mut parts = target.split_whitespace();
@@ -50,7 +73,14 @@ fn build_configs(target: &str, name: Option<&str>) -> Result<Vec<ProcessConfig>,
         let rest_args: Vec<String> = parts.map(String::from).collect();
 
         // Auto-detect interpreter from file extension
-        let (command, args) = detect_interpreter(&first, rest_args);
+        let (command, mut args) = detect_interpreter(&first, rest_args);
+
+        // Resolve script path to absolute so the daemon can find it
+        if !args.is_empty() {
+            let script = &args[0];
+            let resolved = resolve_path(script, caller_cwd.as_deref());
+            args[0] = resolved.to_string_lossy().to_string();
+        }
 
         let cfg_name = name.map(String::from).unwrap_or_else(|| {
             Path::new(&first)
@@ -64,8 +94,23 @@ fn build_configs(target: &str, name: Option<&str>) -> Result<Vec<ProcessConfig>,
             name: cfg_name,
             command,
             args,
+            cwd: caller_cwd.map(|p| p.to_string_lossy().to_string()),
             ..Default::default()
         }])
+    }
+}
+
+/// Resolve a potentially relative path against a base directory.
+fn resolve_path(path: &str, base: Option<&Path>) -> std::path::PathBuf {
+    let p = Path::new(path);
+    if p.is_absolute() {
+        p.to_path_buf()
+    } else if let Some(base) = base {
+        let resolved = base.join(p);
+        // Try to canonicalize, fall back to joined path
+        resolved.canonicalize().unwrap_or(resolved)
+    } else {
+        p.to_path_buf()
     }
 }
 
