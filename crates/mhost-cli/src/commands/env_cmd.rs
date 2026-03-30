@@ -18,17 +18,23 @@ pub async fn run(client: &IpcClient, name: &str) -> Result<(), String> {
     }
 
     let result = resp.result.ok_or("Empty response from daemon")?;
-
-    let info: ProcessInfo =
-        serde_json::from_value(result).map_err(|e| format!("Failed to parse process info: {e}"))?;
-
-    if info.config.env.is_empty() {
-        println!("No environment variables set for '{name}'.");
+    let process_list = if let Some(arr) = result.get("processes") {
+        arr.clone()
     } else {
-        let mut pairs: Vec<(&String, &String)> = info.config.env.iter().collect();
-        pairs.sort_by_key(|(k, _)| k.as_str());
-        for (k, v) in pairs {
-            println!("{k}={v}");
+        result
+    };
+    let infos: Vec<ProcessInfo> = serde_json::from_value(process_list)
+        .map_err(|e| format!("Failed to parse process info: {e}"))?;
+
+    if let Some(info) = infos.first() {
+        if info.config.env.is_empty() {
+            println!("No environment variables set for '{name}'.");
+        } else {
+            let mut pairs: Vec<(&String, &String)> = info.config.env.iter().collect();
+            pairs.sort_by_key(|(k, _)| k.as_str());
+            for (k, v) in pairs {
+                println!("{k}={v}");
+            }
         }
     }
 
