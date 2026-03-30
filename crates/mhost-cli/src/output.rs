@@ -6,11 +6,12 @@ use mhost_core::process::{ProcessInfo, ProcessStatus};
 // ---------------------------------------------------------------------------
 
 pub fn format_status(status: &ProcessStatus) -> String {
-    let s = status.to_string();
     match status {
-        ProcessStatus::Online => s.green().to_string(),
-        ProcessStatus::Starting | ProcessStatus::Stopping => s.yellow().to_string(),
-        ProcessStatus::Stopped | ProcessStatus::Errored => s.red().to_string(),
+        ProcessStatus::Online => "● online".green().bold().to_string(),
+        ProcessStatus::Starting => "◐ starting".yellow().to_string(),
+        ProcessStatus::Stopping => "◑ stopping".yellow().to_string(),
+        ProcessStatus::Stopped => "○ stopped".dimmed().to_string(),
+        ProcessStatus::Errored => "✖ errored".red().bold().to_string(),
     }
 }
 
@@ -20,69 +21,119 @@ pub fn format_bytes(bytes: u64) -> String {
     const GB: u64 = MB * 1024;
 
     if bytes >= GB {
-        format!("{:.1}GB", bytes as f64 / GB as f64)
+        format!("{:.1} GB", bytes as f64 / GB as f64)
     } else if bytes >= MB {
-        format!("{:.1}MB", bytes as f64 / MB as f64)
+        format!("{:.1} MB", bytes as f64 / MB as f64)
     } else if bytes >= KB {
-        format!("{:.1}KB", bytes as f64 / KB as f64)
+        format!("{:.0} KB", bytes as f64 / KB as f64)
     } else {
-        format!("{bytes}B")
+        format!("{bytes} B")
     }
 }
 
 // ---------------------------------------------------------------------------
-// Process table
+// Process table — modern box-drawing style
 // ---------------------------------------------------------------------------
 
 pub fn print_process_table(processes: &[ProcessInfo]) {
     if processes.is_empty() {
-        println!("{}", "No processes registered.".dimmed());
+        println!();
+        println!("  {}  {}", "○".dimmed(), "No processes running".dimmed());
+        println!("  {}  Run: {}", " ".dimmed(), "mhost start <app>".cyan());
+        println!();
         return;
     }
 
-    // Header
-    println!(
-        "{:<4} {:<20} {:<12} {:<8} {:<6} {:<12} {:<9} {:<10}",
-        "id".bold(),
-        "name".bold(),
-        "status".bold(),
-        "pid".bold(),
-        "inst".bold(),
-        "uptime".bold(),
-        "restarts".bold(),
-        "memory".bold(),
-    );
-    println!("{}", "─".repeat(85).dimmed());
+    let online = processes
+        .iter()
+        .filter(|p| p.status == ProcessStatus::Online)
+        .count();
+    let total = processes.len();
 
-    for p in processes {
+    // Header
+    println!();
+    println!(
+        "  {} {} {}",
+        "mhost".bold(),
+        "│".dimmed(),
+        format!("{online}/{total} online").green()
+    );
+    println!(
+        "  {}",
+        "─────┬──────────────────────┬──────────────┬─────────┬────────────┬──────────┬─────────"
+            .dimmed()
+    );
+    println!(
+        "  {}  │  {}  │  {}  │  {}  │  {}  │  {}  │  {}",
+        " # ".dimmed(),
+        "name".bold().white(),
+        "status".bold().white(),
+        " pid  ".dimmed(),
+        " uptime   ".dimmed(),
+        "restarts".dimmed(),
+        "memory".dimmed(),
+    );
+    println!(
+        "  {}",
+        "─────┼──────────────────────┼──────────────┼─────────┼────────────┼──────────┼─────────"
+            .dimmed()
+    );
+
+    for (i, p) in processes.iter().enumerate() {
         let pid_str = p
             .pid
-            .map(|v| v.to_string())
-            .unwrap_or_else(|| "-".to_string());
+            .map(|v| format!("{v}"))
+            .unwrap_or_else(|| "—".dimmed().to_string());
+
         let mem_str = p
             .memory_bytes
             .map(format_bytes)
-            .unwrap_or_else(|| "-".to_string());
+            .unwrap_or_else(|| "—".dimmed().to_string());
 
-        // truncate long names
-        let name = if p.config.name.len() > 20 {
-            format!("{}…", &p.config.name[..19])
+        let uptime = p.format_uptime();
+        let uptime_str = if uptime == "0s" {
+            "—".dimmed().to_string()
+        } else {
+            uptime
+        };
+
+        let restarts = if p.restart_count > 0 {
+            format!("{}", p.restart_count).yellow().to_string()
+        } else {
+            "0".dimmed().to_string()
+        };
+
+        // Truncate long names
+        let name = if p.config.name.len() > 18 {
+            format!("{}…", &p.config.name[..17])
         } else {
             p.config.name.clone()
         };
 
         println!(
-            "{:<4} {:<20} {:<24} {:<8} {:<6} {:<12} {:<9} {:<10}",
-            &p.id[..4.min(p.id.len())],
-            name,
+            "  {:<3} {} {:<18}   {} {:<12} {} {:<7} {} {:<10} {} {:<8} {} {:<7}",
+            format!("{i}").dimmed(),
+            "│".dimmed(),
+            name.white(),
+            "│".dimmed(),
             format_status(&p.status),
+            "│".dimmed(),
             pid_str,
-            p.instance,
-            p.format_uptime(),
-            p.restart_count,
+            "│".dimmed(),
+            uptime_str,
+            "│".dimmed(),
+            restarts,
+            "│".dimmed(),
             mem_str,
         );
     }
+
+    println!(
+        "  {}",
+        "─────┴──────────────────────┴──────────────┴─────────┴────────────┴──────────┴─────────"
+            .dimmed()
+    );
+    println!();
 }
 
 // ---------------------------------------------------------------------------
@@ -90,11 +141,11 @@ pub fn print_process_table(processes: &[ProcessInfo]) {
 // ---------------------------------------------------------------------------
 
 pub fn print_success(msg: &str) {
-    println!("{} {}", "✔".green(), msg);
+    println!("{} {}", "✔".green().bold(), msg);
 }
 
 pub fn print_error(msg: &str) {
-    eprintln!("{} {}", "✖".red(), msg);
+    eprintln!("{} {}", "✖".red().bold(), msg);
 }
 
 // ---------------------------------------------------------------------------
@@ -107,27 +158,26 @@ mod tests {
 
     #[test]
     fn test_format_bytes_bytes() {
-        assert_eq!(format_bytes(512), "512B");
+        assert_eq!(format_bytes(512), "512 B");
     }
 
     #[test]
     fn test_format_bytes_kb() {
-        assert_eq!(format_bytes(2048), "2.0KB");
+        assert_eq!(format_bytes(2048), "2 KB");
     }
 
     #[test]
     fn test_format_bytes_mb() {
-        assert_eq!(format_bytes(5 * 1024 * 1024), "5.0MB");
+        assert_eq!(format_bytes(5 * 1024 * 1024), "5.0 MB");
     }
 
     #[test]
     fn test_format_bytes_gb() {
-        assert_eq!(format_bytes(2 * 1024 * 1024 * 1024), "2.0GB");
+        assert_eq!(format_bytes(2 * 1024 * 1024 * 1024), "2.0 GB");
     }
 
     #[test]
     fn test_format_status_online() {
-        // Just verify it returns a non-empty string (color codes will be present)
         let s = format_status(&ProcessStatus::Online);
         assert!(s.contains("online"));
     }
