@@ -129,6 +129,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set version in Cargo.toml
+        shell: bash
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          sed -i.bak "s/^version = \".*\"/version = \"${VERSION}\"/" Cargo.toml
+          rm -f Cargo.toml.bak
+          echo "Set workspace version to ${VERSION}"
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
