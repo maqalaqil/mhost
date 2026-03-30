@@ -137,11 +137,58 @@ impl Supervisor {
                 // a real state store.  Use start_process_arc for full wiring.
             };
 
-            // Attach the watcher handle.
+            // Attach the watcher handle and spawn log capture tasks.
             {
                 let mut procs = self.processes.write().await;
                 if let Some(mp) = procs.get_mut(&key) {
                     mp.watcher = Some(watcher_handle);
+
+                    // Spawn stdout/stderr log capture tasks
+                    if let Some(ref mut child) = mp.child {
+                        let _ = self.paths.ensure_dirs();
+
+                        // Stdout capture
+                        if let Some(stdout) = child.stdout.take() {
+                            let out_path = self.paths.process_out_log(&config.name, i);
+                            tokio::spawn(async move {
+                                use tokio::io::{AsyncBufReadExt, BufReader};
+                                let reader = BufReader::new(stdout);
+                                let mut lines = reader.lines();
+                                let mut file = std::fs::OpenOptions::new()
+                                    .create(true)
+                                    .append(true)
+                                    .open(&out_path)
+                                    .ok();
+                                while let Ok(Some(line)) = lines.next_line().await {
+                                    if let Some(ref mut f) = file {
+                                        use std::io::Write;
+                                        let _ = writeln!(f, "{line}");
+                                    }
+                                }
+                            });
+                        }
+
+                        // Stderr capture
+                        if let Some(stderr) = child.stderr.take() {
+                            let err_path = self.paths.process_err_log(&config.name, i);
+                            tokio::spawn(async move {
+                                use tokio::io::{AsyncBufReadExt, BufReader};
+                                let reader = BufReader::new(stderr);
+                                let mut lines = reader.lines();
+                                let mut file = std::fs::OpenOptions::new()
+                                    .create(true)
+                                    .append(true)
+                                    .open(&err_path)
+                                    .ok();
+                                while let Ok(Some(line)) = lines.next_line().await {
+                                    if let Some(ref mut f) = file {
+                                        use std::io::Write;
+                                        let _ = writeln!(f, "{line}");
+                                    }
+                                }
+                            });
+                        }
+                    }
                 }
             }
 
