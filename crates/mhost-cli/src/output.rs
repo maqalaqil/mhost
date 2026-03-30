@@ -5,13 +5,36 @@ use mhost_core::process::{ProcessInfo, ProcessStatus};
 // Status formatting
 // ---------------------------------------------------------------------------
 
-pub fn format_status(status: &ProcessStatus) -> String {
+fn status_icon(status: &ProcessStatus) -> &'static str {
     match status {
-        ProcessStatus::Online => "● online".green().bold().to_string(),
-        ProcessStatus::Starting => "◐ starting".yellow().to_string(),
-        ProcessStatus::Stopping => "◑ stopping".yellow().to_string(),
-        ProcessStatus::Stopped => "○ stopped".dimmed().to_string(),
-        ProcessStatus::Errored => "✖ errored".red().bold().to_string(),
+        ProcessStatus::Online => "●",
+        ProcessStatus::Starting => "◐",
+        ProcessStatus::Stopping => "◑",
+        ProcessStatus::Stopped => "○",
+        ProcessStatus::Errored => "✖",
+    }
+}
+
+fn status_label(status: &ProcessStatus) -> &'static str {
+    match status {
+        ProcessStatus::Online => "online",
+        ProcessStatus::Starting => "starting",
+        ProcessStatus::Stopping => "stopping",
+        ProcessStatus::Stopped => "stopped",
+        ProcessStatus::Errored => "errored",
+    }
+}
+
+pub fn format_status(status: &ProcessStatus) -> String {
+    let icon = status_icon(status);
+    let label = status_label(status);
+    match status {
+        ProcessStatus::Online => format!("{} {}", icon.green(), label.green()),
+        ProcessStatus::Starting | ProcessStatus::Stopping => {
+            format!("{} {}", icon.yellow(), label.yellow())
+        }
+        ProcessStatus::Stopped => format!("{} {}", icon.dimmed(), label.dimmed()),
+        ProcessStatus::Errored => format!("{} {}", icon.red(), label.red()),
     }
 }
 
@@ -32,14 +55,45 @@ pub fn format_bytes(bytes: u64) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// Process table — modern box-drawing style
+// Pad helper — pads by visible width, ignoring ANSI codes
+// ---------------------------------------------------------------------------
+
+fn pad(text: &str, width: usize) -> String {
+    // Count visible characters (strip ANSI)
+    let visible_len = strip_ansi_len(text);
+    if visible_len >= width {
+        text.to_string()
+    } else {
+        format!("{}{}", text, " ".repeat(width - visible_len))
+    }
+}
+
+fn strip_ansi_len(s: &str) -> usize {
+    let mut len = 0;
+    let mut in_escape = false;
+    for ch in s.chars() {
+        if ch == '\x1b' {
+            in_escape = true;
+        } else if in_escape {
+            if ch == 'm' {
+                in_escape = false;
+            }
+        } else {
+            len += 1;
+        }
+    }
+    len
+}
+
+// ---------------------------------------------------------------------------
+// Process table
 // ---------------------------------------------------------------------------
 
 pub fn print_process_table(processes: &[ProcessInfo]) {
     if processes.is_empty() {
         println!();
         println!("  {}  {}", "○".dimmed(), "No processes running".dimmed());
-        println!("  {}  Run: {}", " ".dimmed(), "mhost start <app>".cyan());
+        println!("     Run: {}", "mhost start <app>".cyan());
         println!();
         return;
     }
@@ -50,7 +104,20 @@ pub fn print_process_table(processes: &[ProcessInfo]) {
         .count();
     let total = processes.len();
 
-    // Header
+    // Column widths
+    const W_ID: usize = 4;
+    const W_NAME: usize = 20;
+    const W_STATUS: usize = 12;
+    const W_PID: usize = 8;
+    const W_UP: usize = 12;
+    const W_RST: usize = 4;
+    const W_MEM: usize = 8;
+
+    let sep = format!(
+        "  {}",
+        "─".repeat(W_ID + W_NAME + W_STATUS + W_PID + W_UP + W_RST + W_MEM + 20)
+    );
+
     println!();
     println!(
         "  {} {} {}",
@@ -58,81 +125,79 @@ pub fn print_process_table(processes: &[ProcessInfo]) {
         "│".dimmed(),
         format!("{online}/{total} online").green()
     );
+    println!("{}", sep.dimmed());
+
+    // Header — use plain padding then colorize
     println!(
-        "  {}",
-        "─────┬──────────────────────┬──────────────┬─────────┬────────────┬──────────┬─────────"
-            .dimmed()
-    );
-    println!(
-        "  {}  │  {}  │  {}  │  {}  │  {}  │  {}  │  {}",
-        " # ".dimmed(),
-        "name".bold().white(),
-        "status".bold().white(),
-        " pid  ".dimmed(),
-        " uptime   ".dimmed(),
-        "restarts".dimmed(),
-        "memory".dimmed(),
-    );
-    println!(
-        "  {}",
-        "─────┼──────────────────────┼──────────────┼─────────┼────────────┼──────────┼─────────"
-            .dimmed()
+        "  {}  {}  {}  {}  {}  {}  {}",
+        format!("{:<W_ID$}", "ID").dimmed(),
+        format!("{:<W_NAME$}", "Name").bold(),
+        format!("{:<W_STATUS$}", "Status").bold(),
+        format!("{:<W_PID$}", "PID").dimmed(),
+        format!("{:<W_UP$}", "Uptime").dimmed(),
+        format!("{:<W_RST$}", "↺").dimmed(),
+        "Mem".dimmed(),
     );
 
+    println!("{}", sep.dimmed());
+
+    // Rows
     for (i, p) in processes.iter().enumerate() {
-        let pid_str = p
-            .pid
-            .map(|v| format!("{v}"))
-            .unwrap_or_else(|| "—".dimmed().to_string());
-
-        let mem_str = p
+        // Build raw (uncolored) padded strings first
+        let id_raw = format!("{:<W_ID$}", i);
+        let name_raw = if p.config.name.len() > W_NAME {
+            format!("{:<W_NAME$}", format!("{}…", &p.config.name[..W_NAME - 1]))
+        } else {
+            format!("{:<W_NAME$}", p.config.name)
+        };
+        let pid_raw = format!(
+            "{:<W_PID$}",
+            p.pid.map(|v| v.to_string()).unwrap_or_else(|| "–".into())
+        );
+        let uptime_raw = {
+            let u = p.format_uptime();
+            format!("{:<W_UP$}", if u == "0s" { "–".into() } else { u })
+        };
+        let rst_raw = format!("{:<W_RST$}", p.restart_count);
+        let mem_raw = p
             .memory_bytes
             .map(format_bytes)
-            .unwrap_or_else(|| "—".dimmed().to_string());
+            .unwrap_or_else(|| "–".into());
 
-        let uptime = p.format_uptime();
-        let uptime_str = if uptime == "0s" {
-            "—".dimmed().to_string()
-        } else {
-            uptime
+        // Status: pad the raw label, then colorize the whole thing
+        let status_raw = format!(
+            "{} {:<width$}",
+            status_icon(&p.status),
+            status_label(&p.status),
+            width = W_STATUS - 2
+        );
+        let status_colored = match p.status {
+            ProcessStatus::Online => status_raw.green().to_string(),
+            ProcessStatus::Starting | ProcessStatus::Stopping => status_raw.yellow().to_string(),
+            ProcessStatus::Stopped => status_raw.dimmed().to_string(),
+            ProcessStatus::Errored => status_raw.red().to_string(),
         };
 
-        let restarts = if p.restart_count > 0 {
-            format!("{}", p.restart_count).yellow().to_string()
+        // Now colorize individual cells (color applied to already-padded strings)
+        let rst_colored = if p.restart_count > 0 {
+            rst_raw.yellow().to_string()
         } else {
-            "0".dimmed().to_string()
-        };
-
-        // Truncate long names
-        let name = if p.config.name.len() > 18 {
-            format!("{}…", &p.config.name[..17])
-        } else {
-            p.config.name.clone()
+            rst_raw.dimmed().to_string()
         };
 
         println!(
-            "  {:<3} {} {:<18}   {} {:<12} {} {:<7} {} {:<10} {} {:<8} {} {:<7}",
-            format!("{i}").dimmed(),
-            "│".dimmed(),
-            name.white(),
-            "│".dimmed(),
-            format_status(&p.status),
-            "│".dimmed(),
-            pid_str,
-            "│".dimmed(),
-            uptime_str,
-            "│".dimmed(),
-            restarts,
-            "│".dimmed(),
-            mem_str,
+            "  {}  {}  {}  {}  {}  {}  {}",
+            id_raw.dimmed(),
+            name_raw,
+            status_colored,
+            pid_raw,
+            uptime_raw,
+            rst_colored,
+            mem_raw.dimmed(),
         );
     }
 
-    println!(
-        "  {}",
-        "─────┴──────────────────────┴──────────────┴─────────┴────────────┴──────────┴─────────"
-            .dimmed()
-    );
+    println!("{}", sep.dimmed());
     println!();
 }
 
@@ -180,5 +245,18 @@ mod tests {
     fn test_format_status_online() {
         let s = format_status(&ProcessStatus::Online);
         assert!(s.contains("online"));
+    }
+
+    #[test]
+    fn test_strip_ansi_len() {
+        assert_eq!(strip_ansi_len("hello"), 5);
+        assert_eq!(strip_ansi_len("\x1b[32mhello\x1b[0m"), 5);
+        assert_eq!(strip_ansi_len(""), 0);
+    }
+
+    #[test]
+    fn test_pad() {
+        assert_eq!(pad("hi", 5), "hi   ");
+        assert_eq!(pad("hello", 3), "hello"); // no truncation
     }
 }
