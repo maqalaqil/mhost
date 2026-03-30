@@ -288,6 +288,10 @@ pub enum NotifyAction {
     version
 )]
 pub struct Cli {
+    /// Print version
+    #[arg(short = 'v', action = clap::ArgAction::Version)]
+    version: (),
+
     #[command(subcommand)]
     pub command: Commands,
 }
