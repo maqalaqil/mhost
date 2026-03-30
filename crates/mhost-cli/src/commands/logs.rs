@@ -378,7 +378,7 @@ fn resolve_log_by_id(
 ) -> Result<(std::path::PathBuf, String), String> {
     // Scan log directory for files and try to match
     let logs_dir = paths.logs_dir();
-    let suffix = if err_stream { "-out.log" } else { "-out.log" };
+    let _ = err_stream; // used for log path selection below
 
     if logs_dir.exists() {
         // Try the state DB to resolve ID -> name
@@ -402,8 +402,7 @@ fn resolve_log_by_id(
     }
 
     Err(format!(
-        "No logs found for '{}'. Use process name or run: mhost list",
-        id_prefix
+        "No logs found for '{id_prefix}'. Use process name or run: mhost list"
     ))
 }
 

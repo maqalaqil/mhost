@@ -55,37 +55,6 @@ pub fn format_bytes(bytes: u64) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// Pad helper — pads by visible width, ignoring ANSI codes
-// ---------------------------------------------------------------------------
-
-fn pad(text: &str, width: usize) -> String {
-    // Count visible characters (strip ANSI)
-    let visible_len = strip_ansi_len(text);
-    if visible_len >= width {
-        text.to_string()
-    } else {
-        format!("{}{}", text, " ".repeat(width - visible_len))
-    }
-}
-
-fn strip_ansi_len(s: &str) -> usize {
-    let mut len = 0;
-    let mut in_escape = false;
-    for ch in s.chars() {
-        if ch == '\x1b' {
-            in_escape = true;
-        } else if in_escape {
-            if ch == 'm' {
-                in_escape = false;
-            }
-        } else {
-            len += 1;
-        }
-    }
-    len
-}
-
-// ---------------------------------------------------------------------------
 // Process table
 // ---------------------------------------------------------------------------
 
@@ -144,7 +113,7 @@ pub fn print_process_table(processes: &[ProcessInfo]) {
     // Rows
     for (i, p) in processes.iter().enumerate() {
         // Build raw (uncolored) padded strings first
-        let id_raw = format!("{:<W_ID$}", i);
+        let id_raw = format!("{i:<W_ID$}");
         let name_raw = if p.config.name.len() > W_NAME {
             format!("{:<W_NAME$}", format!("{}…", &p.config.name[..W_NAME - 1]))
         } else {
@@ -245,18 +214,5 @@ mod tests {
     fn test_format_status_online() {
         let s = format_status(&ProcessStatus::Online);
         assert!(s.contains("online"));
-    }
-
-    #[test]
-    fn test_strip_ansi_len() {
-        assert_eq!(strip_ansi_len("hello"), 5);
-        assert_eq!(strip_ansi_len("\x1b[32mhello\x1b[0m"), 5);
-        assert_eq!(strip_ansi_len(""), 0);
-    }
-
-    #[test]
-    fn test_pad() {
-        assert_eq!(pad("hi", 5), "hi   ");
-        assert_eq!(pad("hello", 3), "hello"); // no truncation
     }
 }
