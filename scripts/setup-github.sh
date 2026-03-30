@@ -13,7 +13,7 @@ echo "────────────────────────�
 echo "Setting description and topics..."
 gh repo edit "$REPO" \
   --description "AI-powered process manager written in Rust. Single binary, zero dependencies. Health probes, Telegram alerts, Prometheus metrics, reverse proxy, TUI dashboard, cloud fleet management." \
-  --homepage "https://mhost.dev" \
+  --homepage "https://mhostai.com" \
   --enable-issues \
   --enable-wiki=false \
   --enable-discussions \

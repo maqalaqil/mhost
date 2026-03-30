@@ -73,14 +73,14 @@ cargo install mhost
 <tr><td><b>curl</b></td><td>
 
 ```bash
-curl -fsSL https://mhost.dev/install.sh | sh
+curl -fsSL https://mhostai.com/install.sh | sh
 ```
 
 </td></tr>
 <tr><td><b>PowerShell</b></td><td>
 
 ```powershell
-irm https://mhost.dev/install.ps1 | iex
+irm https://mhostai.com/install.ps1 | iex
 ```
 
 </td></tr>

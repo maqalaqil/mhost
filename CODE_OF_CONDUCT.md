@@ -24,7 +24,7 @@ Examples of unacceptable behavior:
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainers at **conduct@mhost.dev**.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainers at **conduct@mhostai.com**.
 
 All complaints will be reviewed and investigated promptly and fairly.
 

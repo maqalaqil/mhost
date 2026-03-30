@@ -11,7 +11,7 @@
 If you discover a security vulnerability in mhost, please report it responsibly:
 
 1. **Do not** open a public GitHub issue
-2. Email: security@mhost.dev (or create a private security advisory on GitHub)
+2. Email: security@mhostai.com (or create a private security advisory on GitHub)
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
