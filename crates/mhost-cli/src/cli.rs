@@ -285,11 +285,12 @@ pub enum NotifyAction {
 #[command(
     name = "mhost",
     about = "Advanced process manager — PM2 replacement written in Rust",
-    version
+    version,
+    disable_version_flag = true
 )]
 pub struct Cli {
     /// Print version
-    #[arg(short = 'v', action = clap::ArgAction::Version)]
+    #[arg(short = 'v', short_alias = 'V', long = "version", action = clap::ArgAction::Version)]
     version: (),
 
     #[command(subcommand)]
