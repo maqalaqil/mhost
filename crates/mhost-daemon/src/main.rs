@@ -89,6 +89,8 @@ async fn main() {
     #[cfg(unix)]
     {
         let shutdown_signal = Arc::clone(&shutdown);
+        let sig_supervisor = Arc::clone(&supervisor);
+        let sig_state = Arc::clone(&state_store);
         tokio::spawn(async move {
             use tokio::signal::unix::{signal, SignalKind};
             let mut sigterm =
@@ -98,12 +100,17 @@ async fn main() {
 
             tokio::select! {
                 _ = sigterm.recv() => {
-                    tracing::info!("Received SIGTERM, shutting down");
+                    tracing::info!("Received SIGTERM, stopping children");
                 }
                 _ = sigint.recv() => {
-                    tracing::info!("Received SIGINT, shutting down");
+                    tracing::info!("Received SIGINT, stopping children");
                 }
             }
+
+            // Stop all children before notifying shutdown
+            let state_guard = sig_state.lock().await;
+            sig_supervisor.stop_all(&state_guard).await;
+            drop(state_guard);
 
             shutdown_signal.notify_one();
         });
@@ -112,11 +119,18 @@ async fn main() {
     #[cfg(windows)]
     {
         let shutdown_signal = Arc::clone(&shutdown);
+        let sig_supervisor = Arc::clone(&supervisor);
+        let sig_state = Arc::clone(&state_store);
         tokio::spawn(async move {
             tokio::signal::ctrl_c()
                 .await
                 .expect("Failed to register Ctrl+C handler");
-            tracing::info!("Received Ctrl+C, shutting down");
+            tracing::info!("Received Ctrl+C, stopping children");
+
+            let state_guard = sig_state.lock().await;
+            sig_supervisor.stop_all(&state_guard).await;
+            drop(state_guard);
+
             shutdown_signal.notify_one();
         });
     }
@@ -146,7 +160,43 @@ async fn main() {
     // -----------------------------------------------------------------------
     tracing::info!("mhostd listening on {:?}", socket_path);
     server.run(handler_fn).await;
-    tracing::info!("mhostd shutting down");
+    tracing::info!("mhostd shutting down — stopping all child processes");
+
+    // -----------------------------------------------------------------------
+    // Stop all child processes before exiting
+    // -----------------------------------------------------------------------
+    {
+        let state_guard = state_store.lock().await;
+        supervisor.stop_all(&state_guard).await;
+    }
+    tracing::info!("All child processes stopped");
+
+    // -----------------------------------------------------------------------
+    // Kill any remaining child processes by PID file
+    // -----------------------------------------------------------------------
+    let pids_dir = paths.pids_dir();
+    if pids_dir.exists() {
+        if let Ok(entries) = std::fs::read_dir(&pids_dir) {
+            for entry in entries.flatten() {
+                if let Ok(pid_str) = std::fs::read_to_string(entry.path()) {
+                    if let Ok(pid) = pid_str.trim().parse::<i32>() {
+                        tracing::info!(pid = pid, file = ?entry.path(), "Killing child process");
+                        #[cfg(unix)]
+                        unsafe {
+                            libc::kill(pid, libc::SIGTERM);
+                        }
+                        // Give it a moment, then force kill
+                        std::thread::sleep(std::time::Duration::from_millis(500));
+                        #[cfg(unix)]
+                        unsafe {
+                            libc::kill(pid, libc::SIGKILL);
+                        }
+                    }
+                }
+                let _ = std::fs::remove_file(entry.path());
+            }
+        }
+    }
 
     // -----------------------------------------------------------------------
     // Cleanup

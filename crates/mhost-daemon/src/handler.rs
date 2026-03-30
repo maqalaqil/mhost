@@ -634,6 +634,12 @@ impl Handler {
             // daemon.kill
             // ----------------------------------------------------------------
             methods::DAEMON_KILL => {
+                // Stop all children BEFORE signaling shutdown
+                tracing::info!("daemon.kill: stopping all child processes");
+                let state_guard = self.state.lock().await;
+                self.supervisor.stop_all(&state_guard).await;
+                drop(state_guard);
+                tracing::info!("daemon.kill: all children stopped");
                 let resp = RpcResponse::success(id, json!({ "shutting_down": true }));
                 (resp, true)
             }

@@ -370,6 +370,9 @@ impl Supervisor {
                     if let Some(ref mut child) = mp.child {
                         let grace_ms = mp.info.config.grace_period_ms;
                         graceful_kill(child, grace_ms).await;
+                    } else if let Some(pid) = mp.info.pid {
+                        // Child was taken by the exit watcher — kill by PID directly
+                        kill_by_pid(pid, mp.info.config.grace_period_ms).await;
                     }
 
                     let updated = ProcessInfo {
@@ -678,6 +681,30 @@ async fn graceful_kill(child: &mut Child, grace_period_ms: u64) {
     {
         let _ = grace_period_ms; // suppress unused warning on Windows
         let _ = child.kill().await;
+    }
+}
+
+/// Kill a process by PID when we don't have the Child handle.
+async fn kill_by_pid(pid: u32, grace_period_ms: u64) {
+    #[cfg(unix)]
+    {
+        use nix::sys::signal::{kill as nix_kill, Signal};
+        use nix::unistd::Pid;
+
+        let nix_pid = Pid::from_raw(pid as i32);
+        // Send SIGTERM
+        if nix_kill(nix_pid, Signal::SIGTERM).is_ok() {
+            // Wait grace period
+            let grace = tokio::time::Duration::from_millis(grace_period_ms);
+            tokio::time::sleep(grace).await;
+            // Force kill if still alive
+            let _ = nix_kill(nix_pid, Signal::SIGKILL);
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = pid;
+        let _ = grace_period_ms;
     }
 }
 
