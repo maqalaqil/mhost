@@ -98,20 +98,44 @@ function getProcessList() {
 }
 
 function parseProcessList(output) {
-  const lines = output.split("\n").filter((l) => l.trim() && !l.startsWith("id") && !l.startsWith("─"));
-  return lines.map((line) => {
-    const parts = line.trim().split(/\s{2,}/);
-    if (parts.length < 6) return null;
-    return {
-      id: parts[0],
-      name: parts[1],
-      status: parts[2],
-      pid: parts[3],
-      instance: parts[4],
-      uptime: parts[5],
-      restarts: parseInt(parts[6]) || 0,
-    };
-  }).filter(Boolean);
+  // Parse the new table format. Each data row looks like:
+  //   0     api-server            ● online      12345     2d 14h        0     –
+  // We extract: ID, Name, Status (strip dot), PID, Uptime, Restarts
+  const lines = output.split("\n");
+  const results = [];
+
+  for (const line of lines) {
+    // Skip headers, separators, empty lines, and the "mhost │" header
+    if (!line.trim() || line.includes("──") || line.includes("ID") || line.includes("mhost")) continue;
+
+    // Extract status keyword from known status words
+    let status = "unknown";
+    if (line.includes("online")) status = "online";
+    else if (line.includes("starting")) status = "starting";
+    else if (line.includes("stopping")) status = "stopping";
+    else if (line.includes("stopped")) status = "stopped";
+    else if (line.includes("errored")) status = "errored";
+    else continue; // not a data row
+
+    // Extract name — first non-numeric word after the ID
+    const stripped = line.replace(/[●◐◑○✖]/g, "").trim();
+    const tokens = stripped.split(/\s+/).filter(Boolean);
+    if (tokens.length < 3) continue;
+
+    const id = tokens[0];
+    const name = tokens[1];
+
+    // Find restarts — look for a number near the end
+    const restarts = parseInt(tokens[tokens.length - 2]) || 0;
+
+    // Find PID — number after status
+    const statusIdx = tokens.findIndex(t => t === status);
+    const pid = statusIdx >= 0 && tokens[statusIdx + 1] ? tokens[statusIdx + 1] : "–";
+
+    results.push({ id, name, status, pid, instance: "0", uptime: "", restarts });
+  }
+
+  return results;
 }
 
 async function checkProcesses() {
@@ -129,29 +153,37 @@ async function checkProcesses() {
     const key = `${proc.name}:${proc.instance}`;
     const prev = previousState.get(key);
 
-    // ── Crash Detection ──
-    if (prev && prev.status === "online" && (proc.status === "errored" || proc.status === "stopped")) {
+    // Only alert on STATUS TRANSITIONS — not on static state
+    if (!prev) {
+      // First time seeing this process — just record state, don't alert
+      previousState.set(key, { status: proc.status, restarts: proc.restarts });
+      continue;
+    }
+
+    // Skip if status hasn't changed
+    if (prev.status === proc.status && prev.restarts === proc.restarts) {
+      continue;
+    }
+
+    // ── Crash Detection (online → errored) ──
+    if (prev.status === "online" && proc.status === "errored") {
       if (shouldAlert(`crash:${key}`)) {
         await sendTelegram(
-          `🔴 CRASH: Process "${proc.name}" (instance ${proc.instance}) has ${proc.status}!\n\nPrevious status: ${prev.status}\nPID: ${proc.pid || "N/A"}\nRestarts: ${proc.restarts}`
+          `🔴 CRASH: Process "${proc.name}" has entered errored state!\n\nMax restarts exceeded. Manual intervention required.\nRestarts: ${proc.restarts}`
         );
       }
     }
 
-    // ── Errored State ──
-    if (proc.status === "errored" && (!prev || prev.status !== "errored")) {
-      if (shouldAlert(`errored:${key}`)) {
-        await sendTelegram(
-          `🔴 ERRORED: Process "${proc.name}" (instance ${proc.instance}) has entered errored state!\n\nThis means max restarts have been exceeded. Manual intervention required.\nRestarts: ${proc.restarts}`
-        );
-      }
-    }
+    // ── Unexpected Stop (online → stopped, NOT intentional) ──
+    // We can't distinguish intentional vs crash stops, so only alert on errored
+    // Intentional /stop command → stopped status → NO alert
+    // Crash loop → errored status → alert (above)
 
-    // ── Recovery Detection ──
-    if (prev && (prev.status === "errored" || prev.status === "stopped") && proc.status === "online") {
+    // ── Recovery Detection (errored/stopped → online) ──
+    if ((prev.status === "errored" || prev.status === "stopped") && proc.status === "online") {
       if (shouldAlert(`recovery:${key}`)) {
         await sendTelegram(
-          `🟢 RECOVERED: Process "${proc.name}" (instance ${proc.instance}) is back online!\n\nPID: ${proc.pid}\nUptime: ${proc.uptime}`
+          `🟢 RECOVERED: Process "${proc.name}" is back online!\n\nPID: ${proc.pid}`
         );
       }
     }
