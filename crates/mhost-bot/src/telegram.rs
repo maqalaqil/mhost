@@ -562,8 +562,7 @@ impl TelegramBot {
                 }
             }
 
-            "help" => {
-                Ok("<b>\u{2699}\u{FE0F} mhost Bot Commands</b>\n\n\
+            "help" => Ok("<b>\u{2699}\u{FE0F} mhost Bot Commands</b>\n\n\
                  <b>Process Management</b>\n\
                  /status \u{2014} Show all processes\n\
                  /info &lt;app&gt; \u{2014} Detailed process info\n\
@@ -584,8 +583,7 @@ impl TelegramBot {
                  /ai diagnose &lt;app&gt; \u{2014} Crash analysis\n\
                  /ai ask &lt;question&gt; \u{2014} Ask anything\n\n\
                  /help \u{2014} This message"
-                    .to_string())
-            }
+                .to_string()),
 
             _ => Err(format!("Unknown command: /{command}. Try /help")),
         }
