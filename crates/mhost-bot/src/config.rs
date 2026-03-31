@@ -145,16 +145,24 @@ pub fn command_allowed(role: Role, command: &str) -> bool {
         Role::Operator => matches!(
             command,
             "status"
+                | "list"
                 | "start"
                 | "stop"
                 | "restart"
                 | "scale"
+                | "delete"
                 | "logs"
+                | "info"
                 | "health"
                 | "deploy"
+                | "save"
+                | "resurrect"
                 | "help"
         ),
-        Role::Viewer => matches!(command, "status" | "logs" | "health" | "help"),
+        Role::Viewer => matches!(
+            command,
+            "status" | "list" | "logs" | "info" | "health" | "help"
+        ),
     }
 }
 

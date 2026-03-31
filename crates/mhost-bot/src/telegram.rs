@@ -179,8 +179,8 @@ impl TelegramBot {
             return;
         }
 
-        let is_destructive =
-            self.config.confirm_destructive && matches!(command, "stop" | "delete" | "restart");
+        let is_destructive = self.config.confirm_destructive
+            && matches!(command, "stop" | "delete" | "restart" | "kill");
 
         if is_destructive {
             let action_desc = format!("/{command} {}", args.join(" "));
@@ -369,18 +369,125 @@ impl TelegramBot {
                 }
             }
 
+            "info" => {
+                let name = args.first().ok_or("Usage: /info <process>")?;
+                let resp = ipc
+                    .call(methods::PROCESS_INFO, serde_json::json!({ "name": name }))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if let Some(err) = resp.error {
+                    return Err(err.message);
+                }
+                let result = resp.result.unwrap_or_default();
+                let procs = result.get("processes").unwrap_or(&result);
+                let arr = procs.as_array().ok_or("Invalid response")?;
+                if let Some(p) = arr.first() {
+                    let name = p["config"]["name"].as_str().unwrap_or("?");
+                    let status = p["status"].as_str().unwrap_or("?");
+                    let pid = p["pid"]
+                        .as_u64()
+                        .map(|v| v.to_string())
+                        .unwrap_or("–".into());
+                    let restarts = p["restart_count"].as_u64().unwrap_or(0);
+                    let cmd = p["config"]["command"].as_str().unwrap_or("?");
+                    let uptime = p["uptime_started"].as_str().unwrap_or("–");
+                    let instance = p["instance"].as_u64().unwrap_or(0);
+                    Ok(format!(
+                        "<b>\u{2139}\u{FE0F} {name}</b>\n\n\
+                         Status: {status}\n\
+                         PID: {pid}\n\
+                         Instance: {instance}\n\
+                         Restarts: {restarts}\n\
+                         Command: <code>{cmd}</code>\n\
+                         Started: {uptime}"
+                    ))
+                } else {
+                    Err(format!("Process '{name}' not found"))
+                }
+            }
+
+            "delete" => {
+                let target = args.first().ok_or("Usage: /delete <process>")?;
+                let resp = ipc
+                    .call(
+                        methods::PROCESS_DELETE,
+                        serde_json::json!({ "name": target }),
+                    )
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if let Some(err) = resp.error {
+                    Err(err.message)
+                } else {
+                    Ok(format!("\u{1F5D1} Deleted '{target}'"))
+                }
+            }
+
+            "kill" => {
+                let resp = ipc
+                    .call(methods::DAEMON_KILL, serde_json::json!(null))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if let Some(err) = resp.error {
+                    Err(err.message)
+                } else {
+                    Ok("\u{1F480} Daemon killed. All processes stopped.".into())
+                }
+            }
+
+            "save" => {
+                let resp = ipc
+                    .call(methods::PROCESS_SAVE, serde_json::json!(null))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if let Some(err) = resp.error {
+                    Err(err.message)
+                } else {
+                    Ok("\u{1F4BE} Process list saved for resurrection.".into())
+                }
+            }
+
+            "resurrect" => {
+                let resp = ipc
+                    .call(methods::PROCESS_RESURRECT, serde_json::json!(null))
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if let Some(err) = resp.error {
+                    Err(err.message)
+                } else {
+                    Ok("\u{1F504} Processes resurrected.".into())
+                }
+            }
+
             "logs" => {
                 let name = args.first().ok_or("Usage: /logs <process> [lines]")?;
                 let lines: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(15);
-                let log_path = self.paths.process_out_log(name, 0);
-                let content = if log_path.exists() {
-                    mhost_logs::reader::tail(&log_path, lines)
-                        .unwrap_or_default()
-                        .join("\n")
+
+                // Try stdout first, fallback to stderr
+                let out_path = self.paths.process_out_log(name, 0);
+                let err_path = self.paths.process_err_log(name, 0);
+
+                let (content, source) = if out_path.exists() {
+                    let out_lines = mhost_logs::reader::tail(&out_path, lines).unwrap_or_default();
+                    if out_lines.is_empty() && err_path.exists() {
+                        let err_lines =
+                            mhost_logs::reader::tail(&err_path, lines).unwrap_or_default();
+                        (err_lines.join("\n"), "stderr")
+                    } else {
+                        (out_lines.join("\n"), "stdout")
+                    }
+                } else if err_path.exists() {
+                    let err_lines = mhost_logs::reader::tail(&err_path, lines).unwrap_or_default();
+                    (err_lines.join("\n"), "stderr")
                 } else {
-                    "No logs found.".into()
+                    ("No logs found.".into(), "")
                 };
-                Ok(format!("<b>Logs: {name}</b>\n<pre>{content}</pre>"))
+
+                let header = if source.is_empty() {
+                    format!("<b>Logs: {name}</b>")
+                } else {
+                    format!("<b>Logs: {name}</b> ({source})")
+                };
+                Ok(format!("{header}\n<pre>{content}</pre>"))
             }
 
             "health" => {
@@ -455,20 +562,30 @@ impl TelegramBot {
                 }
             }
 
-            "help" => Ok("\
-                <b>mhost Bot Commands</b>\n\n\
-                /status \u{2014} Show all processes\n\
-                /start &lt;app&gt; \u{2014} Start a process\n\
-                /stop &lt;app&gt; \u{2014} Stop a process\n\
-                /restart &lt;app&gt; \u{2014} Restart a process\n\
-                /scale &lt;app&gt; &lt;N&gt; \u{2014} Scale instances\n\
-                /logs &lt;app&gt; [lines] \u{2014} View logs\n\
-                /health &lt;app&gt; \u{2014} Health status\n\
-                /deploy &lt;env&gt; \u{2014} Trigger deploy\n\
-                /ai diagnose &lt;app&gt; \u{2014} AI crash analysis\n\
-                /ai ask &lt;question&gt; \u{2014} Ask AI\n\
-                /help \u{2014} This message"
-                .to_string()),
+            "help" | "start" if args.is_empty() && command == "help" => {
+                Ok("<b>\u{2699}\u{FE0F} mhost Bot Commands</b>\n\n\
+                 <b>Process Management</b>\n\
+                 /status \u{2014} Show all processes\n\
+                 /info &lt;app&gt; \u{2014} Detailed process info\n\
+                 /start &lt;app&gt; \u{2014} Start a process\n\
+                 /stop &lt;app&gt; \u{2014} Stop a process\n\
+                 /restart &lt;app&gt; \u{2014} Restart a process\n\
+                 /delete &lt;app&gt; \u{2014} Remove process\n\
+                 /scale &lt;app&gt; &lt;N&gt; \u{2014} Scale instances\n\n\
+                 <b>Monitoring</b>\n\
+                 /logs &lt;app&gt; [lines] \u{2014} View logs\n\
+                 /health &lt;app&gt; \u{2014} Health check status\n\n\
+                 <b>Operations</b>\n\
+                 /deploy &lt;env&gt; \u{2014} Trigger deploy\n\
+                 /save \u{2014} Save process list\n\
+                 /resurrect \u{2014} Restore saved processes\n\
+                 /kill \u{2014} Kill daemon + all processes\n\n\
+                 <b>AI</b>\n\
+                 /ai diagnose &lt;app&gt; \u{2014} Crash analysis\n\
+                 /ai ask &lt;question&gt; \u{2014} Ask anything\n\n\
+                 /help \u{2014} This message"
+                    .to_string())
+            }
 
             _ => Err(format!("Unknown command: /{command}. Try /help")),
         }
