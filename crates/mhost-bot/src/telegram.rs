@@ -562,7 +562,7 @@ impl TelegramBot {
                 }
             }
 
-            "help" | "start" if args.is_empty() && command == "help" => {
+            "help" => {
                 Ok("<b>\u{2699}\u{FE0F} mhost Bot Commands</b>\n\n\
                  <b>Process Management</b>\n\
                  /status \u{2014} Show all processes\n\
