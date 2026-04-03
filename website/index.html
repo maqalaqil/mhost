@@ -262,6 +262,7 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
       <li><a href="#ai">AI</a></li>
       <li><a href="#agent">Agent</a></li>
       <li><a href="#brain">Brain</a></li>
+      <li><a href="#production">Production</a></li>
       <li><a href="#cloud">Cloud</a></li>
       <li><a href="#install">Install</a></li>
       <li><a href="#config">Config</a></li>
@@ -369,6 +370,9 @@ g7h8 frontend      <span class="status-online">● online</span>    12348   1.0%
         <tr><td>Cloud fleet</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">SSH fleet — AWS, Azure, DO, Railway auto-import</td></tr>
         <tr><td>Remote control</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">Telegram/Discord bot with role-based permissions</td></tr>
         <tr><td>Config format</td><td class="pm2">JS only</td><td class="mhost-val">TOML, YAML, JSON</td></tr>
+        <tr><td>Web dashboard</td><td class="pm2">pm2-web (separate)</td><td class="mhost-val">Built-in browser UI with SSE live logs</td></tr>
+        <tr><td>Zero-downtime reload</td><td class="pm2">Basic</td><td class="mhost-val">Health-check gated rolling restart</td></tr>
+        <tr><td>Dev mode</td><td class="pm2"><span class="cross">None</span></td><td class="mhost-val">File watcher + auto-restart + .env loading</td></tr>
       </tbody>
     </table>
   </div>
@@ -754,6 +758,94 @@ g7h8 frontend      <span class="status-online">● online</span>    12348   1.0%
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Production Tools ───────────────────────────────────── -->
+<section class="section" id="production">
+  <div class="container">
+    <div class="text-center fade-in">
+      <span class="badge badge-green">PRODUCTION READY</span>
+      <h2 style="font-size:2.8rem;font-weight:800;margin-top:16px;letter-spacing:-2px;line-height:1.1">Built for real<br><span class="text-gradient">production workflows.</span></h2>
+      <p style="color:var(--text2);max-width:600px;margin:16px auto 0">Web dashboard, zero-downtime deploys, live log streaming, and a dev mode that replaces nodemon. Everything you need from development to production.</p>
+    </div>
+
+    <!-- 4 feature cards in 2x2 grid -->
+    <div class="grid-2" style="margin-top:48px">
+
+      <!-- Web Dashboard -->
+      <div class="feature-card fade-in" style="padding:28px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right, rgba(99,102,241,.08), transparent);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:44px;height:44px;border-radius:10px;background:rgba(99,102,241,.12);display:flex;align-items:center;justify-content:center;font-size:1.3rem">&#128202;</div>
+          <div>
+            <h3 style="font-size:1.1rem;margin:0">Web Dashboard</h3>
+            <code style="font-size:.7rem;color:var(--accent3);background:rgba(99,102,241,.08);padding:2px 8px;border-radius:4px">mhost dashboard</code>
+          </div>
+        </div>
+        <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:16px">Real-time browser UI accessible from any device. Process table, log viewer, action buttons, SSE live streaming. Dark theme, responsive, zero dependencies.</p>
+        <div style="background:var(--bg4);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:.75rem;line-height:1.6">
+          <span style="color:var(--text3)">$</span> mhost dashboard --port 8080<br>
+          <span style="color:var(--green2)">&#10003;</span> Dashboard at <span style="color:var(--cyan)">http://localhost:8080</span>
+        </div>
+      </div>
+
+      <!-- Zero-Downtime Reload -->
+      <div class="feature-card fade-in" style="padding:28px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right, rgba(34,197,94,.08), transparent);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:44px;height:44px;border-radius:10px;background:rgba(34,197,94,.12);display:flex;align-items:center;justify-content:center;font-size:1.3rem">&#9889;</div>
+          <div>
+            <h3 style="font-size:1.1rem;margin:0">Zero-Downtime Reload</h3>
+            <code style="font-size:.7rem;color:var(--green2);background:rgba(34,197,94,.08);padding:2px 8px;border-radius:4px">mhost reload</code>
+          </div>
+        </div>
+        <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:16px">Restart without dropping a single request. New instances start, health checks pass, then old instances are killed. Users never notice.</p>
+        <div style="background:var(--bg4);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:.75rem;line-height:1.6">
+          <span style="color:var(--text3)">$</span> mhost reload api-server<br>
+          <span style="color:var(--green2)">&#10003;</span> Reloaded 'api-server' with zero downtime
+        </div>
+      </div>
+
+      <!-- Live Log Streaming -->
+      <div class="feature-card fade-in" style="padding:28px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right, rgba(6,182,212,.08), transparent);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:44px;height:44px;border-radius:10px;background:rgba(6,182,212,.12);display:flex;align-items:center;justify-content:center;font-size:1.3rem">&#128196;</div>
+          <div>
+            <h3 style="font-size:1.1rem;margin:0">Live Log Streaming</h3>
+            <code style="font-size:.7rem;color:var(--cyan);background:rgba(6,182,212,.08);padding:2px 8px;border-radius:4px">--follow</code>
+          </div>
+        </div>
+        <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:16px">Real-time log tail like <code style="font-size:.8rem">tail -f</code>. Timestamps, process names, colored JSON parsing, grep filtering — all streaming live.</p>
+        <div style="background:var(--bg4);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:.75rem;line-height:1.6">
+          <span style="color:var(--text3)">$</span> mhost logs api --follow --grep error<br>
+          <span style="color:var(--text3)">09:31:00</span> <span style="color:var(--cyan)">api</span> <span style="color:var(--red)">Connection timeout</span><br>
+          <span style="color:var(--text3)">09:31:05</span> <span style="color:var(--cyan)">api</span> <span style="color:var(--red)">ECONNREFUSED</span><br>
+          <span style="color:var(--text3)" style="opacity:.5">&#9608; waiting for new lines...</span>
+        </div>
+      </div>
+
+      <!-- Dev Mode -->
+      <div class="feature-card fade-in" style="padding:28px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right, rgba(234,179,8,.08), transparent);pointer-events:none"></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:44px;height:44px;border-radius:10px;background:rgba(234,179,8,.12);display:flex;align-items:center;justify-content:center;font-size:1.3rem">&#9889;</div>
+          <div>
+            <h3 style="font-size:1.1rem;margin:0">Dev Mode</h3>
+            <code style="font-size:.7rem;color:#fbbf24;background:rgba(234,179,8,.08);padding:2px 8px;border-radius:4px">mhost dev</code>
+          </div>
+        </div>
+        <p style="color:var(--text2);font-size:.88rem;line-height:1.6;margin-bottom:16px">Replaces nodemon + dotenv + concurrently. File watcher, auto-restart, .env loading, colorized inline logs. One command for development.</p>
+        <div style="background:var(--bg4);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:.75rem;line-height:1.6">
+          <span style="color:var(--text3)">$</span> mhost dev server.js --watch src/<br>
+          <span style="color:var(--cyan)">&#9889;</span> <b>mhost dev</b> server.js<br>
+          <span style="color:var(--text3)">&nbsp;&nbsp;Watching: src/</span><br>
+          <span style="color:var(--yellow)">&#8635;</span> File changed — restarting...
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
