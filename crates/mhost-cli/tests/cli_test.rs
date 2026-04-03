@@ -559,7 +559,7 @@ fn non_daemon_commands_work_without_daemon() {
         let output = mhost_bin()
             .args(args)
             .output()
-            .expect(&format!("mhost {} should not panic", args.join(" ")));
+            .unwrap_or_else(|_| panic!("mhost {} should not panic", args.join(" ")));
         // We don't check exit code — some may fail if not configured
         // We just verify they don't crash/panic
         assert!(
