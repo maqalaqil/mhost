@@ -8,7 +8,7 @@ use crate::output::{print_error, print_success};
 /// Zero-downtime reload — falls back to a supervised restart for now.
 /// Full health-check gating will be added in a future release.
 pub async fn run(client: &IpcClient, target: &str) -> Result<(), String> {
-    println!("  Reloading '{}' (zero-downtime)...", target);
+    println!("  Reloading '{target}' (zero-downtime)...");
     let resp = client
         .call(methods::PROCESS_RELOAD, json!({"name": target}))
         .await
@@ -18,7 +18,7 @@ pub async fn run(client: &IpcClient, target: &str) -> Result<(), String> {
         print_error(&err.message);
         Err(err.message)
     } else {
-        print_success(&format!("Reloaded '{}' with zero downtime", target));
+        print_success(&format!("Reloaded '{target}' with zero downtime"));
         Ok(())
     }
 }

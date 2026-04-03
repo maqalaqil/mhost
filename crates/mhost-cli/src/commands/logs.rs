@@ -203,7 +203,7 @@ pub fn follow(
 
     // Wait for file to exist
     if !log_path.exists() {
-        println!("  Waiting for logs from '{}'...", name);
+        println!("  Waiting for logs from '{name}'...");
         while !log_path.exists() {
             std::thread::sleep(std::time::Duration::from_millis(500));
         }
@@ -244,7 +244,7 @@ pub fn follow(
                     }
                 }
                 let formatted = format_log_line(line);
-                println!("  {}", formatted);
+                println!("  {formatted}");
             }
             Err(_) => break,
         }
