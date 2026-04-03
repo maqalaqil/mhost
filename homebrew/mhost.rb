@@ -37,6 +37,21 @@ class Mhost < Formula
     fish_completion.install_symlink doc/"completions/mhost.fish" => "mhost.fish" if File.exist?("doc/completions/mhost.fish")
   end
 
+  def caveats
+    <<~EOS
+      ✔ mhost installed!
+
+      Get started:
+        mhost start server.js        Start a process
+        mhost list                   See what's running
+        mhost logs <app>             View logs
+        mhost dev server.js          Dev mode (auto-restart)
+        mhost --help                 All commands
+
+      Docs: https://mhostai.com
+    EOS
+  end
+
   test do
     assert_match "mhost", shell_output("#{bin}/mhost --version")
   end

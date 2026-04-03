@@ -94,9 +94,38 @@ async function install() {
       console.warn('Warning: mhostd daemon binary not found — some features may not work');
     }
 
-    console.log(`Installed: mhost + mhostd to ${VENDOR_DIR}`);
+    // Get version
+    let ver = '';
+    try { ver = require('child_process').execSync(`"${mhostBin}" -v 2>/dev/null`, { encoding: 'utf-8' }).trim(); } catch {}
+
+    console.log('');
+    console.log('  ╔══════════════════════════════════════════════════════╗');
+    console.log('  ║                                                      ║');
+    console.log('  ║   ✔  mhost installed successfully                    ║');
+    console.log('  ║                                                      ║');
+    console.log(`  ║   ${(ver || 'mhost').padEnd(52)}║`);
+    console.log(`  ║   Platform: ${target.padEnd(40)}║`);
+    console.log('  ║                                                      ║');
+    console.log('  ║   Get started:                                       ║');
+    console.log('  ║     mhost start server.js        Start a process     ║');
+    console.log('  ║     mhost list                   See what\'s running  ║');
+    console.log('  ║     mhost logs <app>             View logs           ║');
+    console.log('  ║     mhost --help                 All commands        ║');
+    console.log('  ║                                                      ║');
+    console.log('  ║   Docs: https://mhostai.com                          ║');
+    console.log('  ║                                                      ║');
+    console.log('  ╚══════════════════════════════════════════════════════╝');
+    console.log('');
+
   } catch (error) {
-    console.error(`Installation failed: ${error.message}`);
+    console.error('');
+    console.error('  ╔══════════════════════════════════════════════════════╗');
+    console.error('  ║  ✖  mhost installation failed                       ║');
+    console.error(`  ║  ${error.message.substring(0, 52).padEnd(52)}║`);
+    console.error('  ║                                                      ║');
+    console.error('  ║  Try: curl -fsSL mhostai.com/install.sh | sh         ║');
+    console.error('  ╚══════════════════════════════════════════════════════╝');
+    console.error('');
     process.exit(1);
   }
 }
