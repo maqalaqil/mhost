@@ -153,6 +153,28 @@ impl Handler {
             }
 
             // ----------------------------------------------------------------
+            // process.reload (zero-downtime; currently falls back to restart)
+            // ----------------------------------------------------------------
+            methods::PROCESS_RELOAD => {
+                let name = match string_param(&req.params, "name") {
+                    Ok(n) => n,
+                    Err(e) => return (e, false),
+                };
+
+                let state_guard = self.state.lock().await;
+                let result = self.supervisor.restart_process(&name, &state_guard).await;
+                drop(state_guard);
+
+                match result {
+                    Ok(_) => (RpcResponse::success(id, json!({ "reloaded": name })), false),
+                    Err(e) => (
+                        RpcResponse::error(id, RpcError::new(error_codes::PROCESS_NOT_FOUND, e)),
+                        false,
+                    ),
+                }
+            }
+
+            // ----------------------------------------------------------------
             // process.delete
             // ----------------------------------------------------------------
             methods::PROCESS_DELETE => {

@@ -12,6 +12,8 @@ use cli::{
     NotifyAction,
 };
 
+// Bring new top-level commands into scope for the dispatch match
+
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
@@ -70,9 +72,16 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             since,
             format,
             count_by,
+            follow,
         } => {
-            // --search and --count-by require daemon access
-            if search.is_some() || count_by.is_some() {
+            // --follow requires a process name and reads files directly
+            if follow {
+                match name {
+                    Some(n) => commands::logs::follow(paths, &n, err, grep.as_deref()),
+                    None => Err("--follow requires a process name".into()),
+                }
+            } else if search.is_some() || count_by.is_some() {
+                // --search and --count-by require daemon access
                 let n = name.as_deref().unwrap_or("*");
                 daemon_launcher::ensure_daemon_running(paths)?;
                 let client = IpcClient::new(&paths.socket());
@@ -154,6 +163,24 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             BrainAction::Playbooks => commands::brain::run_playbooks(paths),
             BrainAction::Explain { process } => commands::brain::run_explain(paths, &process),
         },
+
+        // ---- Dev mode (non-daemon, runs directly with file watching) ------
+        Commands::Dev {
+            script,
+            watch,
+            ext,
+            env,
+        } => commands::dev::run(&script, watch.as_deref(), ext.as_deref(), env.as_deref()),
+
+        // ---- Dashboard (non-daemon, runs Node.js server) ------------------
+        Commands::Dashboard { port } => commands::dashboard::run(port),
+
+        // ---- Reload (needs daemon) ----------------------------------------
+        Commands::Reload { target } => {
+            daemon_launcher::ensure_daemon_running(paths)?;
+            let client = IpcClient::new(&paths.socket());
+            commands::reload::run(&client, &target).await
+        }
 
         // ---- Commands that require a running daemon ----------------------
         other => {
@@ -248,7 +275,10 @@ async fn dispatch_daemon(
         | Commands::Cloud { .. }
         | Commands::Bot { .. }
         | Commands::Agent { .. }
-        | Commands::Brain { .. } => unreachable!(),
+        | Commands::Brain { .. }
+        | Commands::Dev { .. }
+        | Commands::Dashboard { .. }
+        | Commands::Reload { .. } => unreachable!(),
     }
 }
 

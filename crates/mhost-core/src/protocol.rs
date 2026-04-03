@@ -145,6 +145,7 @@ pub mod methods {
     pub const DEPLOY_ROLLBACK: &str = "deploy.rollback";
     pub const PROXY_LIST: &str = "proxy.list";
     pub const PROXY_RELOAD: &str = "proxy.reload";
+    pub const PROCESS_RELOAD: &str = "process.reload";
 }
 
 // ---------------------------------------------------------------------------

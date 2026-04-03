@@ -119,7 +119,7 @@ fn resolve_path(path: &str, base: Option<&Path>) -> std::path::PathBuf {
 ///      "worker.py" -> ("python3", ["worker.py"])
 ///      "app.ts"    -> ("npx", ["tsx", "app.ts"])
 ///      "node server.js" -> ("node", ["server.js"]) (already has interpreter)
-fn detect_interpreter(first: &str, rest: Vec<String>) -> (String, Vec<String>) {
+pub fn detect_interpreter(first: &str, rest: Vec<String>) -> (String, Vec<String>) {
     let lower = first.to_lowercase();
 
     // If the first word is already an interpreter or binary, use as-is

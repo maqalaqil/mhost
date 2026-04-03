@@ -354,3 +354,109 @@ fn brain_status_no_data() {
         "brain status output should contain health info or guidance; got: {stdout}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// New commands: reload, dev, dashboard
+// ---------------------------------------------------------------------------
+
+#[test]
+fn reload_help_exits_successfully() {
+    let (stdout, stderr, ok) = run(&["reload", "--help"]);
+    assert!(
+        ok,
+        "mhost reload --help should exit 0; stdout={stdout} stderr={stderr}"
+    );
+    assert!(
+        stdout.contains("zero-downtime") || stdout.contains("reload") || stdout.contains("target"),
+        "reload --help should describe the command; got: {stdout}"
+    );
+}
+
+#[test]
+fn dev_help_exits_successfully() {
+    let (stdout, stderr, ok) = run(&["dev", "--help"]);
+    assert!(
+        ok,
+        "mhost dev --help should exit 0; stdout={stdout} stderr={stderr}"
+    );
+    assert!(
+        stdout.contains("script") || stdout.contains("dev"),
+        "dev --help should mention script arg; got: {stdout}"
+    );
+}
+
+#[test]
+fn dev_help_shows_watch_flag() {
+    let (stdout, _stderr, _ok) = run(&["dev", "--help"]);
+    assert!(
+        stdout.contains("--watch") || stdout.contains("watch"),
+        "dev --help should show --watch flag; got: {stdout}"
+    );
+}
+
+#[test]
+fn dev_help_shows_ext_flag() {
+    let (stdout, _stderr, _ok) = run(&["dev", "--help"]);
+    assert!(
+        stdout.contains("--ext") || stdout.contains("ext"),
+        "dev --help should show --ext flag; got: {stdout}"
+    );
+}
+
+#[test]
+fn dashboard_help_exits_successfully() {
+    let (stdout, stderr, ok) = run(&["dashboard", "--help"]);
+    assert!(
+        ok,
+        "mhost dashboard --help should exit 0; stdout={stdout} stderr={stderr}"
+    );
+    assert!(
+        stdout.contains("dashboard") || stdout.contains("port"),
+        "dashboard --help should describe port option; got: {stdout}"
+    );
+}
+
+#[test]
+fn dashboard_help_shows_port_flag() {
+    let (stdout, _stderr, _ok) = run(&["dashboard", "--help"]);
+    assert!(
+        stdout.contains("--port") || stdout.contains("port"),
+        "dashboard --help should show --port flag; got: {stdout}"
+    );
+}
+
+#[test]
+fn logs_help_shows_follow_flag() {
+    let (stdout, _stderr, _ok) = run(&["logs", "--help"]);
+    assert!(
+        stdout.contains("--follow") || stdout.contains("follow"),
+        "logs --help should show --follow flag; got: {stdout}"
+    );
+}
+
+#[test]
+fn help_contains_reload() {
+    let (stdout, _stderr, _ok) = run(&["--help"]);
+    assert!(
+        stdout.contains("reload"),
+        "mhost --help should list reload command; got: {stdout}"
+    );
+}
+
+#[test]
+fn help_contains_dev() {
+    let (stdout, _stderr, _ok) = run(&["--help"]);
+    assert!(
+        stdout.contains("dev"),
+        "mhost --help should list dev command; got: {stdout}"
+    );
+}
+
+#[test]
+fn help_contains_dashboard() {
+    let (stdout, _stderr, _ok) = run(&["--help"]);
+    assert!(
+        stdout.contains("dashboard"),
+        "mhost --help should list dashboard command; got: {stdout}"
+    );
+}

@@ -399,6 +399,9 @@ pub enum Commands {
         /// Group log counts by a field, e.g. "level" (uses LOG_COUNT_BY RPC).
         #[arg(long, value_name = "FIELD")]
         count_by: Option<String>,
+        /// Follow the log output in real-time (like tail -f).
+        #[arg(long)]
+        follow: bool,
     },
 
     /// Show detailed information about a process.
@@ -532,5 +535,33 @@ pub enum Commands {
     Brain {
         #[command(subcommand)]
         action: BrainAction,
+    },
+
+    /// Zero-downtime reload (start new, health check, kill old).
+    Reload {
+        /// Process name to reload.
+        target: String,
+    },
+
+    /// Development mode — auto-restart on file changes.
+    Dev {
+        /// Script to run.
+        script: String,
+        /// Directory to watch (default: current dir).
+        #[arg(long)]
+        watch: Option<String>,
+        /// File extensions to watch, comma-separated (default: js,ts,py,...).
+        #[arg(long)]
+        ext: Option<String>,
+        /// .env file to load (default: .env).
+        #[arg(long)]
+        env: Option<String>,
+    },
+
+    /// Start a web dashboard for monitoring.
+    Dashboard {
+        /// Port to listen on.
+        #[arg(long, default_value = "9400")]
+        port: u16,
     },
 }

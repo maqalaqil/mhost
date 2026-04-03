@@ -188,6 +188,70 @@ pub fn run(
     Ok(())
 }
 
+/// Follow mode — tail the log file in real-time.
+pub fn follow(
+    paths: &MhostPaths,
+    name: &str,
+    err_stream: bool,
+    grep: Option<&str>,
+) -> Result<(), String> {
+    let log_path = if err_stream {
+        paths.process_err_log(name, 0)
+    } else {
+        paths.process_out_log(name, 0)
+    };
+
+    // Wait for file to exist
+    if !log_path.exists() {
+        println!("  Waiting for logs from '{}'...", name);
+        while !log_path.exists() {
+            std::thread::sleep(std::time::Duration::from_millis(500));
+        }
+    }
+
+    use std::io::{BufRead, BufReader, Seek, SeekFrom};
+    let mut file = std::fs::File::open(&log_path).map_err(|e| format!("Cannot open log: {e}"))?;
+
+    // Seek to end
+    file.seek(SeekFrom::End(0)).map_err(|e| e.to_string())?;
+
+    let stream_label = if err_stream { "stderr" } else { "stdout" };
+    println!();
+    println!(
+        "  {} {} {} {} {} {}",
+        "▸".cyan().bold(),
+        name.white().bold(),
+        "│".dimmed(),
+        stream_label.dimmed(),
+        "│".dimmed(),
+        "following...".dimmed()
+    );
+    println!("  {}", "─".repeat(72).dimmed());
+
+    let mut reader = BufReader::new(file);
+    loop {
+        let mut line = String::new();
+        match reader.read_line(&mut line) {
+            Ok(0) => {
+                // No new data — sleep briefly
+                std::thread::sleep(std::time::Duration::from_millis(200));
+            }
+            Ok(_) => {
+                let line = line.trim_end();
+                if let Some(g) = grep {
+                    if !line.contains(g) {
+                        continue;
+                    }
+                }
+                let formatted = format_log_line(line);
+                println!("  {}", formatted);
+            }
+            Err(_) => break,
+        }
+    }
+    Ok(())
+}
+
 /// Format a single log line with color based on content.
 fn format_log_line(line: &str) -> String {
     // Parse mhost prefix: "2026-03-30T12:34:56.789Z [process-name] rest of line"
