@@ -190,22 +190,78 @@ pub fn run(
 
 /// Format a single log line with color based on content.
 fn format_log_line(line: &str) -> String {
-    // Try to parse as JSON for structured logs
-    if let Ok(json) = serde_json::from_str::<serde_json::Value>(line) {
-        return format_json_log(&json);
+    // Parse mhost prefix: "2026-03-30T12:34:56.789Z [process-name] rest of line"
+    let (timestamp, proc_name, content) = parse_mhost_prefix(line);
+
+    let ts_str = timestamp
+        .map(|t| format!("{} ", t.dimmed()))
+        .unwrap_or_default();
+    let proc_str = proc_name
+        .map(|p| format!("{} ", p.cyan()))
+        .unwrap_or_default();
+
+    // Try to parse content as JSON for structured logs
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(content) {
+        return format!("{ts_str}{proc_str}{}", format_json_log(&json));
     }
 
     // Plain text — color by keyword detection
-    let lower = line.to_lowercase();
+    let lower = content.to_lowercase();
     if lower.contains("error") || lower.contains("fatal") || lower.contains("panic") {
-        line.red().to_string()
+        format!("{ts_str}{proc_str}{}", content.red())
     } else if lower.contains("warn") {
-        line.yellow().to_string()
+        format!("{ts_str}{proc_str}{}", content.yellow())
     } else if lower.contains("debug") || lower.contains("trace") {
-        line.dimmed().to_string()
+        format!("{ts_str}{proc_str}{}", content.dimmed())
     } else {
-        line.to_string()
+        format!("{ts_str}{proc_str}{content}")
     }
+}
+
+/// Parse the mhost log prefix: "2026-03-30T12:34:56.789Z [name] content"
+/// Returns (timestamp, process_name, remaining_content)
+fn parse_mhost_prefix(line: &str) -> (Option<&str>, Option<&str>, &str) {
+    // Check if line starts with an ISO timestamp (at least "YYYY-MM-DD")
+    if line.len() > 24 && line.as_bytes()[4] == b'-' && line.as_bytes()[10] == b'T' {
+        // Find end of timestamp (first space)
+        if let Some(ts_end) = line.find(' ') {
+            let timestamp = &line[..ts_end];
+            let rest = &line[ts_end + 1..];
+
+            // Check for [process-name] bracket
+            if rest.starts_with('[') {
+                if let Some(bracket_end) = rest.find("] ") {
+                    let proc_name = &rest[1..bracket_end];
+                    let content = &rest[bracket_end + 2..];
+                    // Shorten timestamp to just time portion
+                    let short_ts = timestamp
+                        .find('T')
+                        .map(|i| &timestamp[i + 1..])
+                        .unwrap_or(timestamp)
+                        .trim_end_matches('Z');
+                    // Trim milliseconds for cleaner display
+                    let short_ts = short_ts
+                        .find('.')
+                        .map(|i| &short_ts[..i])
+                        .unwrap_or(short_ts);
+                    return (Some(short_ts), Some(proc_name), content);
+                }
+            }
+
+            // Timestamp but no brackets
+            let short_ts = timestamp
+                .find('T')
+                .map(|i| &timestamp[i + 1..])
+                .unwrap_or(timestamp)
+                .trim_end_matches('Z');
+            let short_ts = short_ts
+                .find('.')
+                .map(|i| &short_ts[..i])
+                .unwrap_or(short_ts);
+            return (Some(short_ts), None, rest);
+        }
+    }
+    (None, None, line)
 }
 
 /// Format a JSON log line with colored fields.

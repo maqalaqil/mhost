@@ -147,9 +147,10 @@ impl Supervisor {
                     if let Some(ref mut child) = mp.child {
                         let _ = self.paths.ensure_dirs();
 
-                        // Stdout capture
+                        // Stdout capture — prefix each line with timestamp
                         if let Some(stdout) = child.stdout.take() {
                             let out_path = self.paths.process_out_log(&config.name, i);
+                            let proc_name = config.name.clone();
                             tokio::spawn(async move {
                                 use tokio::io::{AsyncBufReadExt, BufReader};
                                 let reader = BufReader::new(stdout);
@@ -162,15 +163,18 @@ impl Supervisor {
                                 while let Ok(Some(line)) = lines.next_line().await {
                                     if let Some(ref mut f) = file {
                                         use std::io::Write;
-                                        let _ = writeln!(f, "{line}");
+                                        let ts =
+                                            chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3fZ");
+                                        let _ = writeln!(f, "{ts} [{proc_name}] {line}");
                                     }
                                 }
                             });
                         }
 
-                        // Stderr capture
+                        // Stderr capture — prefix each line with timestamp
                         if let Some(stderr) = child.stderr.take() {
                             let err_path = self.paths.process_err_log(&config.name, i);
+                            let proc_name = config.name.clone();
                             tokio::spawn(async move {
                                 use tokio::io::{AsyncBufReadExt, BufReader};
                                 let reader = BufReader::new(stderr);
@@ -183,7 +187,9 @@ impl Supervisor {
                                 while let Ok(Some(line)) = lines.next_line().await {
                                     if let Some(ref mut f) = file {
                                         use std::io::Write;
-                                        let _ = writeln!(f, "{line}");
+                                        let ts =
+                                            chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3fZ");
+                                        let _ = writeln!(f, "{ts} [{proc_name}] {line}");
                                     }
                                 }
                             });
