@@ -8,7 +8,8 @@ use mhost_core::paths::MhostPaths;
 use mhost_ipc::IpcClient;
 
 use cli::{
-    AgentAction, AiAction, BotAction, Cli, CloudAction, Commands, MetricsAction, NotifyAction,
+    AgentAction, AiAction, BotAction, BrainAction, Cli, CloudAction, Commands, MetricsAction,
+    NotifyAction,
 };
 
 #[tokio::main]
@@ -146,6 +147,14 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             }
         },
 
+        // ---- Brain commands (all read JSON files — no daemon needed) -----
+        Commands::Brain { action } => match action {
+            BrainAction::Status => commands::brain::run_status(paths),
+            BrainAction::History => commands::brain::run_history(paths),
+            BrainAction::Playbooks => commands::brain::run_playbooks(paths),
+            BrainAction::Explain { process } => commands::brain::run_explain(paths, &process),
+        },
+
         // ---- Commands that require a running daemon ----------------------
         other => {
             daemon_launcher::ensure_daemon_running(paths)?;
@@ -238,7 +247,8 @@ async fn dispatch_daemon(
         | Commands::Notify { .. }
         | Commands::Cloud { .. }
         | Commands::Bot { .. }
-        | Commands::Agent { .. } => unreachable!(),
+        | Commands::Agent { .. }
+        | Commands::Brain { .. } => unreachable!(),
     }
 }
 

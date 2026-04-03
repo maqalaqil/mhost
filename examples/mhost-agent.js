@@ -51,6 +51,26 @@ function loadConfig() {
 
 const config = loadConfig();
 
+// ─── Brain (Self-healing Intelligence) ───────────────────────────────────────
+
+let brain = null;
+try {
+  const { Brain } = require("./mhost-brain.js");
+  brain = new Brain();
+  console.log(
+    JSON.stringify({
+      level: "info",
+      message: "Brain loaded",
+      incidents: brain.incidents.length,
+      playbooks: brain.playbooks.length,
+    })
+  );
+} catch (e) {
+  console.warn(
+    JSON.stringify({ level: "warn", message: `Brain not available: ${e.message}` })
+  );
+}
+
 const MHOST_BIN = process.env.MHOST_BIN || "mhost";
 const OBSERVE_INTERVAL_MS = (config.observe_interval_seconds || 30) * 1000;
 const POLL_INTERVAL_MS = 5000;
@@ -246,6 +266,11 @@ You run inside the mhost process manager. Your responsibilities:
 2. THINK: Analyse what you see — high restart counts, OOM errors, degraded performance, anomalies.
 3. ACT: Take corrective action — restart crashed processes, scale under load, alert on anomalies.
 4. REPORT: Tell the user what you found and what you did via send_telegram.
+
+BRAIN: You have access to a Brain with persistent memory of past incidents, health scores, and
+auto-learned playbooks. Brain context for affected processes will be injected into observations.
+Use past incident data to make better decisions. After fixing an issue, the brain will
+automatically learn from it so next time it can self-heal without calling you.
 
 AUTONOMY LEVEL: ${autonomy}
 ${autonomyInstructions[autonomy] || autonomyInstructions.supervised}
@@ -731,9 +756,111 @@ async function maybeTriggerObservation(ticksPerObserve) {
 
   lastObservation = currentState;
 
+  // ── Brain self-healing pass ─────────────────────────────────────────────
+  // For every troubled process, attempt a brain-driven fix before falling
+  // through to the LLM. Processes that are handled here are skipped in the
+  // LLM prompt so we avoid wasting tokens on already-resolved issues.
+  const brainHandledProcesses = new Set();
+
+  if (brain) {
+    const processes = parseAgentProcessList(currentState);
+
+    for (const proc of processes) {
+      // Update health score on every cycle for all processes
+      brain.updateHealth(proc.name, {
+        status: proc.status,
+        restarts: proc.restarts,
+        error_count: proc.status === "errored" ? 1 : 0,
+        memory_trend: brain.detectTrend(proc.name, "memory"),
+      });
+
+      // Only investigate troubled processes
+      if (proc.status !== "errored" && proc.restarts <= 5) continue;
+
+      // Fetch recent error logs to feed into the decision
+      let errorText = "";
+      try {
+        errorText = execSync(
+          `${MHOST_BIN} logs ${shellEscape(proc.name)} --err -n 5 2>&1`,
+          { encoding: "utf-8", timeout: 5_000 }
+        );
+      } catch {
+        // Ignore — proceed with empty error text
+      }
+
+      const decision = brain.decide(proc.name, errorText, proc.status);
+      logInfo(
+        `[brain] ${proc.name}: ${decision.reason} (needsLLM=${decision.needsLLM})`
+      );
+
+      if (decision.needsLLM) {
+        // Inject brain memory context into the prompt for this process
+        // (handled below when we build the LLM prompt)
+        continue;
+      }
+
+      // Self-heal without LLM call
+      let result = "success";
+      try {
+        if (
+          decision.action === "restart" ||
+          decision.action === "wait-restart"
+        ) {
+          if (decision.playbook?.wait_ms) {
+            await sleep(decision.playbook.wait_ms);
+          }
+          execSync(`${MHOST_BIN} restart ${shellEscape(proc.name)} 2>&1`, {
+            encoding: "utf-8",
+            timeout: 15_000,
+          });
+          sendTelegramMessage(
+            `<b>Brain auto-healed</b>\n\nProcess: ${proc.name}\nReason: ${decision.reason}\nAction: restart`
+          );
+        } else if (decision.action === "stop-escalate") {
+          execSync(`${MHOST_BIN} stop ${shellEscape(proc.name)} 2>&1`, {
+            encoding: "utf-8",
+            timeout: 15_000,
+          });
+          sendTelegramMessage(
+            `<b>Brain escalation</b>\n\nProcess: ${proc.name}\n${decision.reason}\n\nProcess stopped. Manual intervention needed.`
+          );
+        } else if (decision.action === "notify") {
+          sendTelegramMessage(
+            `<b>Brain alert</b>\n\nProcess: ${proc.name}\n${decision.reason}`
+          );
+        }
+      } catch (e) {
+        result = "failed";
+        logError(`Brain action failed for ${proc.name}: ${e.message}`);
+      }
+
+      brain.recordIncident({
+        process: proc.name,
+        error: errorText.substring(0, 200),
+        status: proc.status,
+        action: decision.action,
+        result,
+      });
+
+      brainHandledProcesses.add(proc.name);
+    }
+  }
+
+  // ── Build LLM prompt, injecting brain memory for unresolved issues ──────
+  let brainContext = "";
+  if (brain) {
+    const processes = parseAgentProcessList(currentState);
+    for (const proc of processes) {
+      if (!brainHandledProcesses.has(proc.name) && proc.status === "errored") {
+        brainContext += brain.getMemoryContext(proc.name);
+      }
+    }
+  }
+
   const prompt =
-    `[PERIODIC CHECK] Current process state:\n\n${currentState}\n\n` +
-    `Analyze this. If everything is healthy, stay silent (do not call send_telegram). ` +
+    `[PERIODIC CHECK] Current process state:\n\n${currentState}\n` +
+    (brainContext ? `\n${brainContext}\n` : "") +
+    `\nAnalyze this. If everything is healthy, stay silent (do not call send_telegram). ` +
     `If you find issues (crashes, high restarts, errors), investigate with get_logs / ` +
     `get_error_logs and take appropriate action. ` +
     `If autonomy is "supervised" and you need to take a state-changing action, ` +
@@ -865,6 +992,44 @@ function logWarn(msg) {
 
 function logError(msg) {
   console.error(JSON.stringify({ level: "error", ts: new Date().toISOString(), msg }));
+}
+
+// ─── Brain Helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Parse the text output of `mhost list` into a compact process array.
+ * Each entry: { name: string, status: string, restarts: number }
+ *
+ * The parser is intentionally lenient — it only extracts lines that contain
+ * a recognisable status word and have at least three whitespace-separated
+ * tokens after stripping Unicode status indicators.
+ *
+ * @param {string} output  Raw stdout from `mhost list`
+ * @returns {{ name: string, status: string, restarts: number }[]}
+ */
+function parseAgentProcessList(output) {
+  const lines = output.split("\n");
+  const results = [];
+
+  for (const line of lines) {
+    let status = null;
+    if (line.includes("online")) status = "online";
+    else if (line.includes("errored")) status = "errored";
+    else if (line.includes("stopped")) status = "stopped";
+    else if (line.includes("starting")) status = "starting";
+    else continue;
+
+    // Strip common Unicode status bullets before tokenising
+    const stripped = line.replace(/[●◐◑○✖]/g, "").trim();
+    const tokens = stripped.split(/\s+/).filter(Boolean);
+    if (tokens.length < 3) continue;
+
+    const name = tokens[1];
+    const restarts = parseInt(tokens[tokens.length - 2], 10) || 0;
+    results.push({ name, status, restarts });
+  }
+
+  return results;
 }
 
 // ─── Shutdown ────────────────────────────────────────────────────────────────

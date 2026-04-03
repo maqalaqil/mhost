@@ -310,3 +310,47 @@ fn agent_status_no_config() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("not configured") || stdout.contains("setup"));
 }
+
+// ---------------------------------------------------------------------------
+// mhost brain --help
+// ---------------------------------------------------------------------------
+
+#[test]
+fn brain_help_exits_successfully() {
+    let (stdout, stderr, ok) = run(&["brain", "--help"]);
+    assert!(
+        ok,
+        "mhost brain --help should exit 0; stdout={stdout} stderr={stderr}"
+    );
+    assert!(stdout.contains("status"), "brain --help should list status");
+    assert!(
+        stdout.contains("history"),
+        "brain --help should list history"
+    );
+    assert!(
+        stdout.contains("playbooks"),
+        "brain --help should list playbooks"
+    );
+    assert!(
+        stdout.contains("explain"),
+        "brain --help should list explain"
+    );
+}
+
+#[test]
+fn brain_status_no_data() {
+    // When the brain directory has no health.json the command should still
+    // exit successfully and print a helpful message.
+    let (stdout, stderr, ok) = run(&["brain", "status"]);
+    assert!(
+        ok,
+        "mhost brain status should exit 0 even with no data; stdout={stdout} stderr={stderr}"
+    );
+    // Either it shows "no data" guidance or a health table — both are valid.
+    let has_expected =
+        stdout.contains("no data") || stdout.contains("agent start") || stdout.contains("/100");
+    assert!(
+        has_expected,
+        "brain status output should contain health info or guidance; got: {stdout}"
+    );
+}

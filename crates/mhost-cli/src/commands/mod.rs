@@ -1,6 +1,7 @@
 pub mod agent;
 pub mod ai;
 pub mod bot;
+pub mod brain;
 pub mod cloud;
 pub mod cluster;
 pub mod completion;

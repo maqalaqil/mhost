@@ -2,6 +2,25 @@ use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 
 // ---------------------------------------------------------------------------
+// Brain subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum BrainAction {
+    /// Show fleet health scores.
+    Status,
+    /// Show past incidents and actions taken.
+    History,
+    /// List healing playbooks (built-in + auto-learned).
+    Playbooks,
+    /// Explain why a process has its current health score.
+    Explain {
+        /// Process name to analyse.
+        process: String,
+    },
+}
+
+// ---------------------------------------------------------------------------
 // Metrics subcommands
 // ---------------------------------------------------------------------------
 
@@ -507,5 +526,11 @@ pub enum Commands {
     Agent {
         #[command(subcommand)]
         action: AgentAction,
+    },
+
+    /// Self-healing brain — memory, health scores, playbooks, and trend detection.
+    Brain {
+        #[command(subcommand)]
+        action: BrainAction,
     },
 }
