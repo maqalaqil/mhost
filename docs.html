@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mhost — Documentation</title>
+<meta name="description" content="mhost documentation — process management, configuration, logs, AI features, self-healing brain, cloud fleet, and CLI reference.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://mhostai.com/docs.html">
+<meta name="theme-color" content="#6366f1">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9881;</text></svg>">
+
+<style>
+/* ─── Reset + Base ─────────────────────────────────────────── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a12;--bg2:#0f0f1a;--bg3:#151525;--bg4:#1a1a2e;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --accent:#6366f1;--accent2:#818cf8;--accent3:#a5b4fc;
+  --green:#22c55e;--green2:#4ade80;
+  --red:#ef4444;--yellow:#eab308;--cyan:#06b6d4;
+  --border:#1e293b;
+  --glow:0 0 80px rgba(99,102,241,0.15);
+  --font:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+  --mono:'JetBrains Mono','Fira Code','SF Mono',monospace;
+  --sidebar-w:260px;
+  --nav-h:60px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.7;overflow-x:hidden}
+a{color:var(--accent2);text-decoration:none;transition:color .2s}
+a:hover{color:var(--accent3)}
+::selection{background:var(--accent);color:#fff}
+
+/* ─── Nav ──────────────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nav-h);padding:0;background:rgba(10,10,18,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+nav .nav-inner{max-width:100%;padding:0 24px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:16px}
+nav .logo{font-family:var(--mono);font-size:1.2rem;font-weight:800;color:var(--text);letter-spacing:-1px;white-space:nowrap}
+nav .logo span{color:var(--accent2)}
+nav .logo sup{font-size:.55rem;color:var(--text3);font-weight:400;letter-spacing:0;vertical-align:super}
+nav ul{list-style:none;display:flex;gap:24px}
+nav ul a{color:var(--text2);font-size:.85rem;font-weight:500;transition:color .2s}
+nav ul a:hover,nav ul a.active{color:var(--text)}
+nav .nav-right{display:flex;align-items:center;gap:12px}
+nav .cta-btn{padding:6px 16px;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:.8rem;transition:all .2s}
+nav .cta-btn:hover{background:var(--accent2);color:#fff}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text2);border-radius:2px;transition:all .3s}
+
+/* ─── Layout ────────────────────────────────────────────────── */
+.docs-layout{display:flex;min-height:100vh;padding-top:var(--nav-h)}
+
+/* ─── Sidebar ───────────────────────────────────────────────── */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;position:fixed;top:var(--nav-h);bottom:0;left:0;overflow-y:auto;border-right:1px solid var(--border);background:var(--bg2);padding:0 0 40px;z-index:100;transition:transform .3s}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-track{background:transparent}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.sidebar-search{padding:16px 16px 8px;position:sticky;top:0;background:var(--bg2);z-index:10;border-bottom:1px solid var(--border)}
+.sidebar-search input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 32px;color:var(--text);font-size:.8rem;font-family:var(--font);outline:none;transition:border-color .2s}
+.sidebar-search input:focus{border-color:var(--accent)}
+.sidebar-search input::placeholder{color:var(--text3)}
+.sidebar-search .search-icon{position:absolute;left:28px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.8rem;pointer-events:none}
+.search-wrap{position:relative}
+
+.sidebar-section{margin-top:4px}
+.sidebar-section-title{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);cursor:pointer;user-select:none;transition:color .2s}
+.sidebar-section-title:hover{color:var(--text2)}
+.sidebar-section-title .chevron{transition:transform .2s;font-size:.6rem}
+.sidebar-section-title.collapsed .chevron{transform:rotate(-90deg)}
+.sidebar-section ul{list-style:none;padding:0 8px 8px}
+.sidebar-section.collapsed ul{display:none}
+.sidebar-section ul li a{display:block;padding:6px 12px;border-radius:6px;font-size:.82rem;color:var(--text2);transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-section ul li a:hover{color:var(--text);background:var(--bg3)}
+.sidebar-section ul li a.active{color:var(--accent3);background:rgba(99,102,241,.1)}
+
+/* ─── Main Content ──────────────────────────────────────────── */
+.docs-content{flex:1;margin-left:var(--sidebar-w);min-width:0;padding:40px 48px 80px;max-width:calc(var(--sidebar-w) + 860px)}
+
+/* ─── Breadcrumb ────────────────────────────────────────────── */
+.breadcrumb{font-size:.78rem;color:var(--text3);margin-bottom:32px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--text3)}
+.breadcrumb a:hover{color:var(--text2)}
+.breadcrumb .sep{color:var(--border)}
+
+/* ─── Section headings ──────────────────────────────────────── */
+.doc-section{padding-top:64px;margin-top:-20px}
+.doc-section:first-child{padding-top:0}
+.section-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px}
+.edit-link{font-size:.75rem;color:var(--text3);white-space:nowrap;flex-shrink:0;margin-top:8px}
+.edit-link:hover{color:var(--accent2)}
+h1.page-title{font-size:2.4rem;font-weight:800;letter-spacing:-1px;margin-bottom:8px}
+h1.page-title .text-gradient{background:linear-gradient(135deg,var(--accent2),var(--cyan),var(--green2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.page-subtitle{color:var(--text2);font-size:1.05rem;margin-bottom:40px;max-width:600px}
+h2.doc-h2{font-size:1.6rem;font-weight:700;letter-spacing:-.5px;color:var(--text);scroll-margin-top:80px}
+h3.doc-h3{font-size:1.1rem;font-weight:700;color:var(--text);margin:28px 0 12px;scroll-margin-top:80px}
+h4.doc-h4{font-size:.9rem;font-weight:700;color:var(--accent3);margin:20px 0 8px;text-transform:uppercase;letter-spacing:.5px}
+p.doc-p{color:var(--text2);margin-bottom:16px;line-height:1.75}
+.doc-divider{border:none;border-top:1px solid var(--border);margin:48px 0}
+
+/* ─── Code blocks ───────────────────────────────────────────── */
+.code-wrap{position:relative;margin:20px 0}
+.code-block{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px 24px;font-family:var(--mono);font-size:.83rem;line-height:1.85;overflow-x:auto}
+.code-block .comment{color:var(--text3)}
+.code-block .key{color:var(--cyan)}
+.code-block .val{color:var(--green2)}
+.code-block .str{color:var(--accent3)}
+.code-block .kw{color:var(--accent2)}
+.code-block .flag{color:var(--accent3)}
+.code-block .prompt{color:var(--green2)}
+.code-block .out{color:var(--text2)}
+.code-block .hl{color:var(--yellow)}
+.code-block .red{color:var(--red)}
+.code-lang{position:absolute;top:10px;right:48px;font-size:.65rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--bg4);border:1px solid var(--border);color:var(--text3);padding:4px 10px;border-radius:6px;font-size:.7rem;font-family:var(--font);cursor:pointer;transition:all .2s}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.copy-btn.copied{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* ─── Inline code ───────────────────────────────────────────── */
+code{font-family:var(--mono);font-size:.82em;color:var(--accent3);background:rgba(99,102,241,.08);padding:2px 7px;border-radius:4px}
+
+/* ─── Tables ────────────────────────────────────────────────── */
+.doc-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.88rem}
+.doc-table th{padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text3);font-size:.75rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+.doc-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+.doc-table td:first-child{color:var(--text);font-family:var(--mono);font-size:.8rem}
+.doc-table tr:hover td{background:rgba(99,102,241,.03)}
+.doc-table .required{color:var(--red);font-size:.7rem;font-weight:700}
+.doc-table .default{color:var(--green2);font-family:var(--mono);font-size:.78rem}
+
+/* ─── Callout boxes ─────────────────────────────────────────── */
+.callout{display:flex;gap:12px;padding:16px 20px;border-radius:10px;margin:20px 0;font-size:.9rem;line-height:1.6}
+.callout-info{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);color:var(--text2)}
+.callout-tip{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:var(--text2)}
+.callout-warn{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.2);color:var(--text2)}
+.callout-icon{font-size:1rem;flex-shrink:0;line-height:1.6}
+
+/* ─── Lifecycle badges ──────────────────────────────────────── */
+.state{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:600;font-family:var(--mono)}
+.state-online{background:rgba(34,197,94,.12);color:var(--green2);border:1px solid rgba(34,197,94,.2)}
+.state-stopped{background:rgba(100,116,139,.12);color:var(--text3);border:1px solid rgba(100,116,139,.2)}
+.state-errored{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.state-starting{background:rgba(234,179,8,.12);color:#fbbf24;border:1px solid rgba(234,179,8,.2)}
+.state-stopping{background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.2)}
+
+/* ─── Flag list ─────────────────────────────────────────────── */
+.flag-list{list-style:none;margin:12px 0}
+.flag-list li{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:baseline}
+.flag-list li:last-child{border-bottom:none}
+.flag-list .flag-name{font-family:var(--mono);font-size:.82rem;color:var(--accent3);white-space:nowrap;min-width:180px}
+.flag-list .flag-desc{font-size:.86rem;color:var(--text2)}
+
+/* ─── Channel grid ──────────────────────────────────────────── */
+.channel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+.channel-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px}
+.channel-icon{font-size:1.3rem;flex-shrink:0}
+.channel-name{font-weight:600;font-size:.88rem}
+.channel-sub{font-size:.75rem;color:var(--text3)}
+
+/* ─── Lifecycle diagram ─────────────────────────────────────── */
+.lifecycle{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:20px 0;font-size:.85rem}
+.lifecycle .arrow{color:var(--text3)}
+
+/* ─── Mobile overlay ────────────────────────────────────────── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+
+/* ─── Responsive ────────────────────────────────────────────── */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.open{display:block}
+  .docs-content{margin-left:0;padding:24px 20px 60px}
+  .hamburger{display:flex}
+  nav ul{display:none}
+  h1.page-title{font-size:1.8rem}
+  h2.doc-h2{font-size:1.35rem}
+}
+@media(max-width:600px){
+  .docs-content{padding:16px 16px 60px}
+  .flag-list .flag-name{min-width:140px}
+  .section-header{flex-direction:column}
+  .edit-link{margin-top:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── Nav ──────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo"><span>m</span>host <sup>docs</sup></a>
+    <ul>
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#ai">AI</a></li>
+      <li><a href="index.html#install">Install</a></li>
+      <li><a href="docs.html" class="active">Docs</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="https://github.com/maqalaqil/mhost" class="cta-btn">GitHub</a>
+      <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="sidebar-overlay" id="overlay"></div>
+
+<div class="docs-layout">
+
+<!-- ─── Sidebar ─────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-search">
+    <div class="search-wrap">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" id="sidebarSearch" placeholder="Search docs..." autocomplete="off">
+    </div>
+  </div>
+
+  <div id="sidebarNav">
+
+    <div class="sidebar-section" data-section="getting-started">
+      <div class="sidebar-section-title" tabindex="0">Getting Started <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#quick-start">Quick Start</a></li>
+        <li><a href="#first-config">Your First mhost.toml</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="core-concepts">
+      <div class="sidebar-section-title" tabindex="0">Core Concepts <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#how-it-works">How mhost Works</a></li>
+        <li><a href="#process-lifecycle">Process Lifecycle</a></li>
+        <li><a href="#state-directory">State Directory</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="process-management">
+      <div class="sidebar-section-title" tabindex="0">Process Management <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#starting">Starting Processes</a></li>
+        <li><a href="#interpreter">Auto-detect Interpreter</a></li>
+        <li><a href="#stop-restart">Stop, Restart, Delete</a></li>
+        <li><a href="#scaling">Scaling</a></li>
+        <li><a href="#groups">Process Groups</a></li>
+        <li><a href="#save-resurrect">Save &amp; Resurrect</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="configuration">
+      <div class="sidebar-section-title" tabindex="0">Configuration <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#toml-format">mhost.toml Format</a></li>
+        <li><a href="#yaml-json">YAML &amp; JSON</a></li>
+        <li><a href="#env-expansion">Env Var Expansion</a></li>
+        <li><a href="#health-probes">Health Probes</a></li>
+        <li><a href="#cron-restarts">Cron Restarts</a></li>
+        <li><a href="#memory-limits">Memory Limits</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="logs">
+      <div class="sidebar-section-title" tabindex="0">Logs <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#logs-basic">Basic Logging</a></li>
+        <li><a href="#logs-follow">Live Streaming</a></li>
+        <li><a href="#logs-format">Log Format</a></li>
+        <li><a href="#logs-search">FTS5 Search</a></li>
+        <li><a href="#logs-sinks">External Sinks</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="monitoring">
+      <div class="sidebar-section-title" tabindex="0">Monitoring <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#monit">TUI Dashboard</a></li>
+        <li><a href="#web-dashboard">Web Dashboard</a></li>
+        <li><a href="#health-checks">Health Checks</a></li>
+        <li><a href="#prometheus">Prometheus</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="notifications">
+      <div class="sidebar-section-title" tabindex="0">Notifications <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#notify-setup">Setup Wizard</a></li>
+        <li><a href="#notify-channels">All Channels</a></li>
+        <li><a href="#notify-events">Event Types</a></li>
+        <li><a href="#notify-throttle">Throttling</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="ai">
+      <div class="sidebar-section-title" tabindex="0">AI Features <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#ai-setup">AI Setup</a></li>
+        <li><a href="#ai-commands">AI Commands</a></li>
+        <li><a href="#ai-prompts">Prompt Customization</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="agent">
+      <div class="sidebar-section-title" tabindex="0">Autonomous Agent <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#agent-setup">Agent Setup</a></li>
+        <li><a href="#agent-loop">Observe → Think → Act</a></li>
+        <li><a href="#autonomy-levels">Autonomy Levels</a></li>
+        <li><a href="#agent-telegram">Telegram Examples</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="brain">
+      <div class="sidebar-section-title" tabindex="0">Self-Healing Brain <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#brain-commands">Brain Commands</a></li>
+        <li><a href="#brain-playbooks">Built-in Playbooks</a></li>
+        <li><a href="#brain-health">Health Scores</a></li>
+        <li><a href="#brain-learning">Auto-Learning</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="dev-mode">
+      <div class="sidebar-section-title" tabindex="0">Dev Mode <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#dev-command">mhost dev</a></li>
+        <li><a href="#dev-watch">File Watching</a></li>
+        <li><a href="#dev-env">Env Loading</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="cloud">
+      <div class="sidebar-section-title" tabindex="0">Cloud Fleet <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#cloud-commands">Cloud Commands</a></li>
+        <li><a href="#cloud-ssh">SSH Configuration</a></li>
+        <li><a href="#cloud-providers">Cloud Providers</a></li>
+        <li><a href="#cloud-ai">AI Cloud Ops</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="chatbot">
+      <div class="sidebar-section-title" tabindex="0">Chat Bot <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#bot-setup">Bot Setup</a></li>
+        <li><a href="#bot-commands">Chat Commands</a></li>
+        <li><a href="#bot-permissions">Permissions</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="deploy">
+      <div class="sidebar-section-title" tabindex="0">Deploy <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#deploy-command">Deploy &amp; Rollback</a></li>
+        <li><a href="#deploy-config">Deploy Config</a></li>
+        <li><a href="#deploy-hooks">Hook Execution</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="proxy">
+      <div class="sidebar-section-title" tabindex="0">Reverse Proxy <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#proxy-config">Proxy Config</a></li>
+        <li><a href="#proxy-lb">Load Balancing</a></li>
+        <li><a href="#proxy-tls">TLS / ACME</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section" data-section="reference">
+      <div class="sidebar-section-title" tabindex="0">Reference <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#cli-reference">CLI Reference</a></li>
+        <li><a href="#exit-codes">Exit Codes</a></li>
+        <li><a href="#api-reference">API Reference</a></li>
+      </ul>
+    </div>
+
+  </div><!-- /sidebarNav -->
+</aside>
+
+<!-- ─── Main Content ──────────────────────────────────────────── -->
+<main class="docs-content">
+
+  <div class="breadcrumb">
+    <a href="index.html">mhost</a>
+    <span class="sep">/</span>
+    <span>Documentation</span>
+  </div>
+
+  <h1 class="page-title"><span class="text-gradient">mhost</span> Documentation</h1>
+  <p class="page-subtitle">Everything you need to deploy, monitor, and scale processes in production.</p>
+
+  <!-- ══════════════════════════════════════════════ GETTING STARTED -->
+  <hr class="doc-divider">
+
+  <!-- Installation -->
+  <div class="doc-section" id="installation">
+    <div class="section-header">
+      <h2 class="doc-h2">Installation</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/installation.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <p class="doc-p">mhost ships as a single static binary with zero runtime dependencies. Pick your preferred method:</p>
+
+    <h3 class="doc-h3">Homebrew (macOS / Linux)</h3>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> brew install maqalaqil/tap/mhost</div>
+      <button class="copy-btn" data-copy="brew install maqalaqil/tap/mhost">Copy</button>
+    </div>
+
+    <h3 class="doc-h3">curl installer (Linux / macOS)</h3>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> curl -fsSL https://mhostai.com/install.sh | sh</div>
+      <button class="copy-btn" data-copy="curl -fsSL https://mhostai.com/install.sh | sh">Copy</button>
+    </div>
+
+    <h3 class="doc-h3">Cargo (from source)</h3>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> cargo install mhost</div>
+      <button class="copy-btn" data-copy="cargo install mhost">Copy</button>
+    </div>
+
+    <h3 class="doc-h3">GitHub Releases (manual binary)</h3>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> wget https://github.com/maqalaqil/mhost/releases/latest/download/mhost-linux-x86_64.tar.gz
+<span class="prompt">$</span> tar xzf mhost-linux-x86_64.tar.gz &amp;&amp; mv mhost /usr/local/bin/</div>
+      <button class="copy-btn" data-copy="wget https://github.com/maqalaqil/mhost/releases/latest/download/mhost-linux-x86_64.tar.gz">Copy</button>
+    </div>
+
+    <h3 class="doc-h3">Docker</h3>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> docker run --rm -v /var/run/mhost:/var/run/mhost ghcr.io/maqalaqil/mhost:latest</div>
+      <button class="copy-btn" data-copy="docker run --rm -v /var/run/mhost:/var/run/mhost ghcr.io/maqalaqil/mhost:latest">Copy</button>
+    </div>
+
+    <h3 class="doc-h3">Nix</h3>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> nix run github:maqalaqil/mhost</div>
+      <button class="copy-btn" data-copy="nix run github:maqalaqil/mhost">Copy</button>
+    </div>
+
+    <div class="callout callout-tip">
+      <span class="callout-icon">&#10003;</span>
+      <span>Verify the install: <code>mhost --version</code>. The daemon starts automatically on first use.</span>
+    </div>
+  </div>
+
+  <!-- Quick Start -->
+  <div class="doc-section" id="quick-start">
+    <div class="section-header">
+      <h2 class="doc-h2">Quick Start</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/quick-start.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <p class="doc-p">Get your first process running in under 30 seconds.</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="comment"># 1. Start a process</span>
+<span class="prompt">$</span> mhost start app.js <span class="flag">--name</span> my-app
+
+<span class="comment"># 2. Check status</span>
+<span class="prompt">$</span> mhost status
+
+<span class="out"> NAME       PID    STATUS    CPU    MEM     RESTARTS
+ my-app     12345  online    0.3%   48MB    0</span>
+
+<span class="comment"># 3. Tail logs</span>
+<span class="prompt">$</span> mhost logs my-app <span class="flag">--follow</span></div>
+      <button class="copy-btn" data-copy="mhost start app.js --name my-app">Copy</button>
+    </div>
+  </div>
+
+  <!-- First config -->
+  <div class="doc-section" id="first-config">
+    <div class="section-header">
+      <h2 class="doc-h2">Your First mhost.toml</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/config.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <p class="doc-p">Create <code>mhost.toml</code> in your project root, then run <code>mhost start</code> — mhost will auto-discover the file.</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="comment"># mhost.toml</span>
+
+<span class="key">[process.api]</span>
+command = <span class="str">"node server.js"</span>
+instances = <span class="val">2</span>
+max_memory = <span class="str">"256MB"</span>
+
+<span class="key">[process.api.health.http]</span>
+url = <span class="str">"http://localhost:3000/health"</span>
+interval = <span class="str">"15s"</span>
+timeout = <span class="str">"3s"</span></div>
+      <button class="copy-btn" data-copy='[process.api]&#10;command = "node server.js"&#10;instances = 2&#10;max_memory = "256MB"'>Copy</button>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ CORE CONCEPTS -->
+
+  <div class="doc-section" id="how-it-works">
+    <div class="section-header">
+      <h2 class="doc-h2">How mhost Works</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/architecture.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <p class="doc-p">mhost has two components: a persistent <strong>daemon</strong> and a <strong>CLI</strong>. The daemon spawns and supervises processes, stores logs in an embedded SQLite database, and exposes a JSON-RPC socket. The CLI communicates with the daemon over a Unix socket at <code>~/.mhost/mhost.sock</code>.</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="out"> ┌─────────────────────────────────────────────────────────────┐
+ │  mhost daemon  (~/.mhost/mhost.sock)                        │
+ │                                                             │
+ │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+ │  │ Process  │  │  Health  │  │  Brain   │  │  Agent   │   │
+ │  │ Manager  │  │  Probes  │  │  Engine  │  │  Loop    │   │
+ │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
+ │                                                             │
+ │  SQLite (logs + state)   Prometheus endpoint               │
+ └─────────────────────────────────────────────────────────────┘
+          ▲                          ▲
+          │  JSON-RPC / IPC          │  HTTP /metrics
+     mhost CLI                  Grafana / VictoriaMetrics</span></div>
+    </div>
+    <p class="doc-p">The daemon starts automatically the first time you run any <code>mhost</code> command. To start it explicitly: <code>mhost daemon start</code>. To stop: <code>mhost daemon stop</code>.</p>
+  </div>
+
+  <div class="doc-section" id="process-lifecycle">
+    <div class="section-header">
+      <h2 class="doc-h2">Process Lifecycle</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/lifecycle.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <p class="doc-p">Every process moves through these states:</p>
+    <div class="lifecycle">
+      <span class="state state-stopped">stopped</span>
+      <span class="arrow">→</span>
+      <span class="state state-starting">starting</span>
+      <span class="arrow">→</span>
+      <span class="state state-online">online</span>
+      <span class="arrow">→</span>
+      <span class="state state-stopping">stopping</span>
+      <span class="arrow">→</span>
+      <span class="state state-stopped">stopped</span>
+    </div>
+    <div class="lifecycle" style="margin-top:8px">
+      <span class="state state-online">online</span>
+      <span class="arrow">→</span>
+      <span class="state state-errored">errored</span>
+      <span class="arrow">→</span>
+      <span class="state state-starting">starting</span>
+      <span class="arrow" style="color:var(--text2)">(auto-restart)</span>
+    </div>
+    <table class="doc-table" style="margin-top:20px">
+      <thead><tr><th>State</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="state state-stopped">stopped</span></td><td>Not running. Intentionally stopped or never started.</td></tr>
+        <tr><td><span class="state state-starting">starting</span></td><td>Daemon is spawning the process. Health probes not yet checked.</td></tr>
+        <tr><td><span class="state state-online">online</span></td><td>Running and passing all health probes.</td></tr>
+        <tr><td><span class="state state-stopping">stopping</span></td><td>SIGTERM sent; waiting for graceful shutdown within grace period.</td></tr>
+        <tr><td><span class="state state-errored">errored</span></td><td>Exited with non-zero code or failed health probe. Will auto-restart.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="state-directory">
+    <div class="section-header">
+      <h2 class="doc-h2">State Directory (~/.mhost/)</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/state.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="out">~/.mhost/
+├── mhost.sock         <span class="comment"># IPC socket</span>
+├── mhost.pid          <span class="comment"># Daemon PID</span>
+├── db.sqlite          <span class="comment"># Logs + state (FTS5-indexed)</span>
+├── config.toml        <span class="comment"># Daemon global config</span>
+├── processes/         <span class="comment"># Per-process state snapshots</span>
+├── logs/              <span class="comment"># Raw log files (symlinked)</span>
+├── deploy/            <span class="comment"># Deploy artefacts &amp; rollback history</span>
+└── brain/
+    ├── playbooks/     <span class="comment"># TOML remediation playbooks</span>
+    └── history.db     <span class="comment"># Healing event log</span></span></div>
+    </div>
+    <div class="callout callout-info">
+      <span class="callout-icon">&#8505;</span>
+      <span>Override the directory with the environment variable <code>MHOST_HOME</code>.</span>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ PROCESS MGMT -->
+
+  <div class="doc-section" id="starting">
+    <div class="section-header">
+      <h2 class="doc-h2">Starting Processes</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/processes.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost start &lt;file|command&gt; [flags]</div>
+    </div>
+    <ul class="flag-list">
+      <li><span class="flag-name">--name &lt;name&gt;</span><span class="flag-desc">Assign a name (default: filename without extension).</span></li>
+      <li><span class="flag-name">--instances &lt;N&gt;</span><span class="flag-desc">Number of instances to spawn (cluster mode).</span></li>
+      <li><span class="flag-name">--max-memory &lt;MB&gt;</span><span class="flag-desc">Auto-restart when RSS exceeds this limit.</span></li>
+      <li><span class="flag-name">--env &lt;KEY=VAL&gt;</span><span class="flag-desc">Inject environment variables (repeatable).</span></li>
+      <li><span class="flag-name">--env-file &lt;path&gt;</span><span class="flag-desc">Load variables from a .env file.</span></li>
+      <li><span class="flag-name">--cwd &lt;path&gt;</span><span class="flag-desc">Working directory for the process.</span></li>
+      <li><span class="flag-name">--interpreter &lt;bin&gt;</span><span class="flag-desc">Override the auto-detected interpreter.</span></li>
+      <li><span class="flag-name">--grace-period &lt;dur&gt;</span><span class="flag-desc">Time to wait for graceful shutdown (default: 10s).</span></li>
+      <li><span class="flag-name">--no-autorestart</span><span class="flag-desc">Disable automatic restart on crash.</span></li>
+      <li><span class="flag-name">--watch</span><span class="flag-desc">Watch files and restart on change (dev mode).</span></li>
+    </ul>
+  </div>
+
+  <div class="doc-section" id="interpreter">
+    <h2 class="doc-h2">Auto-detect Interpreter</h2>
+    <p class="doc-p">mhost infers the interpreter from the file extension so you can pass a filename directly:</p>
+    <table class="doc-table">
+      <thead><tr><th>Extension</th><th>Interpreter</th><th>Override flag</th></tr></thead>
+      <tbody>
+        <tr><td>.js / .mjs / .cjs</td><td>node</td><td><code>--interpreter bun</code></td></tr>
+        <tr><td>.ts</td><td>ts-node</td><td><code>--interpreter deno</code></td></tr>
+        <tr><td>.py</td><td>python3</td><td><code>--interpreter pypy3</code></td></tr>
+        <tr><td>.rb</td><td>ruby</td><td>–</td></tr>
+        <tr><td>.sh / .bash</td><td>bash</td><td>–</td></tr>
+        <tr><td>.php</td><td>php</td><td>–</td></tr>
+        <tr><td>(binary)</td><td>direct exec</td><td>–</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="stop-restart">
+    <h2 class="doc-h2">Stop, Restart, Delete</h2>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost stop my-app          <span class="comment"># graceful SIGTERM</span>
+<span class="prompt">$</span> mhost stop my-app <span class="flag">--force</span>  <span class="comment"># SIGKILL immediately</span>
+<span class="prompt">$</span> mhost restart my-app       <span class="comment"># stop + start</span>
+<span class="prompt">$</span> mhost reload my-app        <span class="comment"># zero-downtime reload (SIGUSR2)</span>
+<span class="prompt">$</span> mhost delete my-app        <span class="comment"># stop + remove from registry</span>
+<span class="prompt">$</span> mhost stop all             <span class="comment"># stop every process</span></div>
+      <button class="copy-btn" data-copy="mhost restart my-app">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="scaling">
+    <h2 class="doc-h2">Scaling</h2>
+    <p class="doc-p">Scale a named process to N instances at runtime with no downtime — mhost adds or removes workers gracefully:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost scale my-app 4    <span class="comment"># scale to 4 instances</span>
+<span class="prompt">$</span> mhost scale my-app +2   <span class="comment"># add 2 more instances</span>
+<span class="prompt">$</span> mhost scale my-app -1   <span class="comment"># remove 1 instance</span></div>
+      <button class="copy-btn" data-copy="mhost scale my-app 4">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="groups">
+    <h2 class="doc-h2">Process Groups &amp; Dependencies</h2>
+    <p class="doc-p">Groups let you start, stop, and restart related processes together. Declare them in your config:</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[groups.backend]</span>
+processes = [<span class="str">"api"</span>, <span class="str">"worker"</span>, <span class="str">"scheduler"</span>]
+start_order = [<span class="str">"api"</span>, <span class="str">"worker"</span>, <span class="str">"scheduler"</span>]
+
+<span class="key">[process.worker]</span>
+depends_on = [<span class="str">"api"</span>]   <span class="comment"># waits for api to be online</span></div>
+      <button class="copy-btn" data-copy='mhost start backend  # starts group'>Copy</button>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost start backend    <span class="comment"># start entire group</span>
+<span class="prompt">$</span> mhost restart backend  <span class="comment"># rolling restart respecting order</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="save-resurrect">
+    <h2 class="doc-h2">Save &amp; Resurrect</h2>
+    <p class="doc-p">Persist the current process list to disk so mhost can restore it after a system reboot:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost save        <span class="comment"># snapshot current processes to ~/.mhost/dump.toml</span>
+<span class="prompt">$</span> mhost resurrect    <span class="comment"># restore from snapshot (runs at boot via systemd unit)</span>
+<span class="prompt">$</span> mhost startup      <span class="comment"># generate and install systemd/launchd unit for auto-resurrect</span></div>
+      <button class="copy-btn" data-copy="mhost startup">Copy</button>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ CONFIGURATION -->
+
+  <div class="doc-section" id="toml-format">
+    <div class="section-header">
+      <h2 class="doc-h2">mhost.toml Format</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/config.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <p class="doc-p">Full configuration reference for a single process:</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[process.api]</span>
+command       = <span class="str">"node server.js"</span>           <span class="comment"># required</span>
+interpreter   = <span class="str">"node"</span>                    <span class="comment"># auto-detected if omitted</span>
+instances     = <span class="val">2</span>                          <span class="comment"># default 1</span>
+cwd           = <span class="str">"/srv/app"</span>                 <span class="comment"># default: process CWD</span>
+env_file      = <span class="str">".env"</span>
+max_memory    = <span class="str">"512MB"</span>
+max_restarts  = <span class="val">10</span>                         <span class="comment"># 0 = unlimited</span>
+grace_period  = <span class="str">"10s"</span>
+autorestart   = <span class="val">true</span>
+watch         = <span class="val">false</span>
+log_date_format = <span class="str">"YYYY-MM-DD HH:mm:ss"</span>
+
+<span class="key">[process.api.env]</span>
+NODE_ENV = <span class="str">"production"</span>
+PORT     = <span class="str">"${PORT}"</span>
+
+<span class="key">[process.api.health.http]</span>
+url      = <span class="str">"http://localhost:${PORT}/health"</span>
+interval = <span class="str">"10s"</span>
+timeout  = <span class="str">"3s"</span>
+retries  = <span class="val">3</span>
+
+<span class="key">[process.api.notify]</span>
+on_crash = <span class="val">true</span>
+channels = [<span class="str">"telegram"</span>, <span class="str">"slack"</span>]</div>
+      <button class="copy-btn" data-copy='[process.api]&#10;command = "node server.js"'>Copy</button>
+    </div>
+
+    <table class="doc-table">
+      <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>command</td><td>string</td><td><span class="required">required</span></td><td>Shell command or path to script.</td></tr>
+        <tr><td>instances</td><td>integer</td><td><span class="default">1</span></td><td>Parallel worker count.</td></tr>
+        <tr><td>max_memory</td><td>string</td><td>–</td><td>e.g. "512MB", "2GB". Auto-restart on breach.</td></tr>
+        <tr><td>max_restarts</td><td>integer</td><td><span class="default">0</span></td><td>Maximum restart attempts before marking errored.</td></tr>
+        <tr><td>grace_period</td><td>duration</td><td><span class="default">"10s"</span></td><td>Graceful shutdown window before SIGKILL.</td></tr>
+        <tr><td>autorestart</td><td>bool</td><td><span class="default">true</span></td><td>Restart on non-zero exit.</td></tr>
+        <tr><td>cron_restart</td><td>string</td><td>–</td><td>Cron expression for scheduled restarts.</td></tr>
+        <tr><td>watch</td><td>bool / [string]</td><td><span class="default">false</span></td><td>true = watch all source files, or list of globs.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="yaml-json">
+    <h2 class="doc-h2">YAML &amp; JSON Alternatives</h2>
+    <p class="doc-p">mhost auto-detects format by file extension. Use <code>--config</code> to specify a path:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost start <span class="flag">--config</span> mhost.yaml
+<span class="prompt">$</span> mhost start <span class="flag">--config</span> mhost.json</div>
+    </div>
+    <p class="doc-p">All three formats support the same keys. TOML is recommended for production due to its comment support.</p>
+  </div>
+
+  <div class="doc-section" id="env-expansion">
+    <h2 class="doc-h2">Environment Variable Expansion</h2>
+    <p class="doc-p">Any string value in config can reference environment variables using <code>${VAR}</code> syntax. Variables are resolved at daemon startup:</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block">command = <span class="str">"node server.js"</span>
+env_file = <span class="str">"${APP_ROOT}/.env.production"</span>
+
+<span class="key">[process.api.env]</span>
+DATABASE_URL = <span class="str">"${DATABASE_URL}"</span>
+PORT         = <span class="str">"${PORT:-3000}"</span>   <span class="comment"># default fallback</span></div>
+    </div>
+    <div class="callout callout-warn">
+      <span class="callout-icon">&#9888;</span>
+      <span>Undefined variables without a default will cause mhost to print a warning and leave the value empty. Use <code>${VAR:-default}</code> to supply fallbacks.</span>
+    </div>
+  </div>
+
+  <div class="doc-section" id="health-probes">
+    <h2 class="doc-h2">Health Probes</h2>
+    <p class="doc-p">Three probe types are supported. A process is considered <span class="state state-errored">errored</span> when the probe fails <code>retries</code> times consecutively.</p>
+    <h4 class="doc-h4">HTTP Probe</h4>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[process.api.health.http]</span>
+url           = <span class="str">"http://localhost:3000/health"</span>
+interval      = <span class="str">"10s"</span>
+timeout       = <span class="str">"3s"</span>
+retries       = <span class="val">3</span>
+expected_code = <span class="val">200</span></div>
+    </div>
+    <h4 class="doc-h4">TCP Probe</h4>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[process.db.health.tcp]</span>
+host     = <span class="str">"localhost"</span>
+port     = <span class="val">5432</span>
+interval = <span class="str">"15s"</span>
+timeout  = <span class="str">"2s"</span></div>
+    </div>
+    <h4 class="doc-h4">Script Probe</h4>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[process.worker.health.script]</span>
+command  = <span class="str">"./scripts/health-check.sh"</span>
+interval = <span class="str">"30s"</span>
+timeout  = <span class="str">"5s"</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="cron-restarts">
+    <h2 class="doc-h2">Cron Restarts</h2>
+    <p class="doc-p">Schedule automatic restarts using standard cron syntax (UTC by default):</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[process.report-gen]</span>
+command      = <span class="str">"python3 generate.py"</span>
+cron_restart = <span class="str">"0 3 * * *"</span>   <span class="comment"># restart daily at 03:00 UTC</span>
+timezone     = <span class="str">"America/New_York"</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="memory-limits">
+    <h2 class="doc-h2">Memory Limits</h2>
+    <p class="doc-p">When a process exceeds <code>max_memory</code>, mhost restarts it and fires a notification on configured channels. Supported suffixes: <code>MB</code>, <code>GB</code>.</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[process.api]</span>
+max_memory = <span class="str">"512MB"</span></div>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ LOGS -->
+
+  <div class="doc-section" id="logs-basic">
+    <div class="section-header">
+      <h2 class="doc-h2">Logs</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/logs.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost logs              <span class="comment"># all processes, last 100 lines</span>
+<span class="prompt">$</span> mhost logs my-app       <span class="comment"># specific process</span>
+<span class="prompt">$</span> mhost logs my-app <span class="flag">--lines</span> 500
+<span class="prompt">$</span> mhost logs my-app <span class="flag">--since</span> 1h
+<span class="prompt">$</span> mhost logs my-app <span class="flag">--since</span> <span class="str">"2026-03-28 00:00"</span></div>
+      <button class="copy-btn" data-copy="mhost logs my-app --follow">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="logs-follow">
+    <h2 class="doc-h2">Live Streaming</h2>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost logs <span class="flag">--follow</span>               <span class="comment"># all processes, live</span>
+<span class="prompt">$</span> mhost logs my-app <span class="flag">--follow</span>          <span class="comment"># single process, live</span>
+<span class="prompt">$</span> mhost logs my-app <span class="flag">-f --no-color</span>     <span class="comment"># pipe-friendly</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="logs-format">
+    <h2 class="doc-h2">Log Format</h2>
+    <p class="doc-p">Each line is timestamped and prefixed with the process name and instance ID:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="out">2026-03-28T14:32:01Z  [api-0]   Server listening on :3000
+2026-03-28T14:32:01Z  [api-1]   Server listening on :3001
+2026-03-28T14:32:05Z  [worker]  {"level":"info","msg":"job complete","id":42}</span></div>
+    </div>
+    <p class="doc-p">JSON lines are automatically pretty-printed in the terminal. Pass <code>--raw</code> to disable pretty-printing.</p>
+  </div>
+
+  <div class="doc-section" id="logs-search">
+    <h2 class="doc-h2">FTS5 Search</h2>
+    <p class="doc-p">mhost stores all logs in SQLite with FTS5 full-text search. Query logs without grep:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost logs <span class="flag">--search</span> <span class="str">"ECONNREFUSED"</span>
+<span class="prompt">$</span> mhost logs <span class="flag">--search</span> <span class="str">"timeout"</span> <span class="flag">--since</span> 30m
+<span class="prompt">$</span> mhost logs <span class="flag">--where</span> <span class="str">"level = 'error'"</span>        <span class="comment"># SQL where on JSON fields</span>
+<span class="prompt">$</span> mhost logs <span class="flag">--where</span> <span class="str">"process = 'api' AND ts &gt; datetime('now','-1 hour')"</span></div>
+      <button class="copy-btn" data-copy='mhost logs --search "error" --since 1h'>Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="logs-sinks">
+    <h2 class="doc-h2">External Log Sinks</h2>
+    <p class="doc-p">Ship logs to external systems by configuring sinks in <code>mhost.toml</code>:</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[sinks.graylog]</span>
+type = <span class="str">"gelf"</span>
+host = <span class="str">"logs.example.com"</span>
+port = <span class="val">12201</span>
+
+<span class="key">[sinks.loki]</span>
+type = <span class="str">"loki"</span>
+url  = <span class="str">"http://localhost:3100"</span>
+
+<span class="key">[sinks.elastic]</span>
+type  = <span class="str">"elasticsearch"</span>
+url   = <span class="str">"http://localhost:9200"</span>
+index = <span class="str">"mhost-logs"</span>
+
+<span class="key">[sinks.syslog]</span>
+type     = <span class="str">"syslog"</span>
+facility = <span class="str">"local0"</span></div>
+      <button class="copy-btn" data-copy='[sinks.loki]&#10;type = "loki"&#10;url  = "http://localhost:3100"'>Copy</button>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ MONITORING -->
+
+  <div class="doc-section" id="monit">
+    <div class="section-header">
+      <h2 class="doc-h2">TUI Dashboard</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/monitoring.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost monit</div>
+    </div>
+    <p class="doc-p">Opens a real-time terminal UI showing CPU, memory, restart count, uptime, and log tail for every process. Use arrow keys to navigate, <code>r</code> to restart, <code>s</code> to stop, <code>q</code> to quit.</p>
+  </div>
+
+  <div class="doc-section" id="web-dashboard">
+    <h2 class="doc-h2">Web Dashboard</h2>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost dashboard
+<span class="out">Dashboard running at http://localhost:9615</span></div>
+      <button class="copy-btn" data-copy="mhost dashboard">Copy</button>
+    </div>
+    <p class="doc-p">Configure port and basic auth in <code>~/.mhost/config.toml</code>:</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[dashboard]</span>
+port     = <span class="val">9615</span>
+username = <span class="str">"admin"</span>
+password = <span class="str">"${DASHBOARD_PASSWORD}"</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="health-checks">
+    <h2 class="doc-h2">Health Checks</h2>
+    <p class="doc-p">View current health status at a glance:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost health
+<span class="out"> NAME       PROBE   STATUS   LAST CHECK   LATENCY
+ api        http    pass     2s ago       12ms
+ worker     script  pass     28s ago      —
+ db-proxy   tcp     fail     1s ago       timeout</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="prometheus">
+    <h2 class="doc-h2">Metrics &amp; Prometheus</h2>
+    <p class="doc-p">mhost exposes a Prometheus-compatible <code>/metrics</code> endpoint. Enable it in <code>~/.mhost/config.toml</code>:</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[metrics]</span>
+enabled = <span class="val">true</span>
+port    = <span class="val">9161</span>
+path    = <span class="str">"/metrics"</span></div>
+    </div>
+    <p class="doc-p">Exported metrics include: <code>mhost_process_cpu_percent</code>, <code>mhost_process_memory_bytes</code>, <code>mhost_process_restarts_total</code>, <code>mhost_process_status</code>, <code>mhost_health_probe_duration_ms</code>.</p>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ NOTIFICATIONS -->
+
+  <div class="doc-section" id="notify-setup">
+    <div class="section-header">
+      <h2 class="doc-h2">Notification Setup</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/notifications.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <p class="doc-p">Run the interactive wizard to configure any channel:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost notify setup
+<span class="out">? Which channel? › Telegram
+? Bot token: › ***
+? Chat ID: › -100123456789
+? Test notification? › Yes
+&#10003; Telegram configured successfully</span></div>
+      <button class="copy-btn" data-copy="mhost notify setup">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="notify-channels">
+    <h2 class="doc-h2">All Channels</h2>
+    <div class="channel-grid">
+      <div class="channel-card"><span class="channel-icon">&#9992;</span><div><div class="channel-name">Telegram</div><div class="channel-sub">Bot API</div></div></div>
+      <div class="channel-card"><span class="channel-icon">&#128172;</span><div><div class="channel-name">Slack</div><div class="channel-sub">Incoming Webhook</div></div></div>
+      <div class="channel-card"><span class="channel-icon">&#128236;</span><div><div class="channel-name">Email</div><div class="channel-sub">SMTP</div></div></div>
+      <div class="channel-card"><span class="channel-icon">&#128242;</span><div><div class="channel-name">SMS</div><div class="channel-sub">Twilio</div></div></div>
+      <div class="channel-card"><span class="channel-icon">&#128276;</span><div><div class="channel-name">Discord</div><div class="channel-sub">Webhook</div></div></div>
+      <div class="channel-card"><span class="channel-icon">&#128203;</span><div><div class="channel-name">PagerDuty</div><div class="channel-sub">Events API v2</div></div></div>
+      <div class="channel-card"><span class="channel-icon">&#128279;</span><div><div class="channel-name">Webhook</div><div class="channel-sub">Custom HTTP POST</div></div></div>
+      <div class="channel-card"><span class="channel-icon">&#128736;</span><div><div class="channel-name">Opsgenie</div><div class="channel-sub">Alert API</div></div></div>
+    </div>
+
+    <h3 class="doc-h3">Telegram Example</h3>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[notifications.telegram]</span>
+bot_token = <span class="str">"${TELEGRAM_TOKEN}"</span>
+chat_id   = <span class="str">"${TELEGRAM_CHAT_ID}"</span>
+events    = [<span class="str">"crash"</span>, <span class="str">"errored"</span>, <span class="str">"memory_exceeded"</span>]
+throttle  = <span class="str">"5m"</span></div>
+      <button class="copy-btn" data-copy='[notifications.telegram]&#10;bot_token = "${TELEGRAM_TOKEN}"'>Copy</button>
+    </div>
+
+    <h3 class="doc-h3">Slack Example</h3>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[notifications.slack]</span>
+webhook_url = <span class="str">"${SLACK_WEBHOOK}"</span>
+events      = [<span class="str">"crash"</span>, <span class="str">"health_fail"</span>, <span class="str">"deploy_done"</span>]
+channel     = <span class="str">"#ops-alerts"</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="notify-events">
+    <h2 class="doc-h2">Event Types</h2>
+    <table class="doc-table">
+      <thead><tr><th>Event</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>crash</td><td>Process exited unexpectedly.</td></tr>
+        <tr><td>errored</td><td>Process entered errored state.</td></tr>
+        <tr><td>health_fail</td><td>Health probe failed.</td></tr>
+        <tr><td>health_recover</td><td>Health probe recovered.</td></tr>
+        <tr><td>memory_exceeded</td><td>RSS exceeded max_memory limit.</td></tr>
+        <tr><td>restart</td><td>Process was restarted (manual or auto).</td></tr>
+        <tr><td>deploy_start</td><td>Deployment started.</td></tr>
+        <tr><td>deploy_done</td><td>Deployment completed.</td></tr>
+        <tr><td>deploy_failed</td><td>Deployment failed.</td></tr>
+        <tr><td>brain_heal</td><td>Brain applied an auto-remediation.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="notify-throttle">
+    <h2 class="doc-h2">Throttling &amp; Escalation</h2>
+    <p class="doc-p">Prevent alert storms with per-channel throttling and escalation policies:</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[notifications.telegram]</span>
+throttle          = <span class="str">"5m"</span>           <span class="comment"># max 1 alert per 5 minutes per process</span>
+escalation_after  = <span class="str">"15m"</span>          <span class="comment"># escalate if unresolved after 15m</span>
+escalation_target = <span class="str">"pagerduty"</span>    <span class="comment"># channel to escalate to</span></div>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ AI FEATURES -->
+
+  <div class="doc-section" id="ai-setup">
+    <div class="section-header">
+      <h2 class="doc-h2">AI Setup</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/ai.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost ai setup
+<span class="out">? Provider › OpenAI
+? API key: › sk-***
+? Model: › gpt-4o
+&#10003; AI configured. Run `mhost ai diagnose` to test.</span></div>
+      <button class="copy-btn" data-copy="mhost ai setup">Copy</button>
+    </div>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[ai]</span>
+provider = <span class="str">"openai"</span>   <span class="comment"># openai | anthropic | ollama | groq | gemini</span>
+api_key  = <span class="str">"${OPENAI_API_KEY}"</span>
+model    = <span class="str">"gpt-4o"</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="ai-commands">
+    <h2 class="doc-h2">AI Commands</h2>
+    <table class="doc-table">
+      <thead><tr><th>Command</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>mhost ai diagnose &lt;app&gt;</code></td><td>Analyze recent crashes and suggest root cause.</td></tr>
+        <tr><td><code>mhost ai explain &lt;app&gt;</code></td><td>Explain what a process does based on its logs and command.</td></tr>
+        <tr><td><code>mhost ai fix &lt;app&gt;</code></td><td>Suggest configuration fixes for an errored process.</td></tr>
+        <tr><td><code>mhost ai logs &lt;app&gt;</code></td><td>Summarize recent log activity in plain English.</td></tr>
+        <tr><td><code>mhost ai predict</code></td><td>Predict which processes are likely to fail in the next hour.</td></tr>
+        <tr><td><code>mhost ai optimize &lt;app&gt;</code></td><td>Suggest memory and concurrency optimizations.</td></tr>
+        <tr><td><code>mhost ai anomaly</code></td><td>Detect anomalous behaviour across all processes.</td></tr>
+        <tr><td><code>mhost ai compare &lt;app&gt; &lt;before&gt; &lt;after&gt;</code></td><td>Compare log patterns before/after a deploy.</td></tr>
+        <tr><td><code>mhost ai report</code></td><td>Generate a daily ops report for all processes.</td></tr>
+        <tr><td><code>mhost ai ask "&lt;question&gt;"</code></td><td>Free-form question about your running stack.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="ai-prompts">
+    <h2 class="doc-h2">Prompt Customization</h2>
+    <p class="doc-p">Override any built-in system prompt by placing a file in <code>~/.mhost/prompts/</code>:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="out">~/.mhost/prompts/
+├── diagnose.txt    # override for mhost ai diagnose
+├── report.txt      # override for mhost ai report
+└── system.txt      # global system prompt prefix</span></div>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ AGENT -->
+
+  <div class="doc-section" id="agent-setup">
+    <div class="section-header">
+      <h2 class="doc-h2">Autonomous Agent Setup</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/agent.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost agent setup
+<span class="prompt">$</span> mhost agent start   <span class="comment"># runs in background</span>
+<span class="prompt">$</span> mhost agent status
+<span class="prompt">$</span> mhost agent stop</div>
+      <button class="copy-btn" data-copy="mhost agent start">Copy</button>
+    </div>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[agent]</span>
+enabled        = <span class="val">true</span>
+autonomy       = <span class="str">"supervised"</span>   <span class="comment"># supervised | semi | autonomous</span>
+poll_interval  = <span class="str">"30s"</span>
+telegram_chat  = <span class="str">"${TELEGRAM_CHAT_ID}"</span>
+max_actions_per_hour = <span class="val">10</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="agent-loop">
+    <h2 class="doc-h2">Observe → Think → Act Loop</h2>
+    <p class="doc-p">The agent runs a continuous loop every <code>poll_interval</code>:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="out"> 1. Observe   collect metrics, logs, health probe results
+ 2. Think     send context to AI model for analysis
+ 3. Plan      AI returns a ranked list of recommended actions
+ 4. Confirm   in supervised mode: notify operator and wait for approval
+ 5. Act       execute approved actions (restart, scale, rollback, etc.)
+ 6. Learn     record outcome; update brain playbooks if successful</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="autonomy-levels">
+    <h2 class="doc-h2">Autonomy Levels</h2>
+    <table class="doc-table">
+      <thead><tr><th>Level</th><th>Behaviour</th></tr></thead>
+      <tbody>
+        <tr><td><code>supervised</code></td><td>Always asks for approval via Telegram before acting.</td></tr>
+        <tr><td><code>semi</code></td><td>Acts autonomously for low-risk actions (restart); asks for high-risk ones (rollback, scale-up).</td></tr>
+        <tr><td><code>autonomous</code></td><td>Full autonomy within configured bounds. Reports actions after the fact.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="agent-telegram">
+    <h2 class="doc-h2">Telegram Conversation Examples</h2>
+    <div class="code-wrap">
+      <div class="code-block"><span class="hl">Agent:</span>  <span class="out">api-server has crashed 3 times in 10 min.
+         Likely cause: OOM (RSS 498MB / limit 512MB).
+         Proposed action: increase max_memory to 768MB and restart.
+         Reply YES to approve or NO to skip.</span>
+
+<span class="hl">You:</span>    <span class="out">yes</span>
+
+<span class="hl">Agent:</span>  <span class="out">&#10003; Done. api-server restarted (pid 18234). Memory limit updated.</span></div>
+    </div>
+    <p class="doc-p">You can also chat with the agent directly: <code>mhost agent ask "why is worker slow today?"</code></p>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ BRAIN -->
+
+  <div class="doc-section" id="brain-commands">
+    <div class="section-header">
+      <h2 class="doc-h2">Self-Healing Brain</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/brain.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost brain status       <span class="comment"># current health scores</span>
+<span class="prompt">$</span> mhost brain history       <span class="comment"># past healing events</span>
+<span class="prompt">$</span> mhost brain playbooks     <span class="comment"># list loaded playbooks</span>
+<span class="prompt">$</span> mhost brain explain crash  <span class="comment"># explain last crash remediation</span></div>
+      <button class="copy-btn" data-copy="mhost brain status">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="brain-playbooks">
+    <h2 class="doc-h2">Built-in Playbooks</h2>
+    <table class="doc-table">
+      <thead><tr><th>Playbook</th><th>Trigger</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>oom-restart</td><td>RSS > max_memory</td><td>Restart process, log incident.</td></tr>
+        <tr><td>rapid-crash</td><td>&gt;3 crashes in 5 min</td><td>Stop, notify, wait for manual intervention.</td></tr>
+        <tr><td>health-recover</td><td>Probe fails 3x, then passes</td><td>Clear error state, update health score.</td></tr>
+        <tr><td>cpu-spike</td><td>CPU > 90% for 60s</td><td>Scale out by +1 instance.</td></tr>
+        <tr><td>zombie-process</td><td>PID alive, health probe dead 5min</td><td>SIGKILL, restart.</td></tr>
+        <tr><td>deploy-rollback</td><td>Error rate &gt; 10% post-deploy</td><td>Auto-rollback to previous revision.</td></tr>
+      </tbody>
+    </table>
+    <p class="doc-p">Add custom playbooks in <code>~/.mhost/brain/playbooks/my-playbook.toml</code>.</p>
+  </div>
+
+  <div class="doc-section" id="brain-health">
+    <h2 class="doc-h2">Health Scores</h2>
+    <p class="doc-p">Each process gets a rolling health score (0–100) computed from crash frequency, probe success rate, memory trend, and CPU stability. Scores below 40 trigger notifications; below 20 trigger the brain.</p>
+  </div>
+
+  <div class="doc-section" id="brain-learning">
+    <h2 class="doc-h2">Auto-Learning</h2>
+    <p class="doc-p">When the brain successfully remediates a novel incident, it serializes the diagnosis → action → outcome chain into a new playbook. On the next identical incident the playbook runs locally — no AI API call needed, zero latency, zero cost.</p>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ DEV MODE -->
+
+  <div class="doc-section" id="dev-command">
+    <div class="section-header">
+      <h2 class="doc-h2">Dev Mode</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/dev.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost dev                  <span class="comment"># start all processes from mhost.toml in dev mode</span>
+<span class="prompt">$</span> mhost dev <span class="flag">--watch</span> src/      <span class="comment"># restart on file change in src/</span>
+<span class="prompt">$</span> mhost dev <span class="flag">--env-file</span> .env.dev</div>
+      <button class="copy-btn" data-copy="mhost dev">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="dev-watch">
+    <h2 class="doc-h2">File Watching</h2>
+    <p class="doc-p">In dev mode, mhost watches files using OS-native events (inotify on Linux, FSEvents on macOS). Configure per-process watch paths in <code>mhost.toml</code>:</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[process.api]</span>
+watch = [<span class="str">"src/**/*.js"</span>, <span class="str">"config/*.toml"</span>]
+ignore = [<span class="str">"node_modules"</span>, <span class="str">"dist"</span>, <span class="str">"*.log"</span>]</div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="dev-env">
+    <h2 class="doc-h2">Env File Loading</h2>
+    <p class="doc-p">mhost merges env files in this priority order (later overrides earlier):</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="out">.env  →  .env.local  →  .env.${NODE_ENV}  →  process [env] table  →  OS env</span></div>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ CLOUD FLEET -->
+
+  <div class="doc-section" id="cloud-commands">
+    <div class="section-header">
+      <h2 class="doc-h2">Cloud Fleet Commands</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/cloud.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost cloud add &lt;host&gt; <span class="flag">--name</span> prod-1  <span class="comment"># add SSH host</span>
+<span class="prompt">$</span> mhost cloud import aws          <span class="comment"># auto-import EC2 instances</span>
+<span class="prompt">$</span> mhost cloud import digitalocean  <span class="comment"># auto-import Droplets</span>
+<span class="prompt">$</span> mhost cloud list                 <span class="comment"># list registered hosts</span>
+<span class="prompt">$</span> mhost cloud deploy prod-1        <span class="comment"># push config &amp; restart</span>
+<span class="prompt">$</span> mhost cloud exec prod-1 -- mhost status</div>
+      <button class="copy-btn" data-copy="mhost cloud list">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="cloud-ssh">
+    <h2 class="doc-h2">SSH Configuration</h2>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[cloud.hosts.prod-1]</span>
+host       = <span class="str">"10.0.1.5"</span>
+port       = <span class="val">22</span>
+user       = <span class="str">"ubuntu"</span>
+key_file   = <span class="str">"~/.ssh/prod.pem"</span>
+tags       = [<span class="str">"production"</span>, <span class="str">"api"</span>]</div>
+    </div>
+    <p class="doc-p">mhost uses your existing <code>~/.ssh/config</code> by default. The <code>key_file</code> field is optional if the SSH agent is running.</p>
+  </div>
+
+  <div class="doc-section" id="cloud-providers">
+    <h2 class="doc-h2">Cloud Providers</h2>
+    <table class="doc-table">
+      <thead><tr><th>Provider</th><th>Import command</th><th>Auth</th></tr></thead>
+      <tbody>
+        <tr><td>AWS EC2</td><td><code>mhost cloud import aws</code></td><td>AWS_ACCESS_KEY_ID / IAM role</td></tr>
+        <tr><td>Azure VMs</td><td><code>mhost cloud import azure</code></td><td>AZURE_SUBSCRIPTION_ID + az login</td></tr>
+        <tr><td>DigitalOcean</td><td><code>mhost cloud import digitalocean</code></td><td>DIGITALOCEAN_TOKEN</td></tr>
+        <tr><td>Railway</td><td><code>mhost cloud import railway</code></td><td>RAILWAY_TOKEN</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="cloud-ai">
+    <h2 class="doc-h2">AI Cloud Operations</h2>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost ai cloud diagnose prod-1    <span class="comment"># diagnose remote server</span>
+<span class="prompt">$</span> mhost ai cloud plan-migration      <span class="comment"># plan migration between hosts</span>
+<span class="prompt">$</span> mhost ai cloud provision           <span class="comment"># AI-guided infrastructure setup</span></div>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ CHAT BOT -->
+
+  <div class="doc-section" id="bot-setup">
+    <div class="section-header">
+      <h2 class="doc-h2">Chat Bot Setup</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/bot.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost bot setup   <span class="comment"># configure Telegram or Slack bot</span>
+<span class="prompt">$</span> mhost bot start
+<span class="prompt">$</span> mhost bot status</div>
+      <button class="copy-btn" data-copy="mhost bot setup">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="bot-commands">
+    <h2 class="doc-h2">Chat Commands</h2>
+    <table class="doc-table">
+      <thead><tr><th>Command</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>/status</td><td>List all processes and their states.</td></tr>
+        <tr><td>/status &lt;app&gt;</td><td>Detailed status for a single process.</td></tr>
+        <tr><td>/restart &lt;app&gt;</td><td>Restart a process.</td></tr>
+        <tr><td>/stop &lt;app&gt;</td><td>Stop a process.</td></tr>
+        <tr><td>/scale &lt;app&gt; &lt;N&gt;</td><td>Scale to N instances.</td></tr>
+        <tr><td>/logs &lt;app&gt;</td><td>Last 20 log lines.</td></tr>
+        <tr><td>/health</td><td>Health probe summary.</td></tr>
+        <tr><td>/deploy &lt;app&gt;</td><td>Trigger a deployment.</td></tr>
+        <tr><td>/rollback &lt;app&gt;</td><td>Rollback to previous revision.</td></tr>
+        <tr><td>/ask &lt;question&gt;</td><td>Ask the AI agent anything.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="bot-permissions">
+    <h2 class="doc-h2">Permission System</h2>
+    <table class="doc-table">
+      <thead><tr><th>Role</th><th>Allowed actions</th></tr></thead>
+      <tbody>
+        <tr><td>admin</td><td>All commands including stop, delete, deploy, rollback, scale.</td></tr>
+        <tr><td>operator</td><td>restart, logs, status, health, scale.</td></tr>
+        <tr><td>viewer</td><td>status, logs, health (read-only).</td></tr>
+      </tbody>
+    </table>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[bot.users]</span>
+<span class="str">"123456789"</span> = <span class="str">"admin"</span>
+<span class="str">"987654321"</span> = <span class="str">"operator"</span></div>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ DEPLOY -->
+
+  <div class="doc-section" id="deploy-command">
+    <div class="section-header">
+      <h2 class="doc-h2">Deploy &amp; Rollback</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/deploy.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost deploy            <span class="comment"># deploy using mhost.toml [deploy] config</span>
+<span class="prompt">$</span> mhost deploy <span class="flag">--env</span> prod
+<span class="prompt">$</span> mhost rollback           <span class="comment"># revert to previous revision</span>
+<span class="prompt">$</span> mhost rollback <span class="flag">--rev</span> 3   <span class="comment"># revert to specific revision</span>
+<span class="prompt">$</span> mhost deploy history</div>
+      <button class="copy-btn" data-copy="mhost deploy">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="deploy-config">
+    <h2 class="doc-h2">Deploy Config</h2>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[deploy]</span>
+repo          = <span class="str">"git@github.com:you/app.git"</span>
+branch        = <span class="str">"main"</span>
+path          = <span class="str">"/srv/app"</span>
+keep_releases = <span class="val">5</span>
+strategy      = <span class="str">"rolling"</span>   <span class="comment"># rolling | blue-green | canary</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="deploy-hooks">
+    <h2 class="doc-h2">Hook Execution</h2>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[deploy.hooks]</span>
+pre_deploy   = [<span class="str">"npm ci"</span>, <span class="str">"npm run build"</span>]
+post_deploy  = [<span class="str">"npm run migrate"</span>]
+post_restart = [<span class="str">"./scripts/smoke-test.sh"</span>]</div>
+    </div>
+    <p class="doc-p">All hooks run in the deploy path. A non-zero exit aborts the deployment and triggers rollback.</p>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ REVERSE PROXY -->
+
+  <div class="doc-section" id="proxy-config">
+    <div class="section-header">
+      <h2 class="doc-h2">Reverse Proxy Config</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/proxy.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[proxy.api]</span>
+listen    = <span class="str">"0.0.0.0:80"</span>
+upstream  = <span class="str">"http://localhost:3000"</span>
+strategy  = <span class="str">"round-robin"</span>
+tls       = <span class="val">true</span>
+domain    = <span class="str">"api.example.com"</span>
+
+<span class="key">[proxy.api.headers]</span>
+X-Forwarded-For = <span class="str">"$remote_addr"</span></div>
+      <button class="copy-btn" data-copy='[proxy.api]&#10;listen = "0.0.0.0:80"&#10;upstream = "http://localhost:3000"'>Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="proxy-lb">
+    <h2 class="doc-h2">Load Balancing Strategies</h2>
+    <table class="doc-table">
+      <thead><tr><th>Strategy</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>round-robin</td><td>Distribute requests evenly across all upstreams.</td></tr>
+        <tr><td>least-conn</td><td>Route to the upstream with fewest active connections.</td></tr>
+        <tr><td>ip-hash</td><td>Consistent routing based on client IP.</td></tr>
+        <tr><td>random</td><td>Random selection.</td></tr>
+        <tr><td>weighted</td><td>Weighted distribution (set <code>weight</code> per upstream).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="proxy-tls">
+    <h2 class="doc-h2">TLS / ACME</h2>
+    <p class="doc-p">mhost integrates with Let's Encrypt via the ACME protocol. Set <code>tls = true</code> and provide a domain — certificates are auto-provisioned and renewed.</p>
+    <div class="code-wrap">
+      <span class="code-lang">toml</span>
+      <div class="code-block"><span class="key">[proxy.api]</span>
+tls           = <span class="val">true</span>
+domain        = <span class="str">"api.example.com"</span>
+acme_email    = <span class="str">"ops@example.com"</span>
+acme_dir      = <span class="str">"~/.mhost/certs"</span></div>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ CLI REFERENCE -->
+
+  <div class="doc-section" id="cli-reference">
+    <div class="section-header">
+      <h2 class="doc-h2">CLI Reference</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/cli.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <table class="doc-table">
+      <thead><tr><th>Command</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>mhost start &lt;app&gt;</code></td><td>Start a process or config file.</td></tr>
+        <tr><td><code>mhost stop &lt;app|all&gt;</code></td><td>Gracefully stop.</td></tr>
+        <tr><td><code>mhost restart &lt;app|all&gt;</code></td><td>Restart.</td></tr>
+        <tr><td><code>mhost reload &lt;app&gt;</code></td><td>Zero-downtime reload.</td></tr>
+        <tr><td><code>mhost delete &lt;app&gt;</code></td><td>Stop and remove from registry.</td></tr>
+        <tr><td><code>mhost status [app]</code></td><td>Process status table.</td></tr>
+        <tr><td><code>mhost logs [app]</code></td><td>Show logs.</td></tr>
+        <tr><td><code>mhost monit</code></td><td>TUI dashboard.</td></tr>
+        <tr><td><code>mhost dashboard</code></td><td>Web UI.</td></tr>
+        <tr><td><code>mhost scale &lt;app&gt; &lt;N&gt;</code></td><td>Scale to N instances.</td></tr>
+        <tr><td><code>mhost save</code></td><td>Persist process list.</td></tr>
+        <tr><td><code>mhost resurrect</code></td><td>Restore from snapshot.</td></tr>
+        <tr><td><code>mhost startup</code></td><td>Install system init script.</td></tr>
+        <tr><td><code>mhost deploy</code></td><td>Run deployment.</td></tr>
+        <tr><td><code>mhost rollback</code></td><td>Rollback deployment.</td></tr>
+        <tr><td><code>mhost health</code></td><td>Health probe summary.</td></tr>
+        <tr><td><code>mhost notify setup</code></td><td>Configure notifications.</td></tr>
+        <tr><td><code>mhost ai &lt;cmd&gt;</code></td><td>AI commands.</td></tr>
+        <tr><td><code>mhost agent &lt;cmd&gt;</code></td><td>Autonomous agent.</td></tr>
+        <tr><td><code>mhost brain &lt;cmd&gt;</code></td><td>Self-healing brain.</td></tr>
+        <tr><td><code>mhost bot &lt;cmd&gt;</code></td><td>Chat bot control.</td></tr>
+        <tr><td><code>mhost cloud &lt;cmd&gt;</code></td><td>Cloud fleet management.</td></tr>
+        <tr><td><code>mhost dev</code></td><td>Dev mode with file watching.</td></tr>
+        <tr><td><code>mhost daemon start|stop|status</code></td><td>Daemon lifecycle.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="exit-codes">
+    <h2 class="doc-h2">Exit Codes</h2>
+    <table class="doc-table">
+      <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>Success.</td></tr>
+        <tr><td>1</td><td>General error.</td></tr>
+        <tr><td>2</td><td>Configuration error.</td></tr>
+        <tr><td>3</td><td>Process not found.</td></tr>
+        <tr><td>4</td><td>Daemon not running.</td></tr>
+        <tr><td>5</td><td>IPC communication error.</td></tr>
+        <tr><td>6</td><td>Deployment failed.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ API REFERENCE -->
+
+  <div class="doc-section" id="api-reference">
+    <div class="section-header">
+      <h2 class="doc-h2">API Reference</h2>
+      <a href="https://github.com/maqalaqil/mhost/edit/main/docs/api.md" class="edit-link">Edit on GitHub &#9998;</a>
+    </div>
+    <p class="doc-p">The daemon exposes a JSON-RPC 2.0 API over a Unix socket at <code>~/.mhost/mhost.sock</code>. You can also enable an HTTP JSON-RPC endpoint.</p>
+    <h3 class="doc-h3">Socket Location</h3>
+    <div class="code-wrap">
+      <div class="code-block"><span class="out">~/.mhost/mhost.sock            # Unix socket (default)
+http://localhost:9616/rpc      # HTTP endpoint (optional)</span></div>
+    </div>
+
+    <h3 class="doc-h3">Example Request</h3>
+    <div class="code-wrap">
+      <span class="code-lang">json</span>
+      <div class="code-block">{
+  <span class="key">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="key">"id"</span>: <span class="val">1</span>,
+  <span class="key">"method"</span>: <span class="str">"process.status"</span>,
+  <span class="key">"params"</span>: { <span class="key">"name"</span>: <span class="str">"api"</span> }
+}</div>
+      <button class="copy-btn" data-copy='{"jsonrpc":"2.0","id":1,"method":"process.status","params":{"name":"api"}}'>Copy</button>
+    </div>
+
+    <h3 class="doc-h3">RPC Methods</h3>
+    <table class="doc-table">
+      <thead><tr><th>Method</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>process.list</td><td>List all processes.</td></tr>
+        <tr><td>process.status</td><td>Get status for one process.</td></tr>
+        <tr><td>process.start</td><td>Start a process.</td></tr>
+        <tr><td>process.stop</td><td>Stop a process.</td></tr>
+        <tr><td>process.restart</td><td>Restart a process.</td></tr>
+        <tr><td>process.delete</td><td>Delete a process.</td></tr>
+        <tr><td>process.scale</td><td>Scale a process.</td></tr>
+        <tr><td>logs.query</td><td>Query logs with filters.</td></tr>
+        <tr><td>logs.stream</td><td>Subscribe to live log stream (WebSocket).</td></tr>
+        <tr><td>health.status</td><td>Get health probe results.</td></tr>
+        <tr><td>metrics.snapshot</td><td>Get current CPU/memory metrics.</td></tr>
+        <tr><td>deploy.trigger</td><td>Trigger a deployment.</td></tr>
+        <tr><td>deploy.rollback</td><td>Roll back to a previous revision.</td></tr>
+        <tr><td>brain.status</td><td>Get brain health scores.</td></tr>
+        <tr><td>daemon.version</td><td>Get daemon version info.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">&#8505;</span>
+      <span>Enable the HTTP endpoint by setting <code>[rpc] http = true</code> in <code>~/.mhost/config.toml</code>. The socket endpoint is always active when the daemon is running.</span>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ─── Footer ───────────────────────────────────────────────── -->
+<footer style="border-top:1px solid var(--border);padding:32px 0;text-align:center;color:var(--text3);font-size:.85rem;margin-left:var(--sidebar-w)">
+  <div style="display:flex;gap:24px;justify-content:center;margin-bottom:12px">
+    <a href="https://github.com/maqalaqil/mhost" style="color:var(--text2)">GitHub</a>
+    <a href="https://github.com/maqalaqil/mhost/issues" style="color:var(--text2)">Issues</a>
+    <a href="index.html" style="color:var(--text2)">Home</a>
+    <a href="https://github.com/maqalaqil/mhost/blob/main/LICENSE" style="color:var(--text2)">MIT License</a>
+  </div>
+  <div>Built by <a href="https://github.com/maqalaqil" style="color:var(--text2)">Maher Al-Aqil</a></div>
+</footer>
+
+<script>
+// ── Hamburger / sidebar toggle ──────────────────────────────
+const hamburger = document.getElementById('hamburger');
+const sidebar   = document.getElementById('sidebar');
+const overlay   = document.getElementById('overlay');
+
+function openSidebar()  { sidebar.classList.add('open'); overlay.classList.add('open'); }
+function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+
+hamburger.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+overlay.addEventListener('click', closeSidebar);
+
+// ── Sidebar section collapse ────────────────────────────────
+document.querySelectorAll('.sidebar-section-title').forEach(title => {
+  title.addEventListener('click', () => {
+    title.parentElement.classList.toggle('collapsed');
+    title.classList.toggle('collapsed');
+  });
+  title.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') title.click(); });
+});
+
+// ── Sidebar search ──────────────────────────────────────────
+document.getElementById('sidebarSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  document.querySelectorAll('.sidebar-section').forEach(section => {
+    const links = section.querySelectorAll('ul li a');
+    let anyMatch = false;
+    links.forEach(a => {
+      const match = !q || a.textContent.toLowerCase().includes(q);
+      a.parentElement.style.display = match ? '' : 'none';
+      if (match) anyMatch = true;
+    });
+    section.style.display = anyMatch ? '' : 'none';
+    if (q && anyMatch) {
+      section.classList.remove('collapsed');
+      section.querySelector('.sidebar-section-title').classList.remove('collapsed');
+    }
+  });
+});
+
+// ── Copy buttons ────────────────────────────────────────────
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const text = btn.getAttribute('data-copy') || btn.closest('.code-wrap').querySelector('.code-block').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+    });
+  });
+});
+
+// ── Active sidebar link on scroll ──────────────────────────
+const sections = document.querySelectorAll('.doc-section[id], h2.doc-h2[id]');
+const sidebarLinks = document.querySelectorAll('.sidebar-section ul li a');
+
+const scrollSpy = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id || entry.target.closest('[id]')?.id;
+      sidebarLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+document.querySelectorAll('.doc-section[id]').forEach(el => scrollSpy.observe(el));
+
+// ── Nav scroll bg (not needed for fixed solid nav, but harmless) ──
+window.addEventListener('scroll', () => {}, { passive: true });
+
+// ── Mobile footer margin ────────────────────────────────────
+function adjustFooter() {
+  const footer = document.querySelector('footer');
+  if (window.innerWidth <= 900) footer.style.marginLeft = '0';
+  else footer.style.marginLeft = 'var(--sidebar-w)';
+}
+adjustFooter();
+window.addEventListener('resize', adjustFooter);
+</script>
+</body>
+</html>
