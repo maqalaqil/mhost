@@ -288,3 +288,25 @@ fn metrics_help_shows_start() {
     let (stdout, _stderr, _ok) = run(&["metrics", "--help"]);
     assert!(stdout.contains("start"), "metrics --help should list start");
 }
+
+// ---------------------------------------------------------------------------
+// mhost agent --help
+// ---------------------------------------------------------------------------
+
+#[test]
+fn agent_help_exits_successfully() {
+    let output = mhost_bin().args(["agent", "--help"]).output().unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("setup"));
+    assert!(stdout.contains("start"));
+    assert!(stdout.contains("stop"));
+    assert!(stdout.contains("status"));
+}
+
+#[test]
+fn agent_status_no_config() {
+    let output = mhost_bin().args(["agent", "status"]).output().unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("not configured") || stdout.contains("setup"));
+}

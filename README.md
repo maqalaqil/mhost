@@ -42,6 +42,7 @@ Built in Rust. Single binary. Zero runtime dependencies.
 | **Restart** | Basic | Exponential backoff + circuit breaker |
 | **Config** | JS only | TOML, YAML, JSON |
 | **AI** | None | Built-in LLM intelligence (OpenAI/Claude) — diagnose, optimize, ask |
+| **Autonomous agent** | None | AI agent with LLM tool calling — monitors, acts, reports to Telegram |
 | **Cloud fleet** | None | SSH fleet management — AWS, Azure, DO, Railway auto-import |
 
 ---
@@ -892,6 +893,62 @@ max_tokens = 4096
 
 ---
 
+## Autonomous Agent
+
+An AI agent that continuously monitors your processes, diagnoses issues, and takes action — communicating through Telegram.
+
+### Setup
+
+```bash
+mhost agent setup     # Configure LLM, Telegram, autonomy level
+mhost agent start     # Start the agent
+mhost agent stop      # Stop
+mhost agent status    # Show config
+```
+
+### How It Works
+
+The agent runs as a managed mhost process. Every 30 seconds it:
+
+1. **Observes** — checks all process statuses and logs
+2. **Thinks** — sends observations to the LLM (GPT-4o/Claude) with tool definitions
+3. **Acts** — executes mhost commands (restart, scale, etc.) via tool calling
+4. **Reports** — sends findings and actions to your Telegram
+
+### Conversation
+
+Chat naturally with the agent via Telegram:
+
+```
+You: "my api keeps crashing, can you check?"
+Agent: "Checked api-server logs — EADDRINUSE on port 3000.
+        Previous instance didn't release the port.
+        I've restarted it. Now online (PID 45123)."
+
+You: "scale workers to 4"
+Agent: "Done. Workers scaled to 4 instances. All online."
+
+You: "what's using the most memory?"
+Agent: "api-server: 128MB. Workers: 64MB each. Total: 320MB."
+```
+
+### Autonomy Levels
+
+| Level | Behavior |
+|---|---|
+| `autonomous` | Acts on its own, notifies you after |
+| `supervised` | Proposes actions, waits for your approval |
+| `manual` | Only acts when you send a message |
+
+### Safety
+
+- Blocked actions configurable (delete, kill disabled by default)
+- Rate limit: 20 actions/hour
+- Conversation history capped
+- Full audit trail
+
+---
+
 ## TUI Dashboard
 
 ```bash
@@ -1002,6 +1059,15 @@ mhost monit
 | `mhost ai explain [config]` | Explain config in plain English |
 | `mhost ai suggest` | Proactive improvement suggestions |
 
+### Agent
+
+| Command | Description |
+|---|---|
+| `mhost agent setup` | Configure LLM provider, Telegram, autonomy |
+| `mhost agent start` | Start the autonomous agent |
+| `mhost agent stop` | Stop the agent |
+| `mhost agent status` | Show agent config |
+
 ### Cloud Fleet
 
 | Command | Description |
@@ -1083,11 +1149,14 @@ mhost monit
 │  - Git pull / hooks     - Cron restarts    - SQLite           │
 │  - Rollback             - Memory monitor   - Event history    │
 │                                                               │
-│  AI Intelligence        Cloud Fleet                           │
+│  AI Intelligence        Cloud Fleet        Autonomous Agent   │
 │  - OpenAI / Claude      - SSH fleet mgmt   - AWS / Azure      │
 │  - Crash diagnosis      - Auto-import      - DO / Railway     │
 │  - Config generation    - AI provisioning  - Remote deploy    │
 │  - Optimization         - AI migration     - Fleet sync       │
+│  Autonomous Agent                                             │
+│  - Observe/Think/Act    - Telegram I/O     - Tool calling     │
+│  - 3 autonomy levels    - Rate limiting    - Audit trail      │
 └──────────────────────────────────────────────────────────────┘
 ```
 
