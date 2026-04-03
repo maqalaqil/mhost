@@ -949,6 +949,60 @@ Agent: "api-server: 128MB. Workers: 64MB each. Total: 320MB."
 
 ---
 
+## Self-Healing Brain
+
+The agent's persistent memory that learns from every incident.
+
+### CLI
+
+```bash
+mhost brain status              # Fleet health scores (0-100 per process)
+mhost brain history             # Past incidents and what was done
+mhost brain playbooks           # Healing rules (built-in + auto-learned)
+mhost brain explain <process>   # Why a process has its health score
+```
+
+### How It Works
+
+```
+Process crashes
+    │
+    ├─ Known pattern? → Apply playbook instantly (no LLM call)
+    │   e.g. EADDRINUSE → wait 5s → restart
+    │
+    ├─ Similar past incident? → Apply same fix
+    │
+    └─ Unknown? → Call LLM with memory context → Learn from result
+```
+
+### Built-in Playbooks
+
+| Trigger | Action | Description |
+|---|---|---|
+| `EADDRINUSE` | wait + restart | Port in use — wait for release |
+| `out of memory` | restart | OOM — restart immediately |
+| `Cannot find module` | notify | Bad deploy — needs manual fix |
+| `ECONNREFUSED` | wait + restart | Dependency down — retry |
+| `EACCES` | notify | Permission error |
+| Crash loop (3+ in 10min) | stop + escalate | Too unstable — stop and alert |
+| Memory rising trend | restart | Preemptive leak fix |
+
+New playbooks are **auto-learned** from successful fixes.
+
+### Health Scores
+
+```
+mhost brain status
+
+  mhost Brain — Fleet Health
+  ──────────────────────────────────────────────────
+  api-server           ████████░░ 82/100
+  worker               ██████████ 100/100
+  monitor              █████░░░░░ 45/100
+```
+
+---
+
 ## TUI Dashboard
 
 ```bash
@@ -1067,6 +1121,15 @@ mhost monit
 | `mhost agent start` | Start the autonomous agent |
 | `mhost agent stop` | Stop the agent |
 | `mhost agent status` | Show agent config |
+
+### Brain
+
+| Command | Description |
+|---|---|
+| `mhost brain status` | Fleet health scores with visual bars |
+| `mhost brain history` | Past incidents and actions taken |
+| `mhost brain playbooks` | Healing rules (built-in + auto-learned) |
+| `mhost brain explain <process>` | Health score breakdown for a process |
 
 ### Cloud Fleet
 
