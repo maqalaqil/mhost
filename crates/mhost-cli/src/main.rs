@@ -7,7 +7,9 @@ use clap::Parser;
 use mhost_core::paths::MhostPaths;
 use mhost_ipc::IpcClient;
 
-use cli::{AiAction, BotAction, Cli, CloudAction, Commands, MetricsAction, NotifyAction};
+use cli::{
+    AgentAction, AiAction, BotAction, Cli, CloudAction, Commands, MetricsAction, NotifyAction,
+};
 
 #[tokio::main]
 async fn main() {
@@ -128,6 +130,22 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             BotAction::Logs => commands::bot::run_logs(paths),
         },
 
+        // ---- Agent commands (Setup/Status don't need daemon) -------------
+        Commands::Agent { action } => match action {
+            AgentAction::Setup => commands::agent::run_setup(paths),
+            AgentAction::Status => commands::agent::run_status(paths),
+            AgentAction::Start => {
+                daemon_launcher::ensure_daemon_running(paths)?;
+                let client = IpcClient::new(&paths.socket());
+                commands::agent::run_start(paths, &client).await
+            }
+            AgentAction::Stop => {
+                daemon_launcher::ensure_daemon_running(paths)?;
+                let client = IpcClient::new(&paths.socket());
+                commands::agent::run_stop(&client).await
+            }
+        },
+
         // ---- Commands that require a running daemon ----------------------
         other => {
             daemon_launcher::ensure_daemon_running(paths)?;
@@ -219,7 +237,8 @@ async fn dispatch_daemon(
         | Commands::Logs { .. }
         | Commands::Notify { .. }
         | Commands::Cloud { .. }
-        | Commands::Bot { .. } => unreachable!(),
+        | Commands::Bot { .. }
+        | Commands::Agent { .. } => unreachable!(),
     }
 }
 

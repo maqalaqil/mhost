@@ -203,6 +203,22 @@ pub enum CloudAction {
 }
 
 // ---------------------------------------------------------------------------
+// Agent subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum AgentAction {
+    /// Interactive agent setup — configure LLM provider, API key, and Telegram.
+    Setup,
+    /// Start the autonomous agent as a managed mhost process.
+    Start,
+    /// Stop the running agent.
+    Stop,
+    /// Show agent configuration and status.
+    Status,
+}
+
+// ---------------------------------------------------------------------------
 // Bot subcommands
 // ---------------------------------------------------------------------------
 
@@ -485,5 +501,11 @@ pub enum Commands {
     Bot {
         #[command(subcommand)]
         action: BotAction,
+    },
+
+    /// Autonomous AI agent that monitors and manages processes.
+    Agent {
+        #[command(subcommand)]
+        action: AgentAction,
     },
 }
