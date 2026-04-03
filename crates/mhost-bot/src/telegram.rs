@@ -130,8 +130,27 @@ impl TelegramBot {
         if parts.is_empty() {
             return;
         }
-        let command = parts[0];
+        let command = parts[0].split('@').next().unwrap_or(parts[0]); // strip @botname suffix
         let args: Vec<String> = parts[1..].iter().map(|s| s.to_string()).collect();
+
+        // /start is handled before role check — anyone can use it
+        if command == "start" && args.is_empty() {
+            let _ = self
+                .send_message(
+                    chat_id,
+                    &format!(
+                        "\u{1F916} <b>Welcome to mhost!</b>\n\n\
+                         Your Chat ID: <code>{user_id}</code>\n\n\
+                         Use this ID when running:\n\
+                         <code>mhost notify setup</code>\n\
+                         <code>mhost agent setup</code>\n\
+                         <code>mhost bot setup</code>\n\n\
+                         Once configured, send /help to see all commands."
+                    ),
+                )
+                .await;
+            return;
+        }
 
         // Role check
         let role = self.config.permissions.get_role(user_id);
