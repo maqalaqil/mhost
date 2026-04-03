@@ -72,20 +72,35 @@ fn spawn_daemon(paths: &MhostPaths) -> Result<(), String> {
     Err("Daemon did not start within 2.5 seconds".to_string())
 }
 
-/// Find the `mhostd` binary alongside the current `mhost` binary.
+/// Find the `mhostd` binary — search multiple locations.
 fn find_daemon_binary() -> Result<PathBuf, String> {
-    let current_exe = std::env::current_exe()
-        .map_err(|e| format!("Cannot determine current binary path: {e}"))?;
-    let sibling_dir = current_exe
-        .parent()
-        .ok_or("Cannot determine binary directory")?;
-    let daemon = sibling_dir.join("mhostd");
-    if daemon.exists() {
-        Ok(daemon)
-    } else {
-        // Fall back to PATH
-        Ok(PathBuf::from("mhostd"))
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|e| e.parent().map(|p| p.to_path_buf()));
+
+    let mut candidates: Vec<PathBuf> = Vec::new();
+
+    if let Some(ref dir) = exe_dir {
+        // Same directory as mhost binary (brew, cargo, curl installs)
+        candidates.push(dir.join("mhostd"));
+        // npm: vendor/ directory
+        candidates.push(dir.join("../vendor/mhostd"));
+        // Dev: target/release/ or target/debug/
+        candidates.push(dir.join("mhostd"));
     }
+
+    // System PATH
+    candidates.push(PathBuf::from("/usr/local/bin/mhostd"));
+    candidates.push(PathBuf::from("/usr/bin/mhostd"));
+
+    for c in &candidates {
+        if c.exists() {
+            return Ok(c.clone());
+        }
+    }
+
+    // Last resort: hope it's in PATH
+    Ok(PathBuf::from("mhostd"))
 }
 
 // ---------------------------------------------------------------------------

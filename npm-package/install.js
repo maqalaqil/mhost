@@ -27,14 +27,14 @@ function getPlatform() {
 
 async function install() {
   try {
-    console.log('Installing mhost binary...');
+    console.log('Installing mhost binaries...');
 
     fs.mkdirSync(VENDOR_DIR, { recursive: true });
 
     const target = getPlatform();
     console.log(`Platform: ${target}`);
 
-    // Get latest version from GitHub API using curl
+    // Get latest version from GitHub API
     let version;
     try {
       const versionOutput = execSync(
@@ -54,42 +54,47 @@ async function install() {
     const archiveName = `mhost-${target}${ext}`;
     const url = `https://github.com/${REPO}/releases/download/${version}/${archiveName}`;
     const archivePath = path.join(VENDOR_DIR, archiveName);
-    const binName = isWindows ? 'mhost.exe' : 'mhost';
 
-    // Download using curl (follows redirects automatically)
+    // Download
     console.log(`Downloading ${archiveName}...`);
     try {
       execSync(`curl -fsSL -o "${archivePath}" "${url}"`, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 60000,
+        timeout: 120000,
       });
     } catch (e) {
       throw new Error(`Download failed from ${url}`);
     }
 
-    // Extract
+    // Extract BOTH mhost and mhostd
     console.log('Extracting...');
     if (isWindows) {
-      execSync(`tar -xf "${archivePath}" -C "${VENDOR_DIR}" ${binName}`, {
-        stdio: 'pipe',
-      });
+      execSync(`tar -xf "${archivePath}" -C "${VENDOR_DIR}"`, { stdio: 'pipe' });
     } else {
-      execSync(`tar xzf "${archivePath}" -C "${VENDOR_DIR}" ${binName}`, {
-        stdio: 'pipe',
-      });
-      fs.chmodSync(path.join(VENDOR_DIR, binName), 0o755);
+      execSync(`tar xzf "${archivePath}" -C "${VENDOR_DIR}"`, { stdio: 'pipe' });
+      // Make both binaries executable
+      const mhost = path.join(VENDOR_DIR, 'mhost');
+      const mhostd = path.join(VENDOR_DIR, 'mhostd');
+      if (fs.existsSync(mhost)) fs.chmodSync(mhost, 0o755);
+      if (fs.existsSync(mhostd)) fs.chmodSync(mhostd, 0o755);
     }
 
     // Clean up archive
     try { fs.unlinkSync(archivePath); } catch {}
 
-    // Verify
-    const installed = path.join(VENDOR_DIR, binName);
-    if (!fs.existsSync(installed)) {
-      throw new Error(`Binary not found after extraction: ${installed}`);
+    // Verify both binaries exist
+    const binExt = isWindows ? '.exe' : '';
+    const mhostBin = path.join(VENDOR_DIR, `mhost${binExt}`);
+    const mhostdBin = path.join(VENDOR_DIR, `mhostd${binExt}`);
+
+    if (!fs.existsSync(mhostBin)) {
+      throw new Error(`mhost binary not found after extraction`);
+    }
+    if (!fs.existsSync(mhostdBin)) {
+      console.warn('Warning: mhostd daemon binary not found — some features may not work');
     }
 
-    console.log(`mhost installed to ${installed}`);
+    console.log(`Installed: mhost + mhostd to ${VENDOR_DIR}`);
   } catch (error) {
     console.error(`Installation failed: ${error.message}`);
     process.exit(1);

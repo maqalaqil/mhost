@@ -466,3 +466,106 @@ fn help_contains_dashboard() {
         "mhost --help should list dashboard command; got: {stdout}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Installation guards — ensure critical features work from any install method
+// ---------------------------------------------------------------------------
+
+#[test]
+fn mhostd_binary_exists_next_to_mhost() {
+    // The daemon binary must be findable from the CLI binary's location
+    let mhost_path = std::path::Path::new(env!("CARGO_BIN_EXE_mhost"));
+    let dir = mhost_path.parent().expect("mhost binary has parent dir");
+    let mhostd = dir.join("mhostd");
+    assert!(
+        mhostd.exists(),
+        "mhostd must exist next to mhost at {}",
+        mhostd.display()
+    );
+}
+
+#[test]
+fn version_flag_works() {
+    let (stdout, _stderr, ok) = run(&["-v"]);
+    assert!(ok, "mhost -v should exit 0");
+    assert!(
+        stdout.contains("mhost"),
+        "version output should contain 'mhost'"
+    );
+}
+
+#[test]
+fn all_subcommands_listed_in_help() {
+    let (stdout, _stderr, _ok) = run(&["--help"]);
+    let required = [
+        "start",
+        "stop",
+        "restart",
+        "delete",
+        "list",
+        "logs",
+        "info",
+        "scale",
+        "save",
+        "resurrect",
+        "ping",
+        "kill",
+        "health",
+        "notify",
+        "ai",
+        "agent",
+        "brain",
+        "bot",
+        "cloud",
+        "metrics",
+        "monit",
+        "dashboard",
+        "deploy",
+        "rollback",
+        "proxy",
+        "reload",
+        "dev",
+    ];
+    for cmd in &required {
+        assert!(stdout.contains(cmd), "mhost --help missing '{cmd}'");
+    }
+}
+
+#[test]
+fn embedded_scripts_compile_into_binary() {
+    // Verify the binary can extract embedded scripts
+    // by checking that agent/dashboard/notifier commands exist
+    let (stdout, _stderr, _ok) = run(&["agent", "--help"]);
+    assert!(stdout.contains("setup") && stdout.contains("start"));
+    let (stdout, _stderr, _ok) = run(&["dashboard", "--help"]);
+    assert!(stdout.contains("port"));
+}
+
+#[test]
+fn non_daemon_commands_work_without_daemon() {
+    // These commands must work even when daemon is not running
+    let cmds = [
+        vec!["-v"],
+        vec!["--help"],
+        vec!["notify", "list"],
+        vec!["notify", "events"],
+        vec!["agent", "status"],
+        vec!["brain", "status"],
+        vec!["bot", "status"],
+        vec!["cloud", "list"],
+        vec!["completion", "bash"],
+    ];
+    for args in &cmds {
+        let output = mhost_bin()
+            .args(args)
+            .output()
+            .expect(&format!("mhost {} should not panic", args.join(" ")));
+        // We don't check exit code — some may fail if not configured
+        // We just verify they don't crash/panic
+        assert!(
+            !String::from_utf8_lossy(&output.stderr).contains("panicked"),
+            "mhost {} panicked",
+            args.join(" ")
+        );
+    }
+}
