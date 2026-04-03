@@ -1,7 +1,7 @@
 //! Embedded JS scripts — compiled into the binary so they're always available
 //! regardless of installation method (npm, brew, cargo, curl).
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub const AGENT_JS: &str = include_str!("../../../examples/mhost-agent.js");
 pub const BRAIN_JS: &str = include_str!("../../../examples/mhost-brain.js");
