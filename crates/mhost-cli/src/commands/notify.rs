@@ -554,23 +554,8 @@ pub async fn run_start(config_path: &Path, client: &mhost_ipc::IpcClient) -> Res
         return Err("No channels configured. Run: mhost notify setup".into());
     }
 
-    // Find the notifier script
-    let exe_dir = std::env::current_exe()
-        .map_err(|e| e.to_string())?
-        .parent()
-        .ok_or("Cannot find exe dir")?
-        .to_path_buf();
-
-    // Look for the notifier script relative to the binary or in examples/
-    let notifier_paths = [
-        exe_dir.join("../../examples/mhost-telegram-notifier.js"),
-        std::path::PathBuf::from("examples/mhost-telegram-notifier.js"),
-    ];
-
-    let notifier_script = notifier_paths
-        .iter()
-        .find(|p| p.exists())
-        .ok_or("Notifier script not found. Ensure examples/mhost-telegram-notifier.js exists")?;
+    // Get the notifier script (embedded in binary, extracted to ~/.mhost/)
+    let notifier_script = crate::embedded::ensure_notifier()?;
 
     // Build env vars from the first enabled telegram channel
     let mut env_vars = HashMap::new();

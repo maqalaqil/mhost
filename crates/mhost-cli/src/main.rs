@@ -1,6 +1,7 @@
 mod cli;
 mod commands;
 mod daemon_launcher;
+pub mod embedded;
 mod output;
 
 use clap::Parser;

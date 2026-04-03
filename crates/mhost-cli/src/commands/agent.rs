@@ -82,7 +82,7 @@ pub async fn run_start(paths: &MhostPaths, client: &IpcClient) -> Result<(), Str
         return Err("Agent not configured. Run: mhost agent setup".into());
     }
 
-    let script = locate_agent_script()?;
+    let script = crate::embedded::ensure_agent()?;
 
     let proc_config = ProcessConfig {
         name: "mhost-agent".into(),
@@ -170,62 +170,6 @@ pub fn run_status(paths: &MhostPaths) -> Result<(), String> {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/// Resolve the path to `mhost-agent.js`.
-/// Copies the script to `~/.mhost/agent-scripts/` if not already there.
-fn locate_agent_script() -> Result<std::path::PathBuf, String> {
-    let home_dir = dirs::home_dir().ok_or("Cannot determine home directory")?;
-    let scripts_dir = home_dir.join(".mhost").join("agent-scripts");
-    let installed_script = scripts_dir.join("mhost-agent.js");
-    let installed_brain = scripts_dir.join("mhost-brain.js");
-
-    // If already installed, use it
-    if installed_script.exists() {
-        return Ok(installed_script);
-    }
-
-    // Search for the source script
-    let exe_dir = std::env::current_exe()
-        .ok()
-        .and_then(|e| e.parent().map(|p| p.to_path_buf()));
-
-    let candidates: Vec<std::path::PathBuf> = vec![
-        // Relative to cwd
-        std::path::PathBuf::from("examples/mhost-agent.js"),
-        // Relative to binary (dev: target/release/mhost → ../../examples/)
-        exe_dir
-            .as_ref()
-            .map(|d| d.join("../../examples/mhost-agent.js"))
-            .unwrap_or_default(),
-        // Relative to binary (one level up)
-        exe_dir
-            .as_ref()
-            .map(|d| d.join("../examples/mhost-agent.js"))
-            .unwrap_or_default(),
-        // Global
-        std::path::PathBuf::from("/usr/local/lib/mhost/examples/mhost-agent.js"),
-    ];
-
-    let source = candidates
-        .iter()
-        .find(|p| p.exists())
-        .ok_or("Agent script not found. Run from the mhost repo directory, or reinstall mhost.")?;
-
-    // Copy to ~/.mhost/agent-scripts/
-    std::fs::create_dir_all(&scripts_dir)
-        .map_err(|e| format!("Cannot create agent scripts dir: {e}"))?;
-
-    std::fs::copy(source, &installed_script)
-        .map_err(|e| format!("Cannot copy agent script: {e}"))?;
-
-    // Also copy the brain module if it exists
-    let brain_source = source.parent().unwrap().join("mhost-brain.js");
-    if brain_source.exists() {
-        let _ = std::fs::copy(&brain_source, &installed_brain);
-    }
-
-    Ok(installed_script)
-}
 
 fn prompt(label: &str) -> String {
     print!("  {label}: ");
