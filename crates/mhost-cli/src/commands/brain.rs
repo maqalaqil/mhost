@@ -33,7 +33,7 @@ pub fn run_status(paths: &MhostPaths) -> Result<(), String> {
                 } else {
                     format!("{score}").red().to_string()
                 };
-                println!("  {:<20} {} {}/100", name, bar, color_score);
+                println!("  {name:<20} {bar} {color_score}/100");
             }
         }
     }
@@ -68,12 +68,11 @@ pub fn run_history(paths: &MhostPaths) -> Result<(), String> {
     );
     println!("  {}", "─".repeat(70));
     println!(
-        "  {:<5} {:<15} {:<12} {:<15} {}",
+        "  {:<5} {:<15} {:<12} {:<15} Error",
         "#".dimmed(),
         "Process".bold(),
         "Action",
-        "Result",
-        "Error"
+        "Result"
     );
     println!("  {}", "─".repeat(70));
 
