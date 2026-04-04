@@ -44,6 +44,15 @@ Built in Rust. Single binary. Zero runtime dependencies.
 | **AI** | None | Built-in LLM intelligence (OpenAI/Claude) — diagnose, optimize, ask |
 | **Autonomous agent** | None | AI agent with LLM tool calling — monitors, acts, reports to Telegram |
 | **Cloud fleet** | None | SSH fleet management — AWS, Azure, DO, Railway auto-import |
+| **Zero-downtime** | None | Rolling reload with health-check gate |
+| **Dev mode** | None | Built-in file watcher + auto-restart (replaces nodemon) |
+| **Web dashboard** | Paid | Free built-in web UI on localhost |
+| **Load testing** | None | Built-in HTTP benchmark tool |
+| **Canary deploys** | None | Canary scale + monitor + auto-promote/rollback |
+| **Snapshots** | None | Capture & restore full process state |
+| **SSL monitor** | None | Certificate expiry checking |
+| **SLA reports** | None | Uptime reports with target tracking |
+| **Migration** | None | Auto-convert PM2 configs to mhost |
 
 ---
 
@@ -1003,6 +1012,139 @@ mhost brain status
 
 ---
 
+## Zero-Downtime Reload
+
+```bash
+mhost reload api-server
+```
+
+Starts new instances, waits for health checks to pass, then kills old instances. No dropped requests.
+
+```
+Old instances running (PID 1234, 1235)
+    │
+    ├── Start new instances
+    ├── Wait for health check (up to 30s)
+    ├── Health OK → kill old instances
+    │   └── ✓ Zero-downtime reload complete
+    └── Health FAIL → kill new, keep old
+        └── ✗ Reload failed, old instances preserved
+```
+
+Falls back to regular restart if no health check is configured.
+
+---
+
+## Dev Mode
+
+Development mode with file watching and auto-restart — replaces nodemon + dotenv.
+
+```bash
+mhost dev server.js                        # Watch + auto-restart
+mhost dev server.js --watch src/           # Watch specific directory
+mhost dev server.js --ext js,ts,json       # Watch specific extensions
+mhost dev server.js --env .env.local       # Custom .env file
+```
+
+---
+
+## Web Dashboard
+
+Browser-based monitoring UI accessible from any device.
+
+```bash
+mhost dashboard                            # Start on http://localhost:9400
+mhost dashboard --port 8080                # Custom port
+```
+
+Real-time process cards, analytics strip, live log streaming via SSE, restart/stop/scale buttons.
+
+---
+
+## Load Testing
+
+Built-in HTTP load testing — no external tools needed.
+
+```bash
+mhost bench https://api.example.com                    # Default: 10s, 10 workers
+mhost bench https://api.example.com --duration 30       # 30 second test
+mhost bench https://api.example.com --concurrency 50    # 50 concurrent workers
+```
+
+Reports total requests, RPS, average/p99 latency, and error rate.
+
+---
+
+## Canary Deployments
+
+Scale up a canary, monitor for errors, auto-promote or rollback.
+
+```bash
+mhost canary api-server                               # Default: 10%, 300s
+mhost canary api-server --percent 20 --duration 600   # 20% traffic, 10min watch
+```
+
+---
+
+## Snapshots
+
+Capture and restore full process state.
+
+```bash
+mhost snapshot create before-deploy        # Save all process state
+mhost snapshot list                        # Show saved snapshots
+mhost snapshot restore before-deploy       # Restore all processes
+```
+
+---
+
+## SSL Certificate Monitoring
+
+```bash
+mhost certs                                # Check localhost:443
+mhost certs --url https://api.example.com --url https://app.example.com
+```
+
+Warns when certificates expire within 30 days.
+
+---
+
+## SLA Uptime Reports
+
+```bash
+mhost sla api-server                       # Default target: 99.9%
+mhost sla api-server --target 99.99        # Four-nines target
+```
+
+Calculates uptime from brain incident data, shows allowed/actual downtime, and budget remaining.
+
+---
+
+## PM2 Migration
+
+```bash
+mhost migrate --from pm2                   # Auto-convert ~/.pm2/dump.pm2 → mhost.toml
+```
+
+Reads your PM2 dump file and generates a valid mhost ecosystem config with all process settings preserved.
+
+---
+
+## More Tools
+
+```bash
+mhost replay api-server                    # Replay an incident timeline
+mhost replay api-server --time "3:47am"    # Filter around a time
+mhost link                                 # Show process dependency graph
+mhost cost                                 # Estimate cloud costs from memory usage
+mhost diff staging production              # Compare two fleet environments
+mhost share api-server                     # Expose via tunnel (ngrok/cloudflared/bore)
+mhost run deploy-recipe.txt                # Run a recipe of mhost commands
+mhost playground                           # Interactive tutorial
+```
+
+---
+
 ## TUI Dashboard
 
 ```bash
@@ -1167,6 +1309,30 @@ mhost monit
 | `mhost bot add-viewer <id>` | Grant viewer access |
 | `mhost bot remove-user <id>` | Remove user from all roles |
 | `mhost bot logs` | Show recent bot audit log |
+
+### Production & Operations
+
+| Command | Description |
+|---|---|
+| `mhost reload <app>` | Zero-downtime reload (start new, health check, kill old) |
+| `mhost dev <script>` | Development mode with file watching + auto-restart |
+| `mhost dashboard [--port]` | Launch web dashboard (default port 9400) |
+| `mhost bench <url>` | HTTP load test with concurrent workers |
+| `mhost canary <app>` | Canary deployment — scale up, monitor, promote/rollback |
+| `mhost snapshot create <name>` | Capture current process state |
+| `mhost snapshot list` | List all saved snapshots |
+| `mhost snapshot restore <name>` | Restore a snapshot |
+| `mhost replay <process>` | Replay incident timeline from brain memory |
+| `mhost link` | Show process dependency graph |
+| `mhost cost` | Estimate cloud costs from process memory usage |
+| `mhost certs [--url <urls>]` | Check SSL certificate expiry |
+| `mhost sla <app> [--target 99.9]` | SLA uptime report |
+| `mhost diff <env_a> <env_b>` | Compare two fleet environments/configs |
+| `mhost share <app> [--port]` | Expose a local process via tunnel |
+| `mhost run <file>` | Execute a recipe file (sequential mhost commands) |
+| `mhost migrate --from <pm>` | Migrate from PM2 or other process managers |
+| `mhost team` | Team management (coming soon) |
+| `mhost playground` | Interactive tutorial |
 
 ### Infrastructure
 

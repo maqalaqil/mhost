@@ -14,8 +14,8 @@ mhost is an **AI-powered process manager** written in Rust — a PM2 replacement
 |---|---|
 | Language | Rust |
 | Crates | 15 |
-| Tests | 793 |
-| CLI Commands | 38+ (with subcommands: 80+) |
+| Tests | 797 |
+| CLI Commands | 52+ (with subcommands: 95+) |
 | Source files | 160 .rs files |
 | Website | `website/index.html` (single-file landing page) |
 | Repo | `github.com/maqalaqil/mhost` |
@@ -36,6 +36,19 @@ mhost (CLI binary)  ◄──── JSON-RPC over Unix socket ────►  m
      ├── commands/notify.rs   (notification setup)
      ├── commands/bot.rs      (Telegram/Discord bot)
      ├── commands/cloud.rs    (remote fleet SSH)
+     ├── commands/reload.rs   (zero-downtime reload)
+     ├── commands/bench.rs    (HTTP load testing)
+     ├── commands/canary.rs   (canary deployments)
+     ├── commands/snapshot.rs  (state snapshots)
+     ├── commands/replay.rs   (incident replay)
+     ├── commands/link.rs     (dependency graph)
+     ├── commands/cost.rs     (cloud cost estimation)
+     ├── commands/certs.rs    (SSL cert monitoring)
+     ├── commands/sla.rs      (uptime reports)
+     ├── commands/diff.rs     (environment comparison)
+     ├── commands/share.rs    (tunnel exposure)
+     ├── commands/recipe.rs   (command recipes)
+     ├── commands/migrate.rs  (PM2 migration)
      └── output.rs            (table formatting)
 ```
 
@@ -175,6 +188,9 @@ cargo fmt --all --check                    # Format check
 
 ### Cloud
 `cloud add|remove|list|status|deploy|exec|logs|restart|scale|sync|ssh|install|update|import|ai-setup|ai-diagnose|ai-migrate`
+
+### Production & Operations
+`reload <app>`, `dev <script>`, `dashboard [--port]`, `bench <url>`, `canary <app>`, `snapshot create|list|restore`, `replay <process>`, `link`, `cost`, `certs [--url]`, `sla <app>`, `diff <env_a> <env_b>`, `share <app>`, `run <file>`, `migrate --from <pm>`, `team`, `playground`
 
 ### Other
 `proxy`, `deploy <env>`, `rollback <env>`, `self-update`, `completion <shell>`

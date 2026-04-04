@@ -1,0 +1,18 @@
+# Generated from PM2 dump
+# Review and adjust settings before using
+
+[process.backend-cluster]
+command = "/Users/maheralaqil/Documents/GitHub/all-repos/backend/dist/main.js"
+instances = 1
+max_restarts = 15
+
+[process.backend-cluster]
+command = "/Users/maheralaqil/Documents/GitHub/all-repos/backend/dist/main.js"
+instances = 1
+max_restarts = 15
+
+[process.backend-cluster]
+command = "/Users/maheralaqil/Documents/GitHub/all-repos/backend/dist/main.js"
+instances = 1
+max_restarts = 15
+
