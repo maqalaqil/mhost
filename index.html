@@ -111,11 +111,19 @@ nav.scrolled{background:rgba(10,10,18,.85);border-bottom:1px solid var(--border)
 nav .container{display:flex;align-items:center;justify-content:space-between}
 nav .logo{font-family:var(--mono);font-size:1.3rem;font-weight:800;color:var(--text);letter-spacing:-1px}
 nav .logo span{color:var(--accent2)}
-nav ul{list-style:none;display:flex;gap:32px}
+nav ul{list-style:none;display:flex;gap:28px}
 nav ul a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .2s}
 nav ul a:hover{color:var(--text)}
-nav .cta-btn{padding:8px 20px;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:.85rem;transition:all .2s}
-nav .cta-btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.3)}
+nav .cta-btn{padding:8px 22px;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;transition:all .2s;box-shadow:0 2px 12px rgba(99,102,241,.25)}
+nav .cta-btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.4);color:#fff}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer;padding:4px 6px;line-height:1}
+@media(max-width:768px){
+  nav ul{display:none;flex-direction:column;position:absolute;top:60px;left:0;right:0;background:var(--bg2);padding:20px 24px;border-bottom:1px solid var(--border);gap:4px;z-index:99}
+  nav ul.open{display:flex}
+  nav ul a{padding:8px 0;font-size:1rem;display:block}
+  .nav-toggle{display:block}
+  nav .cta-btn{display:none}
+}
 
 /* ─── Hero ─────────────────────────────────────────────────── */
 .hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;padding-top:80px}
@@ -257,16 +265,12 @@ footer .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:
 <nav id="nav">
   <div class="container">
     <div class="logo"><span>m</span>host</div>
+    <button class="nav-toggle" aria-label="Toggle menu" onclick="document.querySelector('nav ul').classList.toggle('open')">&#9776;</button>
     <ul>
       <li><a href="#features">Features</a></li>
-      <li><a href="#ai">AI</a></li>
-      <li><a href="#agent">Agent</a></li>
-      <li><a href="#brain">Brain</a></li>
+      <li><a href="#ai">AI &amp; Agent</a></li>
       <li><a href="#production">Production</a></li>
       <li><a href="#cloud">Cloud</a></li>
-      <li><a href="#install">Install</a></li>
-      <li><a href="#config">Config</a></li>
-      <li><a href="#architecture">Architecture</a></li>
       <li><a href="docs.html">Docs</a></li>
     </ul>
     <a href="#install" class="cta-btn">Get Started</a>
