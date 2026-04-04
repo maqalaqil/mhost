@@ -615,9 +615,10 @@ function sendTelegramMessage(text) {
   const token = resolveTelegramToken();
   const chatId = resolveTelegramChatId();
   if (!token || !chatId) {
-    logWarn("Telegram credentials not configured — message not sent");
+    logWarn(`Telegram credentials missing — token: ${token ? "ok" : "EMPTY"}, chatId: ${chatId ? "ok" : "EMPTY"}`);
     return;
   }
+  logInfo(`Sending Telegram message (${text.length} chars)`);
 
   try {
     const body = JSON.stringify({
@@ -733,9 +734,18 @@ async function processTelegramMessages() {
       sendTelegramMessage("Cancelled.");
       pendingApproval = null;
     } else {
-      const response = await callLLM(text);
-      if (response) {
-        sendTelegramMessage(response);
+      try {
+        logInfo(`Calling LLM for: "${text.substring(0, 50)}"`);
+        const response = await callLLM(text);
+        logInfo(`LLM response: ${response ? response.substring(0, 100) : "null"}`);
+        if (response) {
+          sendTelegramMessage(response);
+        } else {
+          sendTelegramMessage("I couldn't process that. Check the agent logs.");
+        }
+      } catch (err) {
+        logError(`LLM call failed: ${err.message}`);
+        sendTelegramMessage(`Error: ${err.message}`);
       }
     }
   }
