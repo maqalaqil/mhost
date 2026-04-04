@@ -387,10 +387,19 @@ function executeTool(name, args) {
         break;
 
       case "start_process":
-        output = execSync(
-          `${MHOST_BIN} start ${shellEscape(args.name)} 2>&1`,
-          { encoding: "utf-8", timeout: 15_000 }
-        );
+        // Use restart for existing stopped processes (preserves saved config/paths)
+        // Falls back to start if restart fails (new process)
+        try {
+          output = execSync(
+            `${MHOST_BIN} restart ${shellEscape(args.name)} 2>&1`,
+            { encoding: "utf-8", timeout: 15_000 }
+          );
+        } catch {
+          output = execSync(
+            `${MHOST_BIN} start ${shellEscape(args.name)} 2>&1`,
+            { encoding: "utf-8", timeout: 15_000 }
+          );
+        }
         actionLog.push({
           timestamp: Date.now(),
           action: `start ${args.name}`,

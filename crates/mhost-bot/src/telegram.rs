@@ -321,20 +321,34 @@ impl TelegramBot {
 
             "start" => {
                 let target = args.first().ok_or("Usage: /start <process>")?;
-                let config = mhost_core::process::ProcessConfig {
-                    name: target.clone(),
-                    command: target.clone(),
-                    ..Default::default()
-                };
-                let params = serde_json::to_value(&config).map_err(|e| e.to_string())?;
+                // Use restart for existing processes (re-uses saved config)
+                // Fall back to start with name-as-command for new processes
                 let resp = ipc
-                    .call(methods::PROCESS_START, params)
-                    .await
-                    .map_err(|e| e.to_string())?;
-                if let Some(err) = resp.error {
-                    Err(err.message)
-                } else {
-                    Ok(format!("Started '{target}'"))
+                    .call(
+                        methods::PROCESS_RESTART,
+                        serde_json::json!({ "name": target }),
+                    )
+                    .await;
+                match resp {
+                    Ok(r) if r.error.is_none() => Ok(format!("\u{2705} Started '{target}'")),
+                    _ => {
+                        // Process doesn't exist — try starting as a new command
+                        let config = mhost_core::process::ProcessConfig {
+                            name: target.clone(),
+                            command: target.clone(),
+                            ..Default::default()
+                        };
+                        let params = serde_json::to_value(&config).map_err(|e| e.to_string())?;
+                        let resp = ipc
+                            .call(methods::PROCESS_START, params)
+                            .await
+                            .map_err(|e| e.to_string())?;
+                        if let Some(err) = resp.error {
+                            Err(err.message)
+                        } else {
+                            Ok(format!("\u{2705} Started '{target}'"))
+                        }
+                    }
                 }
             }
 
