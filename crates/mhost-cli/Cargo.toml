@@ -29,6 +29,9 @@ chrono = { workspace = true }
 rusqlite = { workspace = true }
 dirs = { workspace = true }
 colored = "3"
+argon2 = { workspace = true }
+uuid = { workspace = true }
+rand = "0.8"
 reqwest = { workspace = true }
 tabled = "0.17"
 clap_complete = "4"

@@ -689,4 +689,10 @@ pub enum Commands {
         #[command(subcommand)]
         action: SnapshotAction,
     },
+
+    /// API server management — start/stop server, manage tokens and webhooks.
+    Api {
+        #[command(subcommand)]
+        action: crate::commands::api::ApiCommands,
+    },
 }

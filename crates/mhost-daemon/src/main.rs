@@ -6,6 +6,9 @@ mod state;
 mod supervisor;
 mod watcher;
 
+#[cfg(feature = "api")]
+mod api_adapter;
+
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
@@ -133,6 +136,42 @@ async fn main() {
 
             shutdown_signal.notify_one();
         });
+    }
+
+    // -----------------------------------------------------------------------
+    // Optional HTTP/WebSocket API server (behind "api" feature flag)
+    // -----------------------------------------------------------------------
+    #[cfg(feature = "api")]
+    {
+        if std::env::var("MHOST_API_ENABLED").is_ok() {
+            let port: u16 = std::env::var("MHOST_API_PORT")
+                .ok()
+                .and_then(|p| p.parse().ok())
+                .unwrap_or(19516);
+            let bind_addr: std::net::SocketAddr = format!("0.0.0.0:{port}").parse().unwrap();
+
+            let api_paths = MhostPaths::with_root(paths.root().clone());
+            let api_adapter = Arc::new(api_adapter::SupervisorApiAdapter::new(
+                Arc::clone(&supervisor),
+                Arc::clone(&state_store),
+                MhostPaths::with_root(paths.root().clone()),
+            ));
+            let event_bus = mhost_api::event_bus::EventBus::new(256);
+
+            tokio::spawn(async move {
+                if let Err(e) = mhost_api::server::start_api_server(
+                    bind_addr,
+                    api_paths,
+                    api_adapter,
+                    event_bus,
+                )
+                .await
+                {
+                    tracing::error!("API server error: {e}");
+                }
+            });
+            tracing::info!("API server started on port {port}");
+        }
     }
 
     // -----------------------------------------------------------------------

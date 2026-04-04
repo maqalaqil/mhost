@@ -172,6 +172,9 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             BrainAction::Explain { process } => commands::brain::run_explain(paths, &process),
         },
 
+        // ---- API commands (non-daemon, manage tokens/webhooks/server) ------
+        Commands::Api { action } => commands::api::run(action).await,
+
         // ---- Replay (non-daemon, reads brain files) -----------------------
         Commands::Replay { process, time } => {
             commands::replay::run(paths, &process, time.as_deref())
@@ -382,6 +385,7 @@ async fn dispatch_daemon(
         | Commands::Playground
         | Commands::Run { .. }
         | Commands::Diff { .. }
+        | Commands::Api { .. }
         | Commands::Snapshot {
             action: SnapshotAction::List,
         } => unreachable!(),
