@@ -66,9 +66,7 @@ pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
         k
     } else {
         let k = prompt_default("API key", &key_hint);
-        if k == key_hint {
-            cur_key.to_string()
-        } else if k.is_empty() {
+        if k == key_hint || k.is_empty() {
             cur_key.to_string()
         } else {
             k
