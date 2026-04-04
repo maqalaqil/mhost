@@ -2,6 +2,26 @@ use clap::{Parser, Subcommand};
 use clap_complete::Shell;
 
 // ---------------------------------------------------------------------------
+// Snapshot subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum SnapshotAction {
+    /// Capture the current process list as a named snapshot.
+    Create {
+        /// Snapshot name.
+        name: String,
+    },
+    /// List all saved snapshots.
+    List,
+    /// Restore a snapshot, stopping current processes and resurrecting saved ones.
+    Restore {
+        /// Snapshot name to restore.
+        name: String,
+    },
+}
+
+// ---------------------------------------------------------------------------
 // Brain subcommands
 // ---------------------------------------------------------------------------
 
@@ -599,4 +619,74 @@ pub enum Commands {
 
     /// Estimate cloud resource costs from running process memory usage.
     Cost,
+
+    /// Check SSL certificate expiry for one or more hosts.
+    Certs {
+        /// URLs to check (e.g. https://example.com). Defaults to https://localhost:443.
+        #[arg(long, value_name = "URL")]
+        url: Option<Vec<String>>,
+    },
+
+    /// SLA uptime report for a process.
+    Sla {
+        /// Process name to report on.
+        app: String,
+        /// Target SLA percentage (default: 99.9).
+        #[arg(long, default_value = "99.9")]
+        target: f64,
+    },
+
+    /// Migrate configuration from another process manager (e.g. pm2).
+    Migrate {
+        /// Source process manager to migrate from.
+        #[arg(long)]
+        from: String,
+    },
+
+    /// Team management (coming soon).
+    Team,
+
+    /// Interactive playground tutorial.
+    Playground,
+
+    /// Canary deployment — scale up, monitor, promote or rollback.
+    Canary {
+        /// Process name to canary-deploy.
+        app: String,
+        /// Percentage of traffic to route to the canary (informational).
+        #[arg(long, default_value = "10")]
+        percent: u32,
+        /// How long to monitor the canary in seconds before deciding.
+        #[arg(long, default_value = "300")]
+        duration: u64,
+    },
+
+    /// Run a recipe file (sequential mhost commands).
+    Run {
+        /// Path to the recipe file.
+        file: String,
+    },
+
+    /// Expose a local process to the internet via a tunnel.
+    Share {
+        /// Process name whose port to expose.
+        app: String,
+        /// Override the port to expose.
+        #[arg(long)]
+        port: Option<u16>,
+    },
+
+    /// Compare two environments or configs.
+    Diff {
+        /// First environment or config name.
+        env_a: String,
+        /// Second environment or config name.
+        env_b: String,
+    },
+
+    /// Snapshot management — create, list, and restore process snapshots.
+    Snapshot {
+        #[command(subcommand)]
+        action: SnapshotAction,
+    },
 }

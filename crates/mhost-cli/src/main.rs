@@ -198,6 +198,21 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         // ---- Dashboard (non-daemon, runs Node.js server) ------------------
         Commands::Dashboard { port } => commands::dashboard::run(port),
 
+        // ---- Certs (non-daemon, uses openssl CLI) -------------------------
+        Commands::Certs { url } => commands::certs::run(url).await,
+
+        // ---- Sla (non-daemon, reads brain files) --------------------------
+        Commands::Sla { app, target } => commands::sla::run(paths, &app, target),
+
+        // ---- Migrate (non-daemon, reads PM2 dump) -------------------------
+        Commands::Migrate { from } => commands::migrate::run(&from),
+
+        // ---- Team (non-daemon, stub) --------------------------------------
+        Commands::Team => commands::team::run(),
+
+        // ---- Playground (non-daemon, stub) --------------------------------
+        Commands::Playground => commands::playground::run(),
+
         // ---- Reload (needs daemon) ----------------------------------------
         Commands::Reload { target } => {
             daemon_launcher::ensure_daemon_running(paths)?;
@@ -330,7 +345,12 @@ async fn dispatch_daemon(
         | Commands::Reload { .. }
         | Commands::Replay { .. }
         | Commands::Bench { .. }
-        | Commands::Link => unreachable!(),
+        | Commands::Link
+        | Commands::Certs { .. }
+        | Commands::Sla { .. }
+        | Commands::Migrate { .. }
+        | Commands::Team
+        | Commands::Playground => unreachable!(),
     }
 }
 
