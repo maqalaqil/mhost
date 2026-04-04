@@ -8,7 +8,7 @@
 <meta name="keywords" content="mhost docs, mhost documentation, process manager guide, mhost tutorial, mhost CLI reference, mhost configuration, mhost health checks, mhost notifications, mhost AI, mhost agent, pm2 alternative docs">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://mhostai.com/docs.html">
-<meta name="theme-color" content="#6366f1">
+<meta name="theme-color" content="#8b5cf6">
 <meta property="og:type" content="article">
 <meta property="og:title" content="mhost Documentation — Complete Guide">
 <meta property="og:description" content="Full documentation for mhost — AI-powered process manager. Installation, configuration, CLI reference, AI features, cloud fleet management.">
@@ -28,20 +28,22 @@
   "mainEntityOfPage": "https://mhostai.com/docs.html"
 }
 </script>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9881;</text></svg>">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 
 <style>
 /* ─── Reset + Base ─────────────────────────────────────────── */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0a0a12;--bg2:#0f0f1a;--bg3:#151525;--bg4:#1a1a2e;
-  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
-  --accent:#6366f1;--accent2:#818cf8;--accent3:#a5b4fc;
-  --green:#22c55e;--green2:#4ade80;
+  --bg:#0a0a14;--bg2:#0e0e1a;--bg3:#12121e;--bg4:#1a1a28;
+  --text:#fafafa;--text2:#a1a1aa;--text3:#71717a;
+  --accent:#8b5cf6;--accent2:#a78bfa;--accent3:#c4b5fd;
+  --green:#10b981;--green2:#06d6a0;
   --red:#ef4444;--yellow:#eab308;--cyan:#06b6d4;
-  --border:#1e293b;
-  --glow:0 0 80px rgba(99,102,241,0.15);
-  --font:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+  --mint:#06d6a0;--mint-light:#34d399;
+  --border:rgba(255,255,255,0.06);
+  --border-accent:rgba(139,92,246,0.3);
+  --glow:0 0 80px rgba(139,92,246,0.15);
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --mono:'JetBrains Mono','Fira Code','SF Mono',monospace;
   --sidebar-w:260px;
   --nav-h:60px;
@@ -53,7 +55,7 @@ a:hover{color:var(--accent3)}
 ::selection{background:var(--accent);color:#fff}
 
 /* ─── Nav ──────────────────────────────────────────────────── */
-nav{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nav-h);padding:0;background:rgba(10,10,18,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nav-h);padding:0;background:rgba(10,10,20,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 nav .nav-inner{max-width:100%;padding:0 24px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:16px}
 nav .logo{font-family:var(--mono);font-size:1.2rem;font-weight:800;color:var(--text);letter-spacing:-1px;white-space:nowrap}
 nav .logo span{color:var(--accent2)}
@@ -92,7 +94,7 @@ nav .cta-btn:hover{background:var(--accent2);color:#fff}
 .sidebar-section.collapsed ul{display:none}
 .sidebar-section ul li a{display:block;padding:6px 12px;border-radius:6px;font-size:.82rem;color:var(--text2);transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sidebar-section ul li a:hover{color:var(--text);background:var(--bg3)}
-.sidebar-section ul li a.active{color:var(--accent3);background:rgba(99,102,241,.1)}
+.sidebar-section ul li a.active{color:var(--accent3);background:rgba(139,92,246,.1)}
 
 /* ─── Main Content ──────────────────────────────────────────── */
 .docs-content{flex:1;margin-left:var(--sidebar-w);min-width:0;padding:40px 48px 80px;max-width:calc(var(--sidebar-w) + 860px)}
@@ -110,7 +112,7 @@ nav .cta-btn:hover{background:var(--accent2);color:#fff}
 .edit-link{font-size:.75rem;color:var(--text3);white-space:nowrap;flex-shrink:0;margin-top:8px}
 .edit-link:hover{color:var(--accent2)}
 h1.page-title{font-size:2.4rem;font-weight:800;letter-spacing:-1px;margin-bottom:8px}
-h1.page-title .text-gradient{background:linear-gradient(135deg,var(--accent2),var(--cyan),var(--green2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h1.page-title .text-gradient{background:linear-gradient(135deg,#a78bfa,#06d6a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .page-subtitle{color:var(--text2);font-size:1.05rem;margin-bottom:40px;max-width:600px}
 h2.doc-h2{font-size:1.6rem;font-weight:700;letter-spacing:-.5px;color:var(--text);scroll-margin-top:80px}
 h3.doc-h3{font-size:1.1rem;font-weight:700;color:var(--text);margin:28px 0 12px;scroll-margin-top:80px}
@@ -137,27 +139,27 @@ p.doc-p{color:var(--text2);margin-bottom:16px;line-height:1.75}
 .copy-btn.copied{background:var(--green);color:#fff;border-color:var(--green)}
 
 /* ─── Inline code ───────────────────────────────────────────── */
-code{font-family:var(--mono);font-size:.82em;color:var(--accent3);background:rgba(99,102,241,.08);padding:2px 7px;border-radius:4px}
+code{font-family:var(--mono);font-size:.82em;color:var(--accent3);background:rgba(139,92,246,.08);padding:2px 7px;border-radius:4px}
 
 /* ─── Tables ────────────────────────────────────────────────── */
 .doc-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.88rem}
 .doc-table th{padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--text3);font-size:.75rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
 .doc-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
 .doc-table td:first-child{color:var(--text);font-family:var(--mono);font-size:.8rem}
-.doc-table tr:hover td{background:rgba(99,102,241,.03)}
+.doc-table tr:hover td{background:rgba(139,92,246,.03)}
 .doc-table .required{color:var(--red);font-size:.7rem;font-weight:700}
 .doc-table .default{color:var(--green2);font-family:var(--mono);font-size:.78rem}
 
 /* ─── Callout boxes ─────────────────────────────────────────── */
 .callout{display:flex;gap:12px;padding:16px 20px;border-radius:10px;margin:20px 0;font-size:.9rem;line-height:1.6}
-.callout-info{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);color:var(--text2)}
-.callout-tip{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:var(--text2)}
+.callout-info{background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:var(--text2)}
+.callout-tip{background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);color:var(--text2)}
 .callout-warn{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.2);color:var(--text2)}
 .callout-icon{font-size:1rem;flex-shrink:0;line-height:1.6}
 
 /* ─── Lifecycle badges ──────────────────────────────────────── */
 .state{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:600;font-family:var(--mono)}
-.state-online{background:rgba(34,197,94,.12);color:var(--green2);border:1px solid rgba(34,197,94,.2)}
+.state-online{background:rgba(6,214,160,.12);color:var(--green2);border:1px solid rgba(6,214,160,.2)}
 .state-stopped{background:rgba(100,116,139,.12);color:var(--text3);border:1px solid rgba(100,116,139,.2)}
 .state-errored{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
 .state-starting{background:rgba(234,179,8,.12);color:#fbbf24;border:1px solid rgba(234,179,8,.2)}

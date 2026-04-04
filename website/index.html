@@ -63,7 +63,7 @@
 </script>
 
 <!-- ─── Additional SEO ─────────────────────────────────────── -->
-<meta name="theme-color" content="#6366f1">
+<meta name="theme-color" content="#8b5cf6">
 <meta name="apple-mobile-web-app-title" content="mhost">
 <meta name="application-name" content="mhost">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -179,31 +179,52 @@
 <style>
 /* ─── Design System ─────────────────────────────────────────── */
 :root {
-  --bg-primary: #09090b;
-  --bg-secondary: #0c0c14;
-  --bg-card: #111118;
-  --bg-elevated: #18181b;
+  /* Backgrounds */
+  --bg-primary: #0a0a14;
+  --bg-secondary: #0e0e1a;
+  --bg-card: #12121e;
+  --bg-elevated: #1a1a28;
+
+  /* Text */
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
-  --accent: #6366f1;
-  --accent-light: #818cf8;
-  --accent-glow: rgba(99,102,241,0.15);
-  --green: #22c55e;
-  --green2: #4ade80;
+
+  /* Accent — Electric Violet */
+  --accent: #8b5cf6;
+  --accent-light: #a78bfa;
+  --accent-dark: #7c3aed;
+  --accent-glow: rgba(139, 92, 246, 0.15);
+
+  /* Secondary — Mint Green */
+  --mint: #06d6a0;
+  --mint-light: #34d399;
+  --mint-glow: rgba(6, 214, 160, 0.12);
+
+  /* Status */
+  --green: #10b981;
+  --green2: #06d6a0;
   --red: #ef4444;
   --yellow: #eab308;
   --cyan: #06b6d4;
-  --border: rgba(255,255,255,0.06);
-  --border-hover: rgba(255,255,255,0.12);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(139, 92, 246, 0.3);
+
+  /* Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
+
+  /* Font */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --mono: 'JetBrains Mono','Fira Code','SF Mono',monospace;
+
   --shadow-card: 0 1px 3px rgba(0,0,0,.3),0 0 0 1px var(--border);
   --shadow-glow: 0 0 60px var(--accent-glow);
-  --font: 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  --mono: 'JetBrains Mono','Fira Code','SF Mono',monospace;
 }
 
 /* ─── Reset ─────────────────────────────────────────────────── */
@@ -211,7 +232,7 @@
 html{scroll-behavior:smooth;font-size:16px}
 body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font);line-height:1.7;overflow-x:hidden}
 a{color:var(--accent-light);text-decoration:none;transition:color .2s}
-a:hover{color:#c7d2fe}
+a:hover{color:#ddd6fe}
 ::selection{background:var(--accent);color:#fff}
 
 /* ─── Utilities ─────────────────────────────────────────────── */
@@ -219,21 +240,21 @@ a:hover{color:#c7d2fe}
 .section{padding:100px 0}
 .section-alt{background:var(--bg-secondary)}
 .text-center{text-align:center}
-.text-gradient{background:linear-gradient(135deg,var(--accent-light),var(--cyan),var(--green2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.text-gradient{background:linear-gradient(135deg,#a78bfa,#06d6a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .fade-in{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
 .fade-in.visible{opacity:1;transform:translateY(0)}
 .badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;gap:6px}
-.badge-green{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
-.badge-accent{background:rgba(99,102,241,.1);color:#a5b4fc;border:1px solid rgba(99,102,241,.2)}
+.badge-green{background:rgba(6,214,160,.1);color:#06d6a0;border:1px solid rgba(6,214,160,.2)}
+.badge-accent{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2)}
 .badge-yellow{background:rgba(234,179,8,.1);color:#fbbf24;border:1px solid rgba(234,179,8,.2)}
-.check{color:var(--green2)}
+.check{color:#06d6a0}
 .cross{color:var(--text-muted)}
 
 /* ─── Gradient Orbs ─────────────────────────────────────────── */
 .orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(80px);opacity:.35}
-.orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.5),transparent 70%);top:-200px;left:50%;transform:translateX(-50%)}
-.orb-2{width:400px;height:400px;background:radial-gradient(circle,rgba(6,182,212,.3),transparent 70%);top:200px;right:-100px}
-.orb-3{width:350px;height:350px;background:radial-gradient(circle,rgba(99,102,241,.3),transparent 70%);bottom:0;left:-80px}
+.orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(139,92,246,.5),transparent 70%);top:-200px;left:50%;transform:translateX(-50%)}
+.orb-2{width:400px;height:400px;background:radial-gradient(circle,rgba(6,214,160,.3),transparent 70%);top:200px;right:-100px}
+.orb-3{width:350px;height:350px;background:radial-gradient(circle,rgba(139,92,246,.3),transparent 70%);bottom:0;left:-80px}
 
 /* ─── Nav ───────────────────────────────────────────────────── */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:all .3s;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
@@ -244,8 +265,8 @@ nav .container{display:flex;align-items:center;justify-content:space-between;gap
 nav ul{list-style:none;display:flex;gap:4px;flex:1;justify-content:center}
 nav ul a{color:var(--text-secondary);font-size:.875rem;font-weight:500;padding:6px 14px;border-radius:var(--radius-sm);transition:all .2s}
 nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
-.nav-cta{padding:8px 20px;border-radius:20px;background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;font-weight:700;font-size:.85rem;transition:all .2s;box-shadow:0 2px 12px rgba(99,102,241,.3);white-space:nowrap}
-.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(99,102,241,.4);color:#fff}
+.nav-cta{padding:8px 20px;border-radius:20px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-weight:700;font-size:.85rem;transition:all .2s;box-shadow:0 2px 12px rgba(139,92,246,.3);white-space:nowrap}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(139,92,246,.4);color:#fff}
 .nav-toggle{display:none;background:none;border:none;color:var(--text-primary);font-size:1.4rem;cursor:pointer;padding:6px;line-height:1}
 @media(max-width:768px){
   nav ul{display:none;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--bg-elevated);padding:16px 24px;border-bottom:1px solid var(--border);gap:2px;z-index:99}
@@ -256,10 +277,10 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 }
 
 /* ─── Buttons ───────────────────────────────────────────────── */
-.btn-primary{padding:13px 28px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;font-weight:700;font-size:.95rem;border:none;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(99,102,241,.3)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(99,102,241,.45);color:#fff}
+.btn-primary{padding:13px 28px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-weight:700;font-size:.95rem;border:none;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(139,92,246,.45);color:#fff}
 .btn-secondary{padding:13px 28px;border-radius:var(--radius-md);background:transparent;color:var(--text-primary);font-weight:600;font-size:.95rem;border:1px solid var(--border-hover);cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px}
-.btn-secondary:hover{border-color:rgba(99,102,241,.5);color:var(--accent-light);transform:translateY(-2px);background:rgba(99,102,241,.05)}
+.btn-secondary:hover{border-color:rgba(139,92,246,.5);color:var(--accent-light);transform:translateY(-2px);background:rgba(139,92,246,.05)}
 
 /* ─── Hero ──────────────────────────────────────────────────── */
 .hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;padding-top:80px}
@@ -280,11 +301,11 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 .terminal-dot.red{background:#ff5f56}.terminal-dot.yellow{background:#ffbd2e}.terminal-dot.green{background:#27c93f}
 .terminal-title{margin-left:auto;font-size:.75rem;color:var(--text-muted);font-family:var(--mono)}
 .terminal-body{padding:20px 24px;font-family:var(--mono);font-size:.83rem;line-height:1.85;overflow-x:auto}
-.terminal-body .prompt{color:var(--green2)}
+.terminal-body .prompt{color:#06d6a0}
 .terminal-body .cmd{color:var(--text-primary)}
-.terminal-body .flag{color:#a5b4fc}
+.terminal-body .flag{color:#a78bfa}
 .terminal-body .output{color:var(--text-secondary)}
-.terminal-body .status-online{color:var(--green2)}
+.terminal-body .status-online{color:#06d6a0}
 .terminal-body .status-err{color:var(--red)}
 .terminal-body .dim{color:var(--text-muted)}
 .terminal-body .highlight{color:var(--cyan)}
@@ -294,7 +315,7 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 
 /* ─── Stats Bar ─────────────────────────────────────────────── */
 .stats-section{background:transparent;position:relative;z-index:1}
-.stats-inner{background:rgba(17,17,24,.8);border:1px solid var(--border);border-radius:var(--radius-xl);padding:48px 40px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.stats-inner{background:rgba(18,18,30,.8);border:1px solid rgba(139,92,246,.12);border-radius:var(--radius-xl);padding:48px 40px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .stats-bar{display:flex;justify-content:center;gap:0;flex-wrap:wrap}
 .stat{text-align:center;padding:12px 40px;position:relative}
 .stat+.stat::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);height:40px;width:1px;background:var(--border)}
@@ -316,12 +337,12 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 .compare-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:0;background:var(--bg-card)}
 .compare-row:first-child{background:var(--bg-elevated)}
 .compare-row+.compare-row{border-top:1px solid var(--border)}
-.compare-row:hover:not(:first-child){background:rgba(99,102,241,.03)}
+.compare-row:hover:not(:first-child){background:rgba(139,92,246,.03)}
 .compare-cell{padding:14px 20px;font-size:.88rem}
 .compare-row:first-child .compare-cell{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);padding:12px 20px}
 .compare-cell:first-child{font-weight:600;color:var(--text-primary)}
 .compare-cell.pm2{color:var(--text-muted)}
-.compare-cell.mhost-v{color:var(--green2);font-weight:600}
+.compare-cell.mhost-v{color:#06d6a0;font-weight:600}
 @media(max-width:640px){
   .compare-row{grid-template-columns:1fr;gap:4px}
   .compare-row:first-child{display:none}
@@ -334,12 +355,12 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
 .feature-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;transition:all .3s;position:relative;overflow:hidden}
-.feature-card::after{content:'';position:absolute;inset:0;border-radius:var(--radius-lg);opacity:0;transition:opacity .3s;background:radial-gradient(circle at 50% 0%,rgba(99,102,241,.08),transparent 60%)}
-.feature-card:hover{border-color:rgba(99,102,241,.25);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.feature-card::after{content:'';position:absolute;inset:0;border-radius:var(--radius-lg);opacity:0;transition:opacity .3s;background:radial-gradient(circle at 50% 0%,rgba(139,92,246,.08),transparent 60%)}
+.feature-card:hover{border-color:rgba(139,92,246,.25);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.3)}
 .feature-card:hover::after{opacity:1}
 .feature-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:16px;flex-shrink:0}
-.fi-purple{background:rgba(99,102,241,.12);color:#a5b4fc}
-.fi-green{background:rgba(34,197,94,.1);color:var(--green2)}
+.fi-purple{background:rgba(139,92,246,.12);color:#a78bfa}
+.fi-green{background:rgba(6,214,160,.1);color:var(--green2)}
 .fi-cyan{background:rgba(6,182,212,.1);color:var(--cyan)}
 .fi-yellow{background:rgba(234,179,8,.1);color:#fbbf24}
 .feature-card h3{font-size:1rem;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
@@ -350,19 +371,19 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 /* ─── AI Demo ───────────────────────────────────────────────── */
 .ai-demo{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:40px}
 .ai-demo-header{padding:14px 24px;background:var(--bg-elevated);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
-.ai-pulse{width:9px;height:9px;border-radius:50%;background:var(--accent-light);animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.4)}50%{box-shadow:0 0 0 8px rgba(99,102,241,0)}}
+.ai-pulse{width:9px;height:9px;border-radius:50%;background:#06d6a0;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(6,214,160,.4)}50%{box-shadow:0 0 0 8px rgba(6,214,160,0)}}
 .ai-demo-body{padding:24px;font-family:var(--mono);font-size:.83rem;line-height:1.85}
 .ai-q{color:var(--green2);margin-bottom:12px}
 .ai-a{color:var(--text-primary);padding-left:16px;border-left:2px solid var(--accent);margin-bottom:20px}
-.ai-label{color:#a5b4fc;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.ai-label{color:#a78bfa;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
 
 /* ─── Flow Steps (Agent section) ───────────────────────────── */
 .flow-steps{display:flex;flex-direction:column;gap:14px}
 .flow-step{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px;transition:border-color .2s}
 .flow-step.step-observe{border-left:3px solid var(--cyan)}
-.flow-step.step-think{border-left:3px solid var(--accent-light)}
-.flow-step.step-act{border-left:3px solid var(--green2)}
+.flow-step.step-think{border-left:3px solid #a78bfa}
+.flow-step.step-act{border-left:3px solid #06d6a0}
 .flow-step.step-learn{border-left:3px solid #fbbf24}
 .flow-step h3{font-size:.92rem;font-weight:700;margin-bottom:4px}
 .flow-step p{font-size:.83rem;color:var(--text-secondary)}
@@ -370,13 +391,13 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 /* ─── Chat Demo ─────────────────────────────────────────────── */
 .chat-demo{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
 .chat-header{padding:12px 16px;background:var(--bg-elevated);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.chat-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.chat-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#06d6a0);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
 .chat-body{padding:16px;font-size:.85rem;line-height:1.7}
 .msg-bot,.msg-user{margin-bottom:14px}
-.msg-bot-bubble{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.15);border-radius:12px 12px 12px 4px;padding:10px 14px;max-width:88%;display:inline-block}
+.msg-bot-bubble{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.15);border-radius:12px 12px 12px 4px;padding:10px 14px;max-width:88%;display:inline-block}
 .msg-user{text-align:right}
 .msg-user-bubble{background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px 12px 4px 12px;padding:10px 14px;max-width:72%;display:inline-block;text-align:left}
-.msg-name{font-size:.68rem;color:#a5b4fc;font-weight:700;margin-bottom:3px}
+.msg-name{font-size:.68rem;color:#a78bfa;font-weight:700;margin-bottom:3px}
 
 /* ─── Brain terminals ───────────────────────────────────────── */
 .brain-terminals{display:flex;flex-direction:column;gap:16px}
@@ -384,7 +405,7 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 /* ─── Production Cards ──────────────────────────────────────── */
 .prod-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;position:relative;overflow:hidden;transition:all .3s}
 .prod-card::before{content:'';position:absolute;top:0;right:0;width:120px;height:120px;pointer-events:none;border-radius:0 var(--radius-lg) 0 0}
-.prod-card:hover{border-color:rgba(99,102,241,.2);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.prod-card:hover{border-color:rgba(139,92,246,.2);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.3)}
 .prod-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
 .prod-card-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .prod-card h3{font-size:1.05rem;font-weight:700;margin:0}
@@ -394,10 +415,10 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 /* ─── Install Section ───────────────────────────────────────── */
 .install-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:40px}
 .install-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 20px;display:flex;align-items:center;gap:14px;transition:all .25s;cursor:pointer;position:relative}
-.install-card:hover{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.04);transform:translateY(-2px)}
+.install-card:hover{border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.04);transform:translateY(-2px)}
 .install-icon{font-size:1.4rem;width:36px;text-align:center;flex-shrink:0}
 .install-name{font-weight:700;font-size:.9rem;margin-bottom:3px}
-.install-card code{font-family:var(--mono);font-size:.75rem;color:#a5b4fc;background:rgba(99,102,241,.08);padding:2px 8px;border-radius:4px;display:block;margin-top:2px}
+.install-card code{font-family:var(--mono);font-size:.75rem;color:#a78bfa;background:rgba(139,92,246,.08);padding:2px 8px;border-radius:4px;display:block;margin-top:2px}
 
 /* ─── Copy Button ───────────────────────────────────────────── */
 .copy-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;font-size:.68rem;font-family:var(--font);cursor:pointer;opacity:0;transition:all .2s}
@@ -411,7 +432,7 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 .demo-line.visible{opacity:1;transform:translateX(0)}
 .demo-line.output{padding-left:40px}
 .demo-progress{height:3px;background:var(--bg-elevated);border-radius:2px;margin:8px 24px;overflow:hidden}
-.demo-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--green2));width:0;border-radius:2px;transition:width 1.5s ease-out}
+.demo-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),#06d6a0);width:0;border-radius:2px;transition:width 1.5s ease-out}
 
 /* ─── Code Block ────────────────────────────────────────────── */
 .code-block{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;font-family:var(--mono);font-size:.82rem;line-height:1.9;overflow-x:auto;margin:20px 0;position:relative;cursor:pointer}
@@ -419,7 +440,7 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 .code-block .comment{color:var(--text-muted)}
 .code-block .key{color:var(--cyan)}
 .code-block .val{color:var(--green2)}
-.code-block .str{color:#a5b4fc}
+.code-block .str{color:#a78bfa}
 
 /* ─── Architecture Box ──────────────────────────────────────── */
 .arch-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;font-family:var(--mono);font-size:.8rem;line-height:1.7;overflow-x:auto;white-space:pre;color:var(--text-secondary)}
@@ -433,13 +454,13 @@ nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
 .flow-node .node-sub{color:var(--text-muted);font-size:.7rem;margin-top:2px}
 .flow-arrow{color:var(--text-muted);font-size:1.1rem}
 .flow-or{color:var(--text-muted);font-size:.8rem;padding:0 4px}
-.flow-node.green-node{background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.2)}
-.flow-node.purple-node{background:rgba(99,102,241,.07);border-color:rgba(99,102,241,.2)}
+.flow-node.green-node{background:rgba(6,214,160,.07);border-color:rgba(6,214,160,.2)}
+.flow-node.purple-node{background:rgba(139,92,246,.07);border-color:rgba(139,92,246,.2)}
 .flow-node.yellow-node{background:rgba(234,179,8,.07);border-color:rgba(234,179,8,.2)}
 
 /* ─── Final CTA ─────────────────────────────────────────────── */
 .final-cta{text-align:center;padding:120px 0;position:relative;overflow:hidden}
-.final-cta-orb{position:absolute;width:700px;height:700px;background:radial-gradient(circle,rgba(99,102,241,.08),transparent 70%);left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%}
+.final-cta-orb{position:absolute;width:700px;height:700px;background:radial-gradient(circle,rgba(139,92,246,.08),transparent 70%);left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%}
 .final-cta h2{font-size:3rem;font-weight:900;letter-spacing:-2px;margin-bottom:14px}
 .final-cta p{color:var(--text-secondary);max-width:480px;margin:0 auto 40px;font-size:1.05rem}
 @media(max-width:768px){.final-cta h2{font-size:2rem}}
@@ -461,16 +482,12 @@ code{font-family:var(--mono)}
 <nav id="nav">
   <div class="container">
     <a href="/" class="nav-logo">
-      <!-- Inline waveform logo -->
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32" width="36" height="24" aria-hidden="true">
-        <rect x="2"  y="14" width="5" height="14" rx="2.5" fill="#6366f1"/>
-        <rect x="10" y="7"  width="5" height="21" rx="2.5" fill="#818cf8"/>
-        <rect x="18" y="11" width="5" height="17" rx="2.5" fill="#6366f1"/>
-        <rect x="26" y="4"  width="5" height="24" rx="2.5" fill="#818cf8"/>
-        <rect x="34" y="9"  width="5" height="19" rx="2.5" fill="#6366f1"/>
-        <rect x="42" y="13" width="5" height="15" rx="2.5" fill="#818cf8"/>
+      <!-- Pulse Shield logo -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 40" fill="none" width="105" height="30" aria-hidden="true">
+        <path d="M8 8 L20 4 L32 8 L32 22 C32 28 20 34 20 34 C20 34 8 28 8 22 Z" stroke="#8b5cf6" stroke-width="2" fill="none"/>
+        <polyline points="4,19 12,19 15,12 18,26 21,16 24,19 36,19" stroke="#06d6a0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="42" y="26" font-family="Inter, -apple-system, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5"><tspan fill="#fafafa">m</tspan><tspan fill="#a1a1aa">host</tspan></text>
       </svg>
-      mhost
     </a>
     <button class="nav-toggle" aria-label="Toggle menu" onclick="document.querySelector('nav ul').classList.toggle('open')">&#9776;</button>
     <ul>
@@ -718,30 +735,30 @@ g7h8 frontend      <span class="status-online">● online</span>    12348   1.0%
       <div class="feature-card fade-in">
         <h3>10 AI Commands</h3>
         <div style="font-family:var(--mono);font-size:.8rem;color:var(--text-secondary);margin-top:14px;line-height:2.1">
-          <div><span style="color:#a5b4fc">diagnose</span> &mdash; crash root cause analysis</div>
-          <div><span style="color:#a5b4fc">logs</span> &mdash; natural language log search</div>
-          <div><span style="color:#a5b4fc">optimize</span> &mdash; performance recommendations</div>
-          <div><span style="color:#a5b4fc">config</span> &mdash; generate config from description</div>
-          <div><span style="color:#a5b4fc">postmortem</span> &mdash; incident report generation</div>
-          <div><span style="color:#a5b4fc">watch</span> &mdash; real-time anomaly detection</div>
-          <div><span style="color:#a5b4fc">ask</span> &mdash; ask anything about your processes</div>
-          <div><span style="color:#a5b4fc">explain</span> &mdash; config explanation in plain English</div>
-          <div><span style="color:#a5b4fc">suggest</span> &mdash; proactive improvement suggestions</div>
-          <div><span style="color:#a5b4fc">setup</span> &mdash; configure OpenAI or Claude</div>
+          <div><span style="color:#a78bfa">diagnose</span> &mdash; crash root cause analysis</div>
+          <div><span style="color:#a78bfa">logs</span> &mdash; natural language log search</div>
+          <div><span style="color:#a78bfa">optimize</span> &mdash; performance recommendations</div>
+          <div><span style="color:#a78bfa">config</span> &mdash; generate config from description</div>
+          <div><span style="color:#a78bfa">postmortem</span> &mdash; incident report generation</div>
+          <div><span style="color:#a78bfa">watch</span> &mdash; real-time anomaly detection</div>
+          <div><span style="color:#a78bfa">ask</span> &mdash; ask anything about your processes</div>
+          <div><span style="color:#a78bfa">explain</span> &mdash; config explanation in plain English</div>
+          <div><span style="color:#a78bfa">suggest</span> &mdash; proactive improvement suggestions</div>
+          <div><span style="color:#a78bfa">setup</span> &mdash; configure OpenAI or Claude</div>
         </div>
       </div>
       <div class="feature-card fade-in">
         <h3>Supports Both Providers</h3>
         <div style="margin-top:16px">
           <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
-            <div style="width:36px;height:36px;border-radius:8px;background:rgba(34,197,94,.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#9679;</div>
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(6,214,160,.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#9679;</div>
             <div>
               <div style="font-weight:700;font-size:.9rem">OpenAI</div>
               <div style="font-size:.8rem;color:var(--text-secondary)">GPT-4o, GPT-4o-mini, any chat model</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:14px 0">
-            <div style="width:36px;height:36px;border-radius:8px;background:rgba(99,102,241,.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#9679;</div>
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#9679;</div>
             <div>
               <div style="font-weight:700;font-size:.9rem">Anthropic Claude</div>
               <div style="font-size:.8rem;color:var(--text-secondary)">Sonnet, Haiku, Opus</div>
@@ -983,12 +1000,12 @@ g7h8 frontend      <span class="status-online">● online</span>    12348   1.0%
 
     <div class="grid-2" style="margin-top:48px">
       <div class="prod-card fade-in">
-        <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right,rgba(99,102,241,.07),transparent);pointer-events:none"></div>
+        <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right,rgba(139,92,246,.07),transparent);pointer-events:none"></div>
         <div class="prod-card-header">
-          <div class="prod-card-icon" style="background:rgba(99,102,241,.12);color:#a5b4fc">&#128202;</div>
+          <div class="prod-card-icon" style="background:rgba(139,92,246,.12);color:#a78bfa">&#128202;</div>
           <div>
             <h3>Web Dashboard</h3>
-            <code style="color:#a5b4fc;background:rgba(99,102,241,.08)">mhost dashboard</code>
+            <code style="color:#a78bfa;background:rgba(139,92,246,.08)">mhost dashboard</code>
           </div>
         </div>
         <p style="color:var(--text-secondary);font-size:.875rem;line-height:1.65">Real-time browser UI accessible from any device. Process table, log viewer, action buttons, SSE live streaming. Dark theme, responsive, zero dependencies.</p>
@@ -999,12 +1016,12 @@ g7h8 frontend      <span class="status-online">● online</span>    12348   1.0%
       </div>
 
       <div class="prod-card fade-in">
-        <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right,rgba(34,197,94,.06),transparent);pointer-events:none"></div>
+        <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle at top right,rgba(6,214,160,.06),transparent);pointer-events:none"></div>
         <div class="prod-card-header">
-          <div class="prod-card-icon" style="background:rgba(34,197,94,.1);color:var(--green2)">&#9889;</div>
+          <div class="prod-card-icon" style="background:rgba(6,214,160,.1);color:var(--green2)">&#9889;</div>
           <div>
             <h3>Zero-Downtime Reload</h3>
-            <code style="color:var(--green2);background:rgba(34,197,94,.08)">mhost reload</code>
+            <code style="color:var(--green2);background:rgba(6,214,160,.08)">mhost reload</code>
           </div>
         </div>
         <p style="color:var(--text-secondary);font-size:.875rem;line-height:1.65">Restart without dropping a single request. New instances start, health checks pass, then old instances are killed. Users never notice.</p>
@@ -1180,7 +1197,7 @@ prod-db         <span class="status-online">● up</span>     yes     1/1       
       <div class="fade-in">
         <span class="badge badge-accent">Configuration</span>
         <h2 style="font-size:2.2rem;font-weight:800;margin-top:14px;letter-spacing:-1.5px;line-height:1.2">One file.<br>Your entire stack.</h2>
-        <p style="color:var(--text-secondary);margin-top:14px;line-height:1.8;font-size:.95rem">Define processes, health checks, groups, notifications, metrics, deploy hooks, and AI config in a single TOML, YAML, or JSON file. Environment variable expansion with <code style="color:#a5b4fc">${VAR}</code> syntax.</p>
+        <p style="color:var(--text-secondary);margin-top:14px;line-height:1.8;font-size:.95rem">Define processes, health checks, groups, notifications, metrics, deploy hooks, and AI config in a single TOML, YAML, or JSON file. Environment variable expansion with <code style="color:#a78bfa">${VAR}</code> syntax.</p>
         <div style="margin-top:28px;display:flex;flex-direction:column;gap:10px">
           <div style="display:flex;align-items:center;gap:10px;font-size:.9rem"><span class="check">&#10003;</span> TOML, YAML, JSON support</div>
           <div style="display:flex;align-items:center;gap:10px;font-size:.9rem"><span class="check">&#10003;</span> Environment variable expansion</div>
@@ -1379,7 +1396,7 @@ e5f6 worker        <span style="color:var(--green2)">● online</span>    12347 
 g7h8 frontend      <span style="color:var(--green2)">● online</span>    12348   1.0%   32MB    3s`, delay: 300 },
   { type: 'gap', delay: 600 },
   { type: 'cmd', text: '$ mhost notify setup', delay: 400 },
-  { type: 'out', text: '  Select channel: <span style="color:#a5b4fc">1) Telegram</span>  2) Slack  3) Discord', delay: 500 },
+  { type: 'out', text: '  Select channel: <span style="color:#a78bfa">1) Telegram</span>  2) Slack  3) Discord', delay: 500 },
   { type: 'out', text: '  Bot token: <span style="color:var(--text-muted)">***********</span>', delay: 400 },
   { type: 'out', text: '<span style="color:var(--green2)">&#10003;</span> Channel \'telegram\' configured', delay: 300 },
   { type: 'gap', delay: 500 },
@@ -1387,7 +1404,7 @@ g7h8 frontend      <span style="color:var(--green2)">● online</span>    12348 
   { type: 'out', text: '<span style="color:var(--green2)">&#10003;</span> Scaled \'worker\' to 4 instances', delay: 400 },
   { type: 'gap', delay: 500 },
   { type: 'cmd', text: '$ mhost ai diagnose api-server', delay: 400 },
-  { type: 'out', text: '  <span style="color:#a5b4fc">Analyzing...</span>', delay: 800 },
+  { type: 'out', text: '  <span style="color:#a78bfa">Analyzing...</span>', delay: 800 },
   { type: 'out', text: '  <span style="color:var(--cyan)">Root Cause:</span> Connection pool exhaustion (10/10)', delay: 600 },
   { type: 'out', text: '  <span style="color:var(--cyan)">Fix:</span> Increase pool_size to 25', delay: 300 },
   { type: 'out', text: '  <span style="color:var(--cyan)">Prevention:</span> Add pool utilization alert', delay: 300 },
