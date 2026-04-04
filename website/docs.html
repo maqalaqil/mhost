@@ -243,6 +243,8 @@ code{font-family:var(--mono);font-size:.82em;color:var(--accent3);background:rgb
         <li><a href="#starting">Starting Processes</a></li>
         <li><a href="#interpreter">Auto-detect Interpreter</a></li>
         <li><a href="#stop-restart">Stop, Restart, Delete</a></li>
+        <li><a href="#zero-downtime">Zero-Downtime Reload</a></li>
+        <li><a href="#index-targeting">Index-based Targeting</a></li>
         <li><a href="#scaling">Scaling</a></li>
         <li><a href="#groups">Process Groups</a></li>
         <li><a href="#save-resurrect">Save &amp; Resurrect</a></li>
@@ -634,6 +636,36 @@ timeout = <span class="str">"3s"</span></div>
 <span class="prompt">$</span> mhost delete my-app        <span class="comment"># stop + remove from registry</span>
 <span class="prompt">$</span> mhost stop all             <span class="comment"># stop every process</span></div>
       <button class="copy-btn" data-copy="mhost restart my-app">Copy</button>
+    </div>
+  </div>
+
+  <div class="doc-section" id="zero-downtime">
+    <h2 class="doc-h2">Zero-Downtime Reload</h2>
+    <p class="doc-p">Send <code>SIGUSR2</code> to trigger a rolling restart with no dropped requests. mhost brings up new instances before tearing down the old ones:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost reload my-app        <span class="comment"># rolling reload — zero dropped requests</span>
+<span class="prompt">$</span> mhost reload my-app <span class="flag">--wait</span>  <span class="comment"># wait for health probe to pass before proceeding</span></div>
+      <button class="copy-btn" data-copy="mhost reload my-app">Copy</button>
+    </div>
+    <div class="callout callout-tip">
+      <span class="callout-icon">&#10003;</span>
+      <span>Your application must listen for <code>SIGUSR2</code> and finish in-flight requests before exiting. Most Node.js frameworks support this out of the box.</span>
+    </div>
+  </div>
+
+  <div class="doc-section" id="index-targeting">
+    <h2 class="doc-h2">Index-based Process Targeting</h2>
+    <p class="doc-p">Every process in the registry has a numeric index (shown in <code>mhost list</code>). You can use the index instead of the name in any command:</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost stop 0         <span class="comment"># stop the first process by index</span>
+<span class="prompt">$</span> mhost restart 1      <span class="comment"># restart second process</span>
+<span class="prompt">$</span> mhost logs 2         <span class="comment"># tail logs for third process</span>
+<span class="prompt">$</span> mhost delete 0       <span class="comment"># delete process at index 0</span></div>
+      <button class="copy-btn" data-copy="mhost stop 0">Copy</button>
+    </div>
+    <div class="callout callout-info">
+      <span class="callout-icon">&#8505;</span>
+      <span>Indices are stable within a session but may shift if processes are deleted. Prefer names in scripts for reliability.</span>
     </div>
   </div>
 
