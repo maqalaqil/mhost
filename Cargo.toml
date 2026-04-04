@@ -16,6 +16,7 @@ members = [
     "crates/mhost-ai",
     "crates/mhost-cloud",
     "crates/mhost-bot",
+    "crates/mhost-api",
 ]
 
 [workspace.package]
@@ -51,6 +52,8 @@ rcgen = "0.13"
 tokio-rustls = "0.26"
 rustls = { version = "0.23", features = ["ring"] }
 bytes = "1"
+argon2 = "0.5"
+tower-http = { version = "0.6", features = ["cors"] }
 openssl = { version = "0.10", features = ["vendored"] }
 git2 = "0.19"
 ratatui = "0.29"

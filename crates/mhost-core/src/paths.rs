@@ -66,6 +66,15 @@ impl MhostPaths {
     pub fn bot_config(&self) -> PathBuf {
         self.root.join("bot.json")
     }
+    pub fn api_tokens(&self) -> PathBuf {
+        self.root.join("api_tokens.json")
+    }
+    pub fn webhooks_config(&self) -> PathBuf {
+        self.root.join("webhooks.json")
+    }
+    pub fn webhook_failures(&self) -> PathBuf {
+        self.root.join("webhook_failures.json")
+    }
 
     pub fn ensure_dirs(&self) -> std::io::Result<()> {
         std::fs::create_dir_all(&self.root)?;
@@ -186,6 +195,33 @@ mod tests {
         assert_eq!(
             paths.fleet_config(),
             PathBuf::from("/tmp/mhost-test/fleet.json")
+        );
+    }
+
+    #[test]
+    fn test_api_tokens_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(
+            paths.api_tokens(),
+            PathBuf::from("/tmp/mhost-test/api_tokens.json")
+        );
+    }
+
+    #[test]
+    fn test_webhooks_config_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(
+            paths.webhooks_config(),
+            PathBuf::from("/tmp/mhost-test/webhooks.json")
+        );
+    }
+
+    #[test]
+    fn test_webhook_failures_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(
+            paths.webhook_failures(),
+            PathBuf::from("/tmp/mhost-test/webhook_failures.json")
         );
     }
 

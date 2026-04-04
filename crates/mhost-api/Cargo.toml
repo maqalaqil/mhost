@@ -1,0 +1,28 @@
+[package]
+name = "mhost-api"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "HTTP/WebSocket API layer for mhost process manager"
+
+[dependencies]
+mhost-core = { path = "../mhost-core" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+axum = { workspace = true }
+tracing = { workspace = true }
+reqwest = { workspace = true }
+argon2 = { workspace = true }
+tower-http = { workspace = true }
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.8"
+
+[dev-dependencies]
+tokio = { workspace = true }
