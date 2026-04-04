@@ -53,7 +53,7 @@ pub async fn run(client: &IpcClient) -> Result<(), String> {
         "Total".bold(),
         "",
         "",
-        format!("${:.2}/mo", total_cost).green().bold()
+        format!("${total_cost:.2}/mo").green().bold()
     );
     println!();
     Ok(())

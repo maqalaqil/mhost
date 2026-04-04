@@ -26,7 +26,7 @@ pub async fn create(client: &IpcClient, paths: &MhostPaths, name: &str) -> Resul
     let json = serde_json::to_string_pretty(&snapshot).map_err(|e| e.to_string())?;
     std::fs::write(&path, json).map_err(|e| e.to_string())?;
 
-    print_success(&format!("Snapshot '{}' created", name));
+    print_success(&format!("Snapshot '{name}' created"));
     println!("  Path: {}", path.display());
     Ok(())
 }
@@ -96,6 +96,6 @@ pub async fn restore(client: &IpcClient, paths: &MhostPaths, name: &str) -> Resu
         .call(methods::PROCESS_RESURRECT, serde_json::json!(null))
         .await;
 
-    print_success(&format!("Snapshot '{}' restored", name));
+    print_success(&format!("Snapshot '{name}' restored"));
     Ok(())
 }

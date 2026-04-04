@@ -91,7 +91,7 @@ pub fn run(paths: &MhostPaths, process: &str, time: Option<&str>) -> Result<(), 
     if let Ok(content) = std::fs::read_to_string(&health_file) {
         if let Ok(health) = serde_json::from_str::<serde_json::Value>(&content) {
             if let Some(score) = health.get(process).and_then(|h| h["score"].as_f64()) {
-                let score_str = format!("{:.0}", score);
+                let score_str = format!("{score:.0}");
                 let colored_score = if score >= 80.0 {
                     score_str.green()
                 } else if score >= 50.0 {
@@ -99,7 +99,7 @@ pub fn run(paths: &MhostPaths, process: &str, time: Option<&str>) -> Result<(), 
                 } else {
                     score_str.red()
                 };
-                println!("\n  Health Score: {}/100", colored_score);
+                println!("\n  Health Score: {colored_score}/100");
             }
         }
     }

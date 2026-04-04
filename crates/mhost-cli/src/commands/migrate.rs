@@ -38,10 +38,10 @@ fn migrate_pm2() -> Result<(), String> {
             let instances = proc["pm2_env"]["instances"].as_u64().unwrap_or(1);
             let max_restarts = proc["pm2_env"]["max_restarts"].as_u64().unwrap_or(15);
 
-            toml.push_str(&format!("[process.{}]\n", name));
-            toml.push_str(&format!("command = \"{}\"\n", script));
-            toml.push_str(&format!("instances = {}\n", instances));
-            toml.push_str(&format!("max_restarts = {}\n\n", max_restarts));
+            toml.push_str(&format!("[process.{name}]\n"));
+            toml.push_str(&format!("command = \"{script}\"\n"));
+            toml.push_str(&format!("instances = {instances}\n"));
+            toml.push_str(&format!("max_restarts = {max_restarts}\n\n"));
         }
 
         let output = "mhost.toml";

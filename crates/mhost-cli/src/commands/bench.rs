@@ -5,10 +5,7 @@ use std::time::{Duration, Instant};
 
 pub async fn run(url: &str, duration_secs: u64, concurrency: u32) -> Result<(), String> {
     println!("\n  {} Benchmarking: {}", "⚡".cyan(), url.white().bold());
-    println!(
-        "  Duration: {}s | Concurrency: {}\n",
-        duration_secs, concurrency
-    );
+    println!("  Duration: {duration_secs}s | Concurrency: {concurrency}\n");
 
     let total_requests = Arc::new(AtomicU64::new(0));
     let total_errors = Arc::new(AtomicU64::new(0));

@@ -44,14 +44,14 @@ pub fn run(paths: &MhostPaths, env_a: &str, env_b: &str) -> Result<(), String> {
                 } else {
                     "=".dimmed().to_string()
                 };
-                println!("  {:<20} {:<15} {} {}", key, va, marker, vb);
+                println!("  {key:<20} {va:<15} {marker} {vb}");
             }
         } else {
             if !a_exists {
-                println!("  Server '{}' not found in fleet", env_a);
+                println!("  Server '{env_a}' not found in fleet");
             }
             if !b_exists {
-                println!("  Server '{}' not found in fleet", env_b);
+                println!("  Server '{env_b}' not found in fleet");
             }
         }
     }

@@ -36,7 +36,7 @@ pub async fn run(client: &IpcClient, app: &str, percent: u32, duration: u64) -> 
     print_success("Canary instance started");
 
     // Step 2: Monitor
-    println!("  [2/4] Monitoring for {}s...", duration);
+    println!("  [2/4] Monitoring for {duration}s...");
     let check_interval = std::time::Duration::from_secs(10);
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(duration);
     let mut errors = 0u32;
@@ -72,10 +72,7 @@ pub async fn run(client: &IpcClient, app: &str, percent: u32, duration: u64) -> 
         } else {
             "0".green().to_string()
         };
-        print!(
-            "\r  ⏱  {}s / {}s — errors: {}",
-            elapsed, duration, error_display
-        );
+        print!("\r  ⏱  {elapsed}s / {duration}s — errors: {error_display}");
     }
     println!();
 
