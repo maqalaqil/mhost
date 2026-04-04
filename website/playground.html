@@ -1965,24 +1965,15 @@ function convertPm2() {
   const input = document.getElementById('pm2-input').value;
   let apps;
   try {
-    // Try to parse as JSON first
-    let jsonStr = input;
-    // Handle module.exports = { ... }
-    if (jsonStr.includes('module.exports')) {
-      jsonStr = jsonStr.replace(/module\.exports\s*=\s*/, '');
-      // Remove trailing semicolons
-      jsonStr = jsonStr.replace(/;\s*$/, '');
-    }
-    // Convert JS object to JSON (handle unquoted keys, trailing commas)
-    jsonStr = jsonStr
-      .replace(/\/\/.*$/gm, '')  // remove comments
-      .replace(/(\w+)\s*:/g, '"$1":')  // quote keys
-      .replace(/,\s*([}\]])/g, '$1')  // remove trailing commas
-      .replace(/:\s*"?(\d+)"?\s*([,}\]])/g, ': $1$2')  // numbers
-      .replace(/:\s*true/g, ': true')
-      .replace(/:\s*false/g, ': false');
-    const parsed = JSON.parse(jsonStr);
-    apps = parsed.apps || [parsed];
+    let src = input.trim();
+    // Strip module.exports =
+    src = src.replace(/^module\.exports\s*=\s*/, '');
+    // Strip trailing semicolons
+    src = src.replace(/;\s*$/, '');
+    // Safely evaluate JS object literal using Function constructor
+    // This handles unquoted keys, trailing commas, template literals, numbers, etc.
+    const parsed = (new Function('return (' + src + ')'))();
+    apps = parsed.apps || (Array.isArray(parsed) ? parsed : [parsed]);
   } catch (e) {
     document.getElementById('migrate-output').innerHTML = `<span class="c-red">Failed to parse PM2 config. Please check the format.</span>\n<span class="c-dim">${escHtml(e.message)}</span>`;
     return;
