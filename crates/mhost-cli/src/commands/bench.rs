@@ -109,3 +109,23 @@ fn format_us(us: u64) -> String {
         format!("{us}μs")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_us_microseconds() {
+        assert_eq!(format_us(500), "500μs");
+    }
+
+    #[test]
+    fn test_format_us_milliseconds() {
+        assert_eq!(format_us(5_000), "5.0ms");
+    }
+
+    #[test]
+    fn test_format_us_seconds() {
+        assert_eq!(format_us(2_500_000), "2.5s");
+    }
+}

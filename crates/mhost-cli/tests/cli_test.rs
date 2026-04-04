@@ -573,3 +573,187 @@ fn non_daemon_commands_work_without_daemon() {
         );
     }
 }
+
+// ─── New feature commands ─────────────────────────────────
+
+#[test]
+fn replay_help() {
+    let (stdout, _, ok) = run(&["replay", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("Replay"));
+    assert!(stdout.contains("process"));
+}
+
+#[test]
+fn replay_no_incidents() {
+    let (stdout, _, _) = run(&["replay", "nonexistent-process"]);
+    assert!(stdout.contains("No incidents") || stdout.contains("Replay"));
+}
+
+#[test]
+fn bench_help() {
+    let (stdout, _, ok) = run(&["bench", "--help"]);
+    assert!(ok);
+    assert!(stdout.to_lowercase().contains("url"));
+    assert!(stdout.contains("duration"));
+    assert!(stdout.contains("concurrency"));
+}
+
+#[test]
+fn link_help() {
+    let (stdout, _, ok) = run(&["link", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("dependency") || stdout.contains("graph") || stdout.contains("Link"));
+}
+
+#[test]
+fn link_runs_without_crash() {
+    let (_stdout, stderr, _) = run(&["link"]);
+    assert!(!stderr.contains("panicked"), "link should not panic");
+}
+
+#[test]
+fn cost_help() {
+    let (stdout, _, ok) = run(&["cost", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("cost") || stdout.contains("Cost"));
+}
+
+#[test]
+fn canary_help() {
+    let (stdout, _, ok) = run(&["canary", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("Canary"));
+    assert!(stdout.contains("percent"));
+    assert!(stdout.contains("duration"));
+}
+
+#[test]
+fn run_recipe_help() {
+    let (stdout, _, ok) = run(&["run", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("recipe") || stdout.contains("file") || stdout.contains("Run"));
+}
+
+#[test]
+fn run_recipe_missing_file() {
+    let (_, stderr, ok) = run(&["run", "nonexistent-recipe.txt"]);
+    assert!(!ok || stderr.contains("not found") || stderr.contains("No such file"));
+}
+
+#[test]
+fn share_help() {
+    let (stdout, _, ok) = run(&["share", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("Expose") || stdout.contains("tunnel") || stdout.contains("Share"));
+}
+
+#[test]
+fn diff_help() {
+    let (stdout, _, ok) = run(&["diff", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("Compare") || stdout.contains("Diff"));
+}
+
+#[test]
+fn diff_no_fleet() {
+    let (stdout, _, _) = run(&["diff", "env-a", "env-b"]);
+    assert!(stdout.contains("fleet") || stdout.contains("No") || stdout.contains("Compare"));
+}
+
+#[test]
+fn snapshot_help() {
+    let (stdout, _, ok) = run(&["snapshot", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("create") || stdout.contains("Create"));
+    assert!(stdout.contains("list") || stdout.contains("List"));
+    assert!(stdout.contains("restore") || stdout.contains("Restore"));
+}
+
+#[test]
+fn snapshot_list_empty() {
+    let (stdout, _, _) = run(&["snapshot", "list"]);
+    assert!(
+        stdout.contains("No snapshot") || stdout.contains("Snapshot") || stdout.contains("create")
+    );
+}
+
+#[test]
+fn certs_help() {
+    let (stdout, _, ok) = run(&["certs", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("SSL") || stdout.contains("certificate") || stdout.contains("Certs"));
+}
+
+#[test]
+fn sla_help() {
+    let (stdout, _, ok) = run(&["sla", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("SLA") || stdout.contains("uptime"));
+}
+
+#[test]
+fn sla_no_incidents() {
+    let (stdout, _, _) = run(&["sla", "nonexistent"]);
+    assert!(stdout.contains("SLA") || stdout.contains("100"));
+}
+
+#[test]
+fn migrate_help() {
+    let (stdout, _, ok) = run(&["migrate", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("Migrate") || stdout.contains("pm2"));
+}
+
+#[test]
+fn migrate_pm2_no_dump() {
+    let (stdout, stderr, _) = run(&["migrate", "--from", "pm2"]);
+    let combined = format!("{stdout}{stderr}");
+    assert!(
+        combined.contains("PM2")
+            || combined.contains("pm2")
+            || combined.contains("dump")
+            || combined.contains("Migrating")
+    );
+}
+
+#[test]
+fn team_shows_coming_soon() {
+    let (stdout, _, ok) = run(&["team"]);
+    assert!(ok);
+    assert!(stdout.contains("Coming Soon") || stdout.contains("Team"));
+}
+
+#[test]
+fn playground_shows_info() {
+    let (stdout, _, ok) = run(&["playground"]);
+    assert!(ok);
+    assert!(
+        stdout.contains("Playground")
+            || stdout.contains("playground")
+            || stdout.contains("tutorial")
+    );
+}
+
+#[test]
+fn all_new_commands_in_help() {
+    let (stdout, _, _) = run(&["--help"]);
+    for cmd in &[
+        "replay",
+        "bench",
+        "link",
+        "cost",
+        "canary",
+        "run",
+        "share",
+        "diff",
+        "snapshot",
+        "certs",
+        "sla",
+        "migrate",
+        "team",
+        "playground",
+    ] {
+        assert!(stdout.contains(cmd), "mhost --help missing '{cmd}'");
+    }
+}

@@ -72,3 +72,27 @@ fn estimate_instance(mem_mb: f64) -> (&'static str, f64) {
         ("t3.xlarge", 133.63)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_micro_instance() {
+        let (t, c) = estimate_instance(256.0);
+        assert_eq!(t, "t3.micro");
+        assert!(c < 10.0);
+    }
+
+    #[test]
+    fn test_small_instance() {
+        let (t, _) = estimate_instance(800.0);
+        assert_eq!(t, "t3.small");
+    }
+
+    #[test]
+    fn test_large_instance() {
+        let (t, _) = estimate_instance(3000.0);
+        assert_eq!(t, "t3.large");
+    }
+}
