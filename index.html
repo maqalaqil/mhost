@@ -238,6 +238,8 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;font-size:16px}
 body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font);line-height:1.7;overflow-x:hidden}
+pre{overflow-x:auto;max-width:100%}
+img,svg,video{max-width:100%;height:auto}
 a{color:var(--accent-light);text-decoration:none;transition:color .2s}
 a:hover{color:#ddd6fe}
 ::selection{background:var(--accent);color:#fff}
@@ -477,6 +479,141 @@ footer{border-top:1px solid var(--border);padding:36px 0;text-align:center;color
 .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
 .footer-links a{color:var(--text-secondary);transition:color .2s}
 .footer-links a:hover{color:var(--text-primary)}
+
+/* ─── RESPONSIVE: Tablet (max 900px) ───────────────────────── */
+@media(max-width:900px){
+  .grid-2{grid-template-columns:1fr!important}
+  .grid-3,.features-grid{grid-template-columns:1fr 1fr!important}
+  .section{padding:80px 0!important}
+  .section-header h2{font-size:2rem!important}
+  .hero-terminal{max-width:100%!important}
+  .flow-nodes{gap:8px!important}
+  .flow-arrow,.flow-or{display:none!important}
+  .flow-node{flex:1 1 140px!important}
+  .ai-demo-body{padding:16px!important;font-size:.78rem!important}
+  .chat-body{padding:12px!important}
+  .msg-bot-bubble,.msg-user-bubble{max-width:95%!important}
+  [style*="font-size:2.8rem"],[style*="font-size:2.5rem"],[style*="font-size:3rem"]{font-size:2rem!important}
+  [style*="font-size:2.2rem"]{font-size:1.6rem!important}
+}
+
+/* ─── RESPONSIVE: Mobile (max 768px) ──────────────────────── */
+@media(max-width:768px){
+  .container{padding:0 16px!important}
+  .section{padding:60px 0!important}
+
+  /* Hero */
+  .hero{min-height:auto!important;padding:100px 0 50px!important}
+  .hero h1{font-size:2rem!important;letter-spacing:-1.5px!important}
+  .hero .subtitle{font-size:.92rem!important;margin-bottom:24px!important}
+  .hero-badges{gap:6px!important}
+  .hero-badges .badge{font-size:.6rem!important;padding:3px 8px!important}
+  .hero-actions{flex-direction:column!important;align-items:stretch!important;gap:10px!important}
+  .btn-primary,.btn-secondary{width:100%!important;justify-content:center!important;padding:14px 20px!important;font-size:.9rem!important}
+  .hero-terminal{margin-top:32px!important}
+
+  /* Terminal */
+  .terminal-body{padding:12px 14px!important;font-size:.72rem!important;line-height:1.65!important}
+  .terminal-body pre{font-size:.72rem!important;line-height:1.65!important}
+  .terminal-bar{padding:10px 12px!important}
+
+  /* Section headers — override ALL inline font-sizes */
+  .section-header h2{font-size:1.6rem!important;letter-spacing:-1px!important}
+  .section-header p{font-size:.85rem!important}
+  h2[style]{font-size:1.6rem!important;letter-spacing:-1px!important}
+
+  /* Stats */
+  .stats-inner{padding:20px 12px!important;border-radius:var(--radius-lg)!important}
+  .stats-bar{flex-wrap:wrap!important}
+  .stat{padding:12px 14px!important;width:50%!important}
+  .stat-num{font-size:1.8rem!important}
+  .stat-label{font-size:.65rem!important}
+  .stat+.stat::before{display:none!important}
+
+  /* Comparison */
+  .compare-grid{border-radius:var(--radius-md)!important}
+  .compare-row{grid-template-columns:1fr!important}
+  .compare-row:first-child{display:none!important}
+  .compare-cell{padding:10px 14px!important;font-size:.8rem!important}
+  .compare-cell.pm2::before{content:"PM2: ";color:var(--text-muted);font-size:.7rem}
+  .compare-cell.mhost-v::before{content:"mhost: ";color:var(--text-muted);font-size:.7rem}
+
+  /* Grids — force all to single column */
+  .features-grid,.grid-3,.grid-2{grid-template-columns:1fr!important}
+  .feature-card,.prod-card{padding:18px!important}
+  .prod-snippet{font-size:.68rem!important;padding:10px 12px!important}
+  .install-grid{grid-template-columns:1fr!important}
+
+  /* Code blocks */
+  .code-block{padding:14px!important;font-size:.72rem!important}
+  .arch-box{padding:16px!important;font-size:.68rem!important;line-height:1.5!important}
+
+  /* CTA */
+  .final-cta{padding:60px 0!important}
+  .final-cta h2{font-size:1.6rem!important;letter-spacing:-1px!important}
+  .final-cta p{font-size:.9rem!important}
+
+  /* Flow diagram */
+  .flow-diagram{padding:16px!important}
+  .flow-nodes{flex-direction:column!important;align-items:stretch!important}
+  .flow-node{flex:none!important;padding:10px 14px!important}
+
+  /* Chat / AI demos */
+  .chat-demo{max-width:100%!important}
+  .ai-demo{margin-top:20px!important}
+  .brain-terminals .terminal{margin:0!important}
+
+  /* Inline style overrides for all headings */
+  [style*="font-size:2.8rem"]{font-size:1.6rem!important}
+  [style*="font-size:2.5rem"]{font-size:1.5rem!important}
+  [style*="font-size:3rem"]{font-size:1.8rem!important}
+  [style*="font-size:2.2rem"]{font-size:1.4rem!important}
+  [style*="margin-top:48px"]{margin-top:28px!important}
+  [style*="margin-top:56px"]{margin-top:28px!important}
+  [style*="margin-top:40px"]{margin-top:24px!important}
+  [style*="gap:24px"]{gap:14px!important}
+  [style*="padding:28px"]{padding:18px!important}
+
+  /* Pre / code overflow */
+  pre{overflow-x:auto!important;max-width:100%!important;white-space:pre-wrap!important;word-break:break-all!important}
+  .arch-box{white-space:pre-wrap!important;word-break:break-word!important}
+}
+
+/* ─── RESPONSIVE: Small phone (max 480px) ──────────────────── */
+@media(max-width:480px){
+  .hero{padding:80px 0 40px!important}
+  .hero h1{font-size:1.6rem!important;letter-spacing:-1px!important}
+  .hero .subtitle{font-size:.85rem!important}
+  .stat{width:100%!important;padding:10px 12px!important}
+  .stat-num{font-size:1.5rem!important}
+  .terminal-body{font-size:.65rem!important;padding:10px!important}
+  .install-card{flex-direction:column!important;align-items:flex-start!important;gap:8px!important}
+  .install-icon{width:auto!important}
+  .feature-icon,.prod-card-icon{width:32px!important;height:32px!important;font-size:1rem!important}
+  .feature-card h3,.prod-card h3{font-size:.9rem!important}
+  .feature-card p,.prod-card p{font-size:.8rem!important}
+  .footer-links{flex-direction:column!important;gap:10px!important;align-items:center!important}
+  .nav-logo{font-size:.95rem!important}
+  .nav-logo svg{width:28px!important;height:28px!important}
+  [style*="font-size:2.8rem"]{font-size:1.4rem!important}
+  [style*="font-size:2.5rem"]{font-size:1.3rem!important}
+  [style*="font-size:3rem"]{font-size:1.5rem!important}
+  [style*="font-size:2.2rem"]{font-size:1.2rem!important}
+  .msg-bot-bubble,.msg-user-bubble{max-width:100%!important;font-size:.8rem!important}
+  .flow-step h3{font-size:.85rem!important}
+  .flow-step p{font-size:.78rem!important}
+  .copy-btn{display:none!important}
+  .badge{font-size:.58rem!important;padding:2px 7px!important}
+}
+
+/* ─── RESPONSIVE: Extra small (max 360px) ──────────────────── */
+@media(max-width:360px){
+  .container{padding:0 12px!important}
+  .hero h1{font-size:1.4rem!important}
+  .btn-primary,.btn-secondary{font-size:.82rem!important;padding:12px 16px!important}
+  .stat-num{font-size:1.3rem!important}
+  .terminal-body{font-size:.6rem!important}
+}
 
 /* ─── Misc ──────────────────────────────────────────────────── */
 @keyframes spin{to{transform:rotate(360deg)}}
