@@ -172,6 +172,21 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             BrainAction::Explain { process } => commands::brain::run_explain(paths, &process),
         },
 
+        // ---- Replay (non-daemon, reads brain files) -----------------------
+        Commands::Replay { process, time } => {
+            commands::replay::run(paths, &process, time.as_deref())
+        }
+
+        // ---- Bench (non-daemon, direct HTTP) ------------------------------
+        Commands::Bench {
+            url,
+            duration,
+            concurrency,
+        } => commands::bench::run(&url, duration, concurrency).await,
+
+        // ---- Link (non-daemon, reads DB) ----------------------------------
+        Commands::Link => commands::link::run(paths),
+
         // ---- Dev mode (non-daemon, runs directly with file watching) ------
         Commands::Dev {
             script,
@@ -291,6 +306,8 @@ async fn dispatch_daemon(
             _ => unreachable!(),
         },
 
+        Commands::Cost => commands::cost::run(client).await,
+
         Commands::Monit => commands::monit::run(client).await,
         Commands::Deploy { env } => commands::deploy::run(client, &env).await,
         Commands::Rollback { env } => commands::rollback::run(client, &env).await,
@@ -310,7 +327,10 @@ async fn dispatch_daemon(
         | Commands::Brain { .. }
         | Commands::Dev { .. }
         | Commands::Dashboard { .. }
-        | Commands::Reload { .. } => unreachable!(),
+        | Commands::Reload { .. }
+        | Commands::Replay { .. }
+        | Commands::Bench { .. }
+        | Commands::Link => unreachable!(),
     }
 }
 

@@ -572,4 +572,31 @@ pub enum Commands {
         #[arg(long, default_value = "9400")]
         port: u16,
     },
+
+    /// Replay an incident timeline for a process.
+    Replay {
+        /// Process name to replay.
+        process: String,
+        /// Filter events around this timestamp (e.g. "3:47am").
+        #[arg(long)]
+        time: Option<String>,
+    },
+
+    /// Load test an HTTP endpoint.
+    Bench {
+        /// URL to benchmark.
+        url: String,
+        /// Duration of the test in seconds.
+        #[arg(long, default_value = "10")]
+        duration: u64,
+        /// Number of concurrent workers.
+        #[arg(long, default_value = "10")]
+        concurrency: u32,
+    },
+
+    /// Show process dependency graph.
+    Link,
+
+    /// Estimate cloud resource costs from running process memory usage.
+    Cost,
 }
