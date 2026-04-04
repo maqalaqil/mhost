@@ -72,8 +72,8 @@ mod tests {
 
     #[test]
     fn test_process_event_with_detail() {
-        let event = ProcessEvent::new("exit", "worker")
-            .with_detail(serde_json::json!({ "code": 1 }));
+        let event =
+            ProcessEvent::new("exit", "worker").with_detail(serde_json::json!({ "code": 1 }));
         assert_eq!(event.event, "exit");
         assert_eq!(event.process, "worker");
         let detail = event.detail.unwrap();

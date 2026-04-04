@@ -1172,6 +1172,54 @@ mhost monit
 
 ---
 
+## Public API
+
+REST API with bearer token auth, WebSocket real-time streaming, and outbound webhooks.
+
+### Quick Start
+
+```bash
+# Create an API token
+mhost api token create --name my-app --role operator
+
+# Use it
+curl -H "Authorization: Bearer mhost_tok_..." http://localhost:19516/api/v1/processes
+
+# WebSocket
+wscat -c "ws://localhost:19516/api/v1/ws?token=mhost_tok_..."
+```
+
+### REST Endpoints (25 total)
+
+| Category | Endpoints | Auth |
+|---|---|---|
+| Processes | GET/POST/DELETE /processes/* | viewer/operator |
+| Logs | GET /logs/:name, /logs/:name/search | viewer |
+| Health | GET /health, /health/:name | public/viewer |
+| Metrics | GET /metrics, /metrics/:name | viewer |
+| System | POST /save, /resurrect, /kill | operator/admin |
+| Tokens | GET/POST/DELETE /tokens/* | admin |
+| Webhooks | GET/POST/DELETE /webhooks/* | admin |
+
+### WebSocket Streaming
+
+Subscribe to real-time events, logs, and metrics:
+
+```json
+{"type": "subscribe", "channel": "events"}
+{"type": "subscribe", "channel": "logs", "process": "api-server"}
+```
+
+### Outbound Webhooks
+
+```bash
+mhost api webhook add --url https://myapp.com/hook --events crash,restart --secret my-key
+```
+
+HMAC-SHA256 signed payloads with retry logic and dead letter logging.
+
+---
+
 ## All Commands
 
 ### Process Management
@@ -1333,6 +1381,22 @@ mhost monit
 | `mhost migrate --from <pm>` | Migrate from PM2 or other process managers |
 | `mhost team` | Team management (coming soon) |
 | `mhost playground` | Interactive tutorial |
+
+### API
+
+| Command | Description |
+|---|---|
+| `mhost api start [--port]` | Start the API server |
+| `mhost api stop` | Stop the API server |
+| `mhost api status` | Show API server status |
+| `mhost api token create` | Create API token |
+| `mhost api token list` | List API tokens |
+| `mhost api token revoke <id>` | Revoke a token |
+| `mhost api webhook add` | Register a webhook |
+| `mhost api webhook list` | List webhooks |
+| `mhost api webhook remove <id>` | Remove a webhook |
+| `mhost api webhook test <id>` | Test a webhook |
+| `mhost api webhook failures` | Show failed deliveries |
 
 ### Infrastructure
 

@@ -60,10 +60,7 @@ async fn create_webhook(
         failure_count: 0,
     };
 
-    let id = state
-        .webhooks
-        .add(config)
-        .map_err(|e| ApiError::internal(e))?;
+    let id = state.webhooks.add(config).map_err(ApiError::internal)?;
 
     Ok(ApiResponse::new(serde_json::json!({ "id": id })))
 }
@@ -74,10 +71,7 @@ async fn remove_webhook(
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, ApiError> {
     require_role(&user, Role::Admin)?;
-    state
-        .webhooks
-        .remove(&id)
-        .map_err(|e| ApiError::not_found(e))?;
+    state.webhooks.remove(&id).map_err(ApiError::not_found)?;
     Ok(ApiResponse::new(serde_json::json!({ "removed": id })))
 }
 
@@ -93,7 +87,7 @@ async fn test_webhook(
     state
         .webhooks
         .dispatch_to(&id, &test_event)
-        .map_err(|e| ApiError::not_found(e))?;
+        .map_err(ApiError::not_found)?;
 
     Ok(ApiResponse::new(serde_json::json!({
         "tested": id,

@@ -10,10 +10,7 @@ use crate::server::AppState;
 
 /// Returns the authenticated router for process-level health checks.
 pub fn router() -> Router<AppState> {
-    Router::new().route(
-        "/api/v1/processes/:name/health",
-        get(process_health),
-    )
+    Router::new().route("/api/v1/processes/:name/health", get(process_health))
 }
 
 /// Public health endpoint (no auth required). Used directly in server.rs.
@@ -34,6 +31,6 @@ async fn process_health(
         .supervisor
         .health_status(&name)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(health))
 }

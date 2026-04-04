@@ -23,9 +23,7 @@ pub struct ApiToken {
 impl ApiToken {
     /// Returns true if this token has an expiry date in the past.
     pub fn is_expired(&self) -> bool {
-        self.expires_at
-            .map(|exp| exp < Utc::now())
-            .unwrap_or(false)
+        self.expires_at.map(|exp| exp < Utc::now()).unwrap_or(false)
     }
 }
 
@@ -187,9 +185,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let mut store = TokenStore::load(store_path(dir.path())).unwrap();
 
-        let created = store
-            .create("my-token".into(), Role::Admin, None)
-            .unwrap();
+        let created = store.create("my-token".into(), Role::Admin, None).unwrap();
 
         assert!(created.token.id.starts_with("tok_"));
         assert!(created.raw_secret.starts_with("mhost_tok_"));
@@ -204,15 +200,11 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let mut store = TokenStore::load(store_path(dir.path())).unwrap();
 
-        store
-            .create("dup".into(), Role::Viewer, None)
-            .unwrap();
+        store.create("dup".into(), Role::Viewer, None).unwrap();
 
         let result = store.create("dup".into(), Role::Operator, None);
         assert!(result.is_err());
-        assert!(
-            matches!(result.unwrap_err(), TokenError::DuplicateName(n) if n == "dup")
-        );
+        assert!(matches!(result.unwrap_err(), TokenError::DuplicateName(n) if n == "dup"));
     }
 
     #[test]
@@ -252,9 +244,7 @@ mod tests {
         let raw_secret;
         {
             let mut store = TokenStore::load(path.clone()).unwrap();
-            let created = store
-                .create("persist".into(), Role::Viewer, None)
-                .unwrap();
+            let created = store.create("persist".into(), Role::Viewer, None).unwrap();
             raw_secret = created.raw_secret;
         }
 

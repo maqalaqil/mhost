@@ -311,10 +311,7 @@ async fn handle_client_message(
 }
 
 /// Sends a JSON-serialized message to the WebSocket client.
-async fn send_json(
-    sender: &mut SplitSink<WebSocket, Message>,
-    msg: &WsOutgoing,
-) -> Result<(), ()> {
+async fn send_json(sender: &mut SplitSink<WebSocket, Message>, msg: &WsOutgoing) -> Result<(), ()> {
     let json = serde_json::to_string(msg).map_err(|_| ())?;
-    sender.send(Message::Text(json.into())).await.map_err(|_| ())
+    sender.send(Message::Text(json)).await.map_err(|_| ())
 }

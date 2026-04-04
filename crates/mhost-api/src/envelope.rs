@@ -18,12 +18,7 @@ impl<T: Serialize> ApiResponse<T> {
 impl<T: Serialize> IntoResponse for ApiResponse<T> {
     fn into_response(self) -> Response {
         let body = serde_json::to_string(&self).expect("ApiResponse serialization failed");
-        (
-            StatusCode::OK,
-            [("content-type", "application/json")],
-            body,
-        )
-            .into_response()
+        (StatusCode::OK, [("content-type", "application/json")], body).into_response()
     }
 }
 
@@ -88,12 +83,7 @@ impl IntoResponse for ApiError {
             error: self.message,
         })
         .expect("ErrorBody serialization failed");
-        (
-            self.status,
-            [("content-type", "application/json")],
-            body,
-        )
-            .into_response()
+        (self.status, [("content-type", "application/json")], body).into_response()
     }
 }
 

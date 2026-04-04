@@ -23,7 +23,7 @@ async fn all_metrics(
         .supervisor
         .all_metrics()
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(metrics))
 }
 
@@ -37,6 +37,6 @@ async fn process_metrics(
         .supervisor
         .metrics(&name)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(metrics))
 }

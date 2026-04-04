@@ -38,7 +38,7 @@ async fn get_logs(
         .supervisor
         .get_logs(&name, params.lines, params.err)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(lines))
 }
 
@@ -59,6 +59,6 @@ async fn search_logs(
         .supervisor
         .search_logs(&name, &params.q, params.since.as_deref())
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(lines))
 }

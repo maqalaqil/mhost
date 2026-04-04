@@ -133,7 +133,11 @@ fn parse_duration_from_now(s: &str) -> Result<DateTime<Utc>, String> {
         "h" => Duration::hours(num),
         "d" => Duration::days(num),
         "w" => Duration::weeks(num),
-        _ => return Err(format!("unknown duration unit: '{unit}' (expected s/m/h/d/w)")),
+        _ => {
+            return Err(format!(
+                "unknown duration unit: '{unit}' (expected s/m/h/d/w)"
+            ))
+        }
     };
 
     Ok(Utc::now() + duration)

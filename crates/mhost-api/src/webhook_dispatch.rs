@@ -91,7 +91,10 @@ impl WebhookDispatcher {
 
     /// Persists the current webhook list to disk.
     fn save(&self) -> Result<(), String> {
-        let hooks = self.webhooks.lock().map_err(|e| format!("Lock poisoned: {e}"))?;
+        let hooks = self
+            .webhooks
+            .lock()
+            .map_err(|e| format!("Lock poisoned: {e}"))?;
         let file = WebhookFile {
             webhooks: hooks.clone(),
         };
@@ -121,7 +124,10 @@ impl WebhookDispatcher {
         };
 
         {
-            let mut hooks = self.webhooks.lock().map_err(|e| format!("Lock poisoned: {e}"))?;
+            let mut hooks = self
+                .webhooks
+                .lock()
+                .map_err(|e| format!("Lock poisoned: {e}"))?;
             hooks.push(webhook);
         }
 
@@ -132,7 +138,10 @@ impl WebhookDispatcher {
 
     /// Removes a webhook by id. Returns an error if the id is not found.
     pub fn remove(&self, id: &str) -> Result<(), String> {
-        let mut hooks = self.webhooks.lock().map_err(|e| format!("Lock poisoned: {e}"))?;
+        let mut hooks = self
+            .webhooks
+            .lock()
+            .map_err(|e| format!("Lock poisoned: {e}"))?;
         let original_len = hooks.len();
         hooks.retain(|h| h.id != id);
         if hooks.len() == original_len {
@@ -183,7 +192,10 @@ impl WebhookDispatcher {
 
     /// Delivers an event to a specific webhook by id (useful for testing).
     pub fn dispatch_to(&self, id: &str, event: &ProcessEvent) -> Result<(), String> {
-        let hooks = self.webhooks.lock().map_err(|e| format!("Lock poisoned: {e}"))?;
+        let hooks = self
+            .webhooks
+            .lock()
+            .map_err(|e| format!("Lock poisoned: {e}"))?;
         let hook = hooks
             .iter()
             .find(|h| h.id == id)
@@ -314,8 +326,8 @@ async fn deliver_once(
         "data": event.detail,
     });
 
-    let body_bytes = serde_json::to_vec(&body)
-        .map_err(|e| format!("Failed to serialize event body: {e}"))?;
+    let body_bytes =
+        serde_json::to_vec(&body).map_err(|e| format!("Failed to serialize event body: {e}"))?;
 
     let mut request = client
         .post(&hook.url)
@@ -327,10 +339,7 @@ async fn deliver_once(
 
     if let Some(ref secret) = hook.secret {
         let signature = compute_hmac(secret, &body_bytes);
-        request = request.header(
-            "X-Mhost-Signature",
-            format!("sha256={signature}"),
-        );
+        request = request.header("X-Mhost-Signature", format!("sha256={signature}"));
     }
 
     let response = request

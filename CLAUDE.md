@@ -14,8 +14,8 @@ mhost is an **AI-powered process manager** written in Rust — a PM2 replacement
 |---|---|
 | Language | Rust |
 | Crates | 15 |
-| Tests | 797 |
-| CLI Commands | 52+ (with subcommands: 95+) |
+| Tests | 830+ |
+| CLI Commands | 63+ (with subcommands: 106+) |
 | Source files | 160 .rs files |
 | Website | `website/index.html` (single-file landing page) |
 | Repo | `github.com/maqalaqil/mhost` |
@@ -49,6 +49,7 @@ mhost (CLI binary)  ◄──── JSON-RPC over Unix socket ────►  m
      ├── commands/share.rs    (tunnel exposure)
      ├── commands/recipe.rs   (command recipes)
      ├── commands/migrate.rs  (PM2 migration)
+     ├── commands/api.rs      (API management)
      └── output.rs            (table formatting)
 ```
 
@@ -191,6 +192,9 @@ cargo fmt --all --check                    # Format check
 
 ### Production & Operations
 `reload <app>`, `dev <script>`, `dashboard [--port]`, `bench <url>`, `canary <app>`, `snapshot create|list|restore`, `replay <process>`, `link`, `cost`, `certs [--url]`, `sla <app>`, `diff <env_a> <env_b>`, `share <app>`, `run <file>`, `migrate --from <pm>`, `team`, `playground`
+
+### API
+`api start [--port]`, `api stop`, `api status`, `api token create|list|revoke`, `api webhook add|list|remove|test|failures`
 
 ### Other
 `proxy`, `deploy <env>`, `rollback <env>`, `self-update`, `completion <shell>`

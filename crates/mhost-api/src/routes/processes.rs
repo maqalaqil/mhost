@@ -56,7 +56,7 @@ async fn start_process(
         .supervisor
         .start_process(config)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(result))
 }
 
@@ -70,7 +70,7 @@ async fn restart_process(
         .supervisor
         .restart_process(&name)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(serde_json::json!({ "restarted": name })))
 }
 
@@ -84,7 +84,7 @@ async fn stop_process(
         .supervisor
         .stop_process(&name)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(serde_json::json!({ "stopped": name })))
 }
 
@@ -98,7 +98,7 @@ async fn reload_process(
         .supervisor
         .reload_process(&name)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(serde_json::json!({ "reloaded": name })))
 }
 
@@ -118,7 +118,7 @@ async fn scale_process(
         .supervisor
         .scale_process(&name, body.instances)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(serde_json::json!({
         "scaled": name,
         "instances": body.instances,
@@ -135,7 +135,7 @@ async fn delete_process(
         .supervisor
         .delete_process(&name)
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(serde_json::json!({ "deleted": name })))
 }
 
@@ -148,7 +148,7 @@ async fn stop_all(
         .supervisor
         .stop_all()
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(serde_json::json!({ "stopped": "all" })))
 }
 
@@ -161,6 +161,6 @@ async fn restart_all(
         .supervisor
         .restart_all()
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(serde_json::json!({ "restarted": "all" })))
 }

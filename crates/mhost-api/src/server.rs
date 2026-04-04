@@ -39,12 +39,7 @@ pub trait SupervisorApi: Send + Sync + 'static {
     async fn health_status(&self, name: &str) -> Result<serde_json::Value, String>;
     async fn metrics(&self, name: &str) -> Result<serde_json::Value, String>;
     async fn all_metrics(&self) -> Result<serde_json::Value, String>;
-    async fn get_logs(
-        &self,
-        name: &str,
-        lines: usize,
-        err: bool,
-    ) -> Result<Vec<String>, String>;
+    async fn get_logs(&self, name: &str, lines: usize, err: bool) -> Result<Vec<String>, String>;
     async fn search_logs(
         &self,
         name: &str,
@@ -130,10 +125,7 @@ pub async fn start_api_server(
         .merge(routes::tokens::router())
         .merge(routes::webhooks::router())
         .route("/api/v1/ws", get(ws_handler))
-        .layer(middleware::from_fn_with_state(
-            auth_state,
-            auth_middleware,
-        ));
+        .layer(middleware::from_fn_with_state(auth_state, auth_middleware));
 
     let cors = CorsLayer::new()
         .allow_origin(Any)

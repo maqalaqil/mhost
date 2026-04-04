@@ -168,7 +168,7 @@ mod tests {
     #[test]
     fn test_role_clone_and_copy() {
         let role = Role::Admin;
-        let cloned = role.clone();
+        let cloned = role;
         let copied = role;
         assert_eq!(role, cloned);
         assert_eq!(role, copied);

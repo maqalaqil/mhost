@@ -757,3 +757,45 @@ fn all_new_commands_in_help() {
         assert!(stdout.contains(cmd), "mhost --help missing '{cmd}'");
     }
 }
+
+// ── API Commands ──────────────────────────────────────────────
+
+#[test]
+fn test_api_help() {
+    let (stdout, _, _) = run(&["api", "--help"]);
+    assert!(stdout.contains("start") || stdout.contains("Start"));
+    assert!(stdout.contains("token") || stdout.contains("Token"));
+    assert!(stdout.contains("webhook") || stdout.contains("Webhook"));
+}
+
+#[test]
+fn test_api_status() {
+    let (stdout, _, _) = run(&["api", "status"]);
+    assert!(
+        stdout.contains("API server")
+            || stdout.contains("not running")
+            || stdout.contains("running")
+    );
+}
+
+#[test]
+fn test_api_token_list_empty() {
+    let (stdout, _, _) = run(&["api", "token", "list"]);
+    assert!(stdout.contains("No API tokens") || stdout.contains("ID") || stdout.contains("token"));
+}
+
+#[test]
+fn test_api_webhook_list_empty() {
+    let (stdout, _, _) = run(&["api", "webhook", "list"]);
+    assert!(stdout.contains("No webhooks") || stdout.contains("ID") || stdout.contains("webhook"));
+}
+
+#[test]
+fn test_api_webhook_failures_empty() {
+    let (stdout, _, _) = run(&["api", "webhook", "failures"]);
+    assert!(
+        stdout.contains("No webhook failures")
+            || stdout.contains("failed")
+            || stdout.contains("failure")
+    );
+}

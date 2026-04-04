@@ -186,7 +186,9 @@ fn save_webhooks(store: &WebhookStore) -> Result<(), String> {
 
 fn random_hex(len: usize) -> String {
     let mut rng = rand::thread_rng();
-    (0..len).map(|_| format!("{:02x}", rng.gen::<u8>())).collect()
+    (0..len)
+        .map(|_| format!("{:02x}", rng.gen::<u8>()))
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -249,8 +251,7 @@ fn run_start(port: u16, bind: &str) -> Result<(), String> {
     );
     println!(
         "{}",
-        "   (The API server will be launched by the daemon.)"
-            .dimmed()
+        "   (The API server will be launched by the daemon.)".dimmed()
     );
     // In a full implementation this would send an IPC message to the daemon
     // to spawn the API server process. For now we print the intent.
@@ -267,10 +268,7 @@ fn run_stop() -> Result<(), String> {
 fn run_status(port: Option<u16>) -> Result<(), String> {
     let port = port.unwrap_or(19516);
     let addr = format!("127.0.0.1:{port}");
-    match TcpStream::connect_timeout(
-        &addr.parse().unwrap(),
-        Duration::from_millis(500),
-    ) {
+    match TcpStream::connect_timeout(&addr.parse().unwrap(), Duration::from_millis(500)) {
         Ok(_) => println!(
             "{} API server is {} on port {}",
             "\u{2714}".green(),
@@ -411,17 +409,13 @@ fn run_token_revoke(id: &str) -> Result<(), String> {
         .collect();
 
     if remaining.len() == original_len {
-        return Err(format!("Token '{}' not found", id));
+        return Err(format!("Token '{id}' not found"));
     }
 
     let updated = TokenStore { tokens: remaining };
     save_tokens(&updated)?;
 
-    println!(
-        "{} Token {} revoked.",
-        "\u{2714}".green(),
-        id.cyan()
-    );
+    println!("{} Token {} revoked.", "\u{2714}".green(), id.cyan());
     Ok(())
 }
 
@@ -455,11 +449,7 @@ fn run_webhook_add(url: &str, events: &str, secret: Option<&str>) -> Result<(), 
     println!("{} Webhook registered!", "\u{2714}".green());
     println!("  {} {}", "ID:".dimmed(), webhook_id.cyan());
     println!("  {} {}", "URL:".dimmed(), url.cyan());
-    println!(
-        "  {} {}",
-        "Events:".dimmed(),
-        event_list.join(", ").cyan()
-    );
+    println!("  {} {}", "Events:".dimmed(), event_list.join(", ").cyan());
     println!();
 
     Ok(())
@@ -507,7 +497,7 @@ fn run_webhook_remove(id: &str) -> Result<(), String> {
         .collect();
 
     if remaining.len() == original_len {
-        return Err(format!("Webhook '{}' not found", id));
+        return Err(format!("Webhook '{id}' not found"));
     }
 
     let updated = WebhookStore {
@@ -515,11 +505,7 @@ fn run_webhook_remove(id: &str) -> Result<(), String> {
     };
     save_webhooks(&updated)?;
 
-    println!(
-        "{} Webhook {} removed.",
-        "\u{2714}".green(),
-        id.cyan()
-    );
+    println!("{} Webhook {} removed.", "\u{2714}".green(), id.cyan());
     Ok(())
 }
 
@@ -530,7 +516,7 @@ async fn run_webhook_test(id: &str) -> Result<(), String> {
         .webhooks
         .iter()
         .find(|w| w.id == id)
-        .ok_or_else(|| format!("Webhook '{}' not found", id))?;
+        .ok_or_else(|| format!("Webhook '{id}' not found"))?;
 
     println!(
         "{} Sending test payload to {}...",
@@ -582,6 +568,6 @@ fn run_webhook_failures() -> Result<(), String> {
 
     let data =
         fs::read_to_string(&failures_path).map_err(|e| format!("Failed to read failures: {e}"))?;
-    println!("{}", data);
+    println!("{data}");
     Ok(())
 }

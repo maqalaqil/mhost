@@ -26,11 +26,7 @@ async fn save(
     Extension(user): Extension<AuthenticatedUser>,
 ) -> Result<impl IntoResponse, ApiError> {
     require_role(&user, Role::Operator)?;
-    state
-        .supervisor
-        .save()
-        .await
-        .map_err(|e| ApiError::internal(e))?;
+    state.supervisor.save().await.map_err(ApiError::internal)?;
     Ok(ApiResponse::new(serde_json::json!({ "saved": true })))
 }
 
@@ -43,7 +39,7 @@ async fn resurrect(
         .supervisor
         .resurrect()
         .await
-        .map_err(|e| ApiError::internal(e))?;
+        .map_err(ApiError::internal)?;
     Ok(ApiResponse::new(result))
 }
 

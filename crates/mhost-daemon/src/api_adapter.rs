@@ -52,10 +52,7 @@ impl mhost_api::server::SupervisorApi for SupervisorApiAdapter {
         }
     }
 
-    async fn start_process(
-        &self,
-        config: serde_json::Value,
-    ) -> Result<serde_json::Value, String> {
+    async fn start_process(&self, config: serde_json::Value) -> Result<serde_json::Value, String> {
         let process_config: ProcessConfig =
             serde_json::from_value(config).map_err(|e| format!("invalid config: {e}"))?;
 
@@ -121,9 +118,7 @@ impl mhost_api::server::SupervisorApi for SupervisorApiAdapter {
 
         let state_guard = self.state.lock().await;
         for name in &names {
-            self.supervisor
-                .restart_process(name, &state_guard)
-                .await?;
+            self.supervisor.restart_process(name, &state_guard).await?;
         }
         Ok(())
     }
@@ -195,12 +190,7 @@ impl mhost_api::server::SupervisorApi for SupervisorApiAdapter {
         Ok(serde_json::json!({ "metrics": items }))
     }
 
-    async fn get_logs(
-        &self,
-        name: &str,
-        lines: usize,
-        err: bool,
-    ) -> Result<Vec<String>, String> {
+    async fn get_logs(&self, name: &str, lines: usize, err: bool) -> Result<Vec<String>, String> {
         // Read from log files on disk.
         let log_path = if err {
             self.paths.process_err_log(name, 0)
