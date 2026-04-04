@@ -43,23 +43,82 @@ pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
     Ok(())
 }
 
-pub async fn run_enable(paths: &MhostPaths) -> Result<(), String> {
+pub async fn run_enable(paths: &MhostPaths, client: &mhost_ipc::IpcClient) -> Result<(), String> {
     let config =
         BotConfig::load(&paths.bot_config()).ok_or("Bot not configured. Run: mhost bot setup")?;
     if config.token.is_empty() {
         return Err("Bot token is empty".into());
     }
 
-    println!("  Starting {} bot...", config.platform);
+    // Create a small Node.js script that runs the bot via the mhost CLI
+    // The bot is a Rust process, so we spawn mhostd-integrated bot as a managed process
+    // For now, use a wrapper script that calls the Rust bot binary
+    let bot_script = crate::embedded::ensure_script(
+        "bot",
+        "mhost-bot-runner.sh",
+        &format!(
+            "#!/bin/sh\nexec \"{}\" bot run-inline\n",
+            std::env::current_exe()
+                .map(|e| e.to_string_lossy().to_string())
+                .unwrap_or_else(|_| "mhost".into())
+        ),
+    )?;
+
+    // Make executable
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&bot_script, std::fs::Permissions::from_mode(0o755));
+    }
+
+    let proc_config = mhost_core::process::ProcessConfig {
+        name: "mhost-bot".into(),
+        command: "sh".into(),
+        args: vec![bot_script.to_string_lossy().to_string()],
+        max_restarts: 100,
+        ..Default::default()
+    };
+
+    let params = serde_json::to_value(&proc_config).map_err(|e| format!("Serialize: {e}"))?;
+    let resp = client
+        .call(mhost_core::protocol::methods::PROCESS_START, params)
+        .await
+        .map_err(|e| format!("IPC: {e}"))?;
+
+    if let Some(err) = resp.error {
+        crate::output::print_error(&format!("Failed to start bot: {}", err.message));
+    } else {
+        print_success("Bot started as 'mhost-bot' (background)");
+        println!("  Status: mhost list");
+        println!("  Logs:   mhost logs mhost-bot");
+        println!("  Stop:   mhost bot disable");
+    }
+    Ok(())
+}
+
+/// Run the bot inline (called by the wrapper script, not by users directly).
+pub async fn run_inline(paths: &MhostPaths) -> Result<(), String> {
+    let config = BotConfig::load(&paths.bot_config()).ok_or("Bot not configured")?;
     let bot = mhost_bot::TelegramBot::new(config, paths.clone());
     bot.run().await
 }
 
-pub fn run_disable(paths: &MhostPaths) -> Result<(), String> {
+pub async fn run_disable(paths: &MhostPaths) -> Result<(), String> {
+    // Stop the managed bot process if running
+    if paths.socket().exists() {
+        let client = mhost_ipc::IpcClient::new(&paths.socket());
+        let _ = client
+            .call(
+                mhost_core::protocol::methods::PROCESS_STOP,
+                serde_json::json!({"name": "mhost-bot"}),
+            )
+            .await;
+    }
+
     let mut config = BotConfig::load(&paths.bot_config()).ok_or("Bot not configured")?;
     config.enabled = false;
     config.save(&paths.bot_config())?;
-    print_success("Bot disabled");
+    print_success("Bot stopped");
     Ok(())
 }
 

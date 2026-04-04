@@ -280,6 +280,9 @@ pub enum BotAction {
         /// Your Telegram bot token.
         token: String,
     },
+    /// (internal) Run the bot inline — used by the background process wrapper.
+    #[command(hide = true)]
+    RunInline,
 }
 
 // ---------------------------------------------------------------------------

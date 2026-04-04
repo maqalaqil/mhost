@@ -126,8 +126,13 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         // ---- Bot commands (no daemon needed except Enable) ---------------
         Commands::Bot { action } => match action {
             BotAction::Setup => commands::bot::run_setup(paths),
-            BotAction::Enable => commands::bot::run_enable(paths).await,
-            BotAction::Disable => commands::bot::run_disable(paths),
+            BotAction::Enable => {
+                daemon_launcher::ensure_daemon_running(paths)?;
+                let client = IpcClient::new(&paths.socket());
+                commands::bot::run_enable(paths, &client).await
+            }
+            BotAction::RunInline => commands::bot::run_inline(paths).await,
+            BotAction::Disable => commands::bot::run_disable(paths).await,
             BotAction::Status => commands::bot::run_status(paths),
             BotAction::Permissions => commands::bot::run_permissions(paths),
             BotAction::AddAdmin { user_id } => commands::bot::run_add_user(paths, user_id, "admin"),
