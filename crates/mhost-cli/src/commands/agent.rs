@@ -10,37 +10,99 @@ use crate::output::{print_error, print_success};
 // ─── Setup Wizard ────────────────────────────────────────────────────────────
 
 pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
-    println!("\n  mhost Agent Setup\n");
+    // Load existing config if any — use as defaults
+    let agent_path = paths.root().join("agent.json");
+    let existing: serde_json::Value = std::fs::read_to_string(&agent_path)
+        .ok()
+        .and_then(|c| serde_json::from_str(&c).ok())
+        .unwrap_or_default();
 
-    println!("  Select LLM provider:");
-    println!("    1) OpenAI (gpt-4o, gpt-4o-mini)");
-    println!("    2) Claude (claude-sonnet-4-20250514)");
-    println!();
+    let cur_provider = existing["provider"].as_str().unwrap_or("");
+    let cur_key = existing["api_key"].as_str().unwrap_or("");
+    let cur_model = existing["model"].as_str().unwrap_or("");
+    let cur_tg_token = existing["telegram_token"].as_str().unwrap_or("");
+    let cur_tg_chat = existing["telegram_chat_id"].as_str().unwrap_or("");
+    let cur_autonomy = existing["autonomy"].as_str().unwrap_or("supervised");
 
-    let choice = prompt("Provider (1-2)");
-    let (provider, default_model) = match choice.as_str() {
-        "1" => ("openai", "gpt-4o"),
-        "2" => ("claude", "claude-sonnet-4-20250514"),
+    let has_existing = !cur_provider.is_empty();
+
+    println!("\n  mhost Agent Setup");
+    if has_existing {
+        println!("  (Press Enter to keep current value)\n");
+    } else {
+        println!();
+    }
+
+    // Provider
+    let provider_hint = if cur_provider == "claude" {
+        "2"
+    } else if !cur_provider.is_empty() {
+        "1"
+    } else {
+        ""
+    };
+    println!("  LLM provider:  1) OpenAI  2) Claude");
+    let choice = prompt_default("Provider (1-2)", provider_hint);
+    let (provider, fallback_model) = match choice.as_str() {
+        "1" | "openai" => ("openai", "gpt-4o"),
+        "2" | "claude" | "anthropic" => ("claude", "claude-sonnet-4-20250514"),
+        "" if !cur_provider.is_empty() => (cur_provider, cur_model),
         _ => return Err("Invalid choice — enter 1 or 2".into()),
     };
 
-    let api_key = prompt("API key (or env ref like ${OPENAI_API_KEY})");
-    if api_key.is_empty() {
-        return Err("API key is required".into());
-    }
+    // API key — mask current value
+    let key_hint = if cur_key.len() > 8 {
+        format!("{}...{}", &cur_key[..4], &cur_key[cur_key.len() - 4..])
+    } else if !cur_key.is_empty() {
+        "****".into()
+    } else {
+        String::new()
+    };
+    let api_key = if key_hint.is_empty() {
+        let k = prompt("API key");
+        if k.is_empty() {
+            return Err("API key is required".into());
+        }
+        k
+    } else {
+        let k = prompt_default("API key", &key_hint);
+        if k == key_hint {
+            cur_key.to_string()
+        } else if k.is_empty() {
+            cur_key.to_string()
+        } else {
+            k
+        }
+    };
 
-    let model = prompt_default("Model", default_model);
-    let telegram_token = prompt("Telegram bot token (or ${MHOST_TELEGRAM_TOKEN})");
-    let telegram_chat_id = prompt("Telegram chat ID (or ${MHOST_TELEGRAM_CHAT})");
-    let autonomy = prompt_default(
-        "Autonomy level (autonomous / supervised / manual)",
-        "supervised",
-    );
+    let model_default = if !cur_model.is_empty() {
+        cur_model
+    } else {
+        fallback_model
+    };
+    let model = prompt_default("Model", model_default);
 
+    let tg_token = if cur_tg_token.is_empty() {
+        prompt("Telegram bot token")
+    } else {
+        let hint = format!("{}...", &cur_tg_token[..cur_tg_token.len().min(10)]);
+        let v = prompt_default("Telegram bot token", &hint);
+        if v == hint || v.is_empty() {
+            cur_tg_token.to_string()
+        } else {
+            v
+        }
+    };
+
+    let tg_chat = if cur_tg_chat.is_empty() {
+        prompt("Telegram chat ID")
+    } else {
+        prompt_default("Telegram chat ID", cur_tg_chat)
+    };
+
+    let autonomy = prompt_default("Autonomy (autonomous/supervised/manual)", cur_autonomy);
     if !matches!(autonomy.as_str(), "autonomous" | "supervised" | "manual") {
-        return Err(format!(
-            "Unknown autonomy level '{autonomy}'. Use: autonomous, supervised, or manual"
-        ));
+        return Err(format!("Unknown autonomy level '{autonomy}'"));
     }
 
     let config = serde_json::json!({
@@ -48,8 +110,8 @@ pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
         "provider": provider,
         "api_key": api_key,
         "model": model,
-        "telegram_token": telegram_token,
-        "telegram_chat_id": telegram_chat_id,
+        "telegram_token": tg_token,
+        "telegram_chat_id": tg_chat,
         "autonomy": autonomy,
         "allowed_actions": ["restart", "scale", "logs", "info", "list", "save", "start"],
         "blocked_actions": ["delete", "kill"],
@@ -59,14 +121,11 @@ pub fn run_setup(paths: &MhostPaths) -> Result<(), String> {
         "conversation_history_limit": 20
     });
 
-    let agent_path = paths.root().join("agent.json");
     if let Some(parent) = agent_path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("Cannot create config dir: {e}"))?;
     }
-
-    let json =
-        serde_json::to_string_pretty(&config).map_err(|e| format!("Serialize error: {e}"))?;
-    std::fs::write(&agent_path, json).map_err(|e| format!("Cannot write config: {e}"))?;
+    let json = serde_json::to_string_pretty(&config).map_err(|e| format!("Serialize: {e}"))?;
+    std::fs::write(&agent_path, json).map_err(|e| format!("Write: {e}"))?;
 
     print_success(&format!("Agent configured (autonomy: {autonomy})"));
     println!("  Config: {}", agent_path.display());

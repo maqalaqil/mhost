@@ -552,10 +552,19 @@ async function chatCompletion(messages) {
   const rawResponse = await httpsPost(hostname, reqPath, headers, body);
   const parsed = safeParseJson(rawResponse);
 
+  if (!parsed || parsed.error) {
+    logError(`LLM API error: ${rawResponse.substring(0, 300)}`);
+    return null;
+  }
+
   if (isAnthropic) {
     return normalizeAnthropicResponse(parsed);
   }
-  return parsed.choices?.[0]?.message || null;
+  const msg = parsed.choices?.[0]?.message || null;
+  if (!msg) {
+    logError(`LLM unexpected response: ${rawResponse.substring(0, 300)}`);
+  }
+  return msg;
 }
 
 function buildOpenAiRequest(messages) {
