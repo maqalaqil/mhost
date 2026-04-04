@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="7" fill="#8b5cf6"/>
+  <!-- Shield -->
+  <path d="M8 9 L16 6 L24 9 L24 18 C24 22 16 26 16 26 C16 26 8 22 8 18 Z"
+        stroke="white" stroke-width="1.5" fill="none" opacity="0.9"/>
+  <!-- Pulse -->
+  <polyline points="6,15.5 11,15.5 13,10 15.5,21 18,13 20,15.5 26,15.5"
+           stroke="#06d6a0" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

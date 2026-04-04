@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 40" fill="none">
+  <!-- Shield outline -->
+  <path d="M8 8 L20 4 L32 8 L32 22 C32 28 20 34 20 34 C20 34 8 28 8 22 Z"
+        stroke="#8b5cf6" stroke-width="2" fill="none"/>
+  <!-- Pulse/heartbeat line through shield -->
+  <polyline points="4,19 12,19 15,12 18,26 21,16 24,19 36,19"
+           stroke="#06d6a0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- "mhost" text -->
+  <text x="42" y="26" font-family="Inter, -apple-system, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5">
+    <tspan fill="#fafafa">m</tspan><tspan fill="#a1a1aa">host</tspan>
+  </text>
+</svg>
