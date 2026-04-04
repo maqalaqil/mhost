@@ -19,8 +19,9 @@ Built in Rust. Single binary. Zero runtime dependencies.
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.82%2B-orange.svg)](https://www.rust-lang.org)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)](#)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/UKgZDUw9)
 
-[Installation](#installation) | [Quick Start](#quick-start) | [Config](#ecosystem-config) | [AI](#ai-intelligence) | [Notifications](#notifications) | [Commands](#all-commands)
+[Installation](#installation) | [Quick Start](#quick-start) | [Config](#ecosystem-config) | [AI](#ai-intelligence) | [Notifications](#notifications) | [Commands](#all-commands) | [Discord](https://discord.gg/UKgZDUw9)
 
 </div>
 
@@ -1525,6 +1526,14 @@ mhost start examples/full-stack.toml
 | `cron-job/` | Periodic cleanup with report generation |
 | `crasher/` | Unstable process for testing auto-restart |
 | `flaky-api/` | API that degrades and recovers (5xx testing) |
+
+---
+
+## Community
+
+- **Discord** -- [Join the mhost community](https://discord.gg/UKgZDUw9) for help, discussions, and feature requests
+- **GitHub Issues** -- [Report bugs or request features](https://github.com/maqalaqil/mhost/issues)
+- **Contributing** -- See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute
 
 ---
 

@@ -19,6 +19,7 @@ mhost is an **AI-powered process manager** written in Rust — a PM2 replacement
 | Source files | 160 .rs files |
 | Website | `website/index.html` (single-file landing page) |
 | Repo | `github.com/maqalaqil/mhost` |
+| Discord | [discord.gg/UKgZDUw9](https://discord.gg/UKgZDUw9) |
 | Domain | mhostai.com |
 
 ## Architecture

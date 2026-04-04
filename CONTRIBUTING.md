@@ -229,6 +229,7 @@ ci: add ARM64 Linux build target
 ### Feature Requests
 
 - Use the feature request template
+- Or discuss ideas on [Discord #feature-requests](https://discord.gg/UKgZDUw9) first
 - Explain the problem you're solving
 - Show how you'd use it (CLI examples)
 - Consider alternatives
@@ -241,6 +242,12 @@ Look for issues labeled [`good first issue`](https://github.com/maqalaqil/mhost/
 - Clear acceptance criteria
 - Helpful for learning the codebase
 - Mentoring available
+
+## Community
+
+- **Discord** -- [discord.gg/UKgZDUw9](https://discord.gg/UKgZDUw9) -- chat, help, and discussions
+- **GitHub Issues** -- bug reports and feature requests
+- **GitHub Discussions** -- longer-form conversations
 
 ## License
 
