@@ -398,6 +398,25 @@ code{font-family:var(--mono);font-size:.82em;color:var(--accent3);background:rgb
       </ul>
     </div>
 
+    <div class="sidebar-section" data-section="production">
+      <div class="sidebar-section-title" tabindex="0">Production Tools <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#reload">Zero-Downtime Reload</a></li>
+        <li><a href="#bench">Load Testing</a></li>
+        <li><a href="#canary">Canary Deploys</a></li>
+        <li><a href="#snapshot">Snapshots</a></li>
+        <li><a href="#certs">SSL Monitoring</a></li>
+        <li><a href="#sla">SLA Reports</a></li>
+        <li><a href="#replay">Incident Replay</a></li>
+        <li><a href="#link">Dependency Graph</a></li>
+        <li><a href="#cost">Cost Estimation</a></li>
+        <li><a href="#diff">Environment Diff</a></li>
+        <li><a href="#share">Tunnel Sharing</a></li>
+        <li><a href="#recipe">Recipe Runner</a></li>
+        <li><a href="#migrate">PM2 Migration</a></li>
+      </ul>
+    </div>
+
     <div class="sidebar-section" data-section="reference">
       <div class="sidebar-section-title" tabindex="0">Reference <span class="chevron">&#9660;</span></div>
       <ul>
@@ -1507,6 +1526,130 @@ acme_dir      = <span class="str">"~/.mhost/certs"</span></div>
 
   <hr class="doc-divider">
 
+  <!-- ══════════════════════════════════════════════ PRODUCTION TOOLS -->
+
+  <div class="doc-section" id="reload">
+    <div class="section-header">
+      <h2 class="doc-h2">Zero-Downtime Reload</h2>
+    </div>
+    <p>Start new instances, wait for health checks to pass, then kill old ones. No dropped requests.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost reload api-server</code></pre></div>
+    <p>If no health check is configured, falls back to a regular restart. If the new instances fail health checks, they are killed and the old instances are preserved.</p>
+  </div>
+
+  <div class="doc-section" id="bench">
+    <div class="section-header">
+      <h2 class="doc-h2">Load Testing</h2>
+    </div>
+    <p>Built-in HTTP load testing with configurable concurrency and duration.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code># Default: 10 seconds, 10 concurrent workers
+mhost bench https://api.example.com
+
+# Custom settings
+mhost bench https://api.example.com --duration 30 --concurrency 50</code></pre></div>
+    <p>Reports total requests, requests/second, average and p99 latency, and error rate.</p>
+  </div>
+
+  <div class="doc-section" id="canary">
+    <div class="section-header">
+      <h2 class="doc-h2">Canary Deployments</h2>
+    </div>
+    <p>Scale up a canary instance, monitor for errors over a duration, then auto-promote or rollback.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code># Default: 10% traffic, 300s monitoring window
+mhost canary api-server
+
+# Custom canary settings
+mhost canary api-server --percent 20 --duration 600</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="snapshot">
+    <div class="section-header">
+      <h2 class="doc-h2">Snapshots</h2>
+    </div>
+    <p>Capture and restore full process state. Perfect for safe rollbacks before risky changes.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost snapshot create before-deploy    # Save current state
+mhost snapshot list                    # List all snapshots
+mhost snapshot restore before-deploy   # Restore a snapshot</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="certs">
+    <div class="section-header">
+      <h2 class="doc-h2">SSL Certificate Monitoring</h2>
+    </div>
+    <p>Check SSL certificate expiry for one or more URLs. Warns when certificates expire within 30 days.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost certs --url https://api.example.com --url https://app.example.com</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="sla">
+    <div class="section-header">
+      <h2 class="doc-h2">SLA Uptime Reports</h2>
+    </div>
+    <p>Calculate uptime from brain incident data, compare against your SLA target.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost sla api-server                   # Default target: 99.9%
+mhost sla api-server --target 99.99    # Four-nines target</code></pre></div>
+    <p>Shows uptime percentage, allowed vs actual downtime, incidents count, and budget remaining.</p>
+  </div>
+
+  <div class="doc-section" id="replay">
+    <div class="section-header">
+      <h2 class="doc-h2">Incident Replay</h2>
+    </div>
+    <p>Replay an incident timeline for a process, showing events, log lines, and health score changes.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost replay api-server                # Full timeline
+mhost replay api-server --time "3:47am" # Filter around a time</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="link">
+    <div class="section-header">
+      <h2 class="doc-h2">Process Dependency Graph</h2>
+    </div>
+    <p>Visualize the dependency tree between your processes based on group configuration.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost link</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="cost">
+    <div class="section-header">
+      <h2 class="doc-h2">Cloud Cost Estimation</h2>
+    </div>
+    <p>Maps running process memory usage to EC2-equivalent instance types and estimates monthly costs.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost cost</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="diff">
+    <div class="section-header">
+      <h2 class="doc-h2">Environment Diff</h2>
+    </div>
+    <p>Compare two fleet environments or server configs side-by-side.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost diff staging production</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="share">
+    <div class="section-header">
+      <h2 class="doc-h2">Tunnel Sharing</h2>
+    </div>
+    <p>Expose a local process to the internet via tunneling services (ngrok, cloudflared, bore, serveo).</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost share api-server                 # Auto-detect port
+mhost share api-server --port 8080     # Override port</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="recipe">
+    <div class="section-header">
+      <h2 class="doc-h2">Recipe Runner</h2>
+    </div>
+    <p>Execute a sequence of mhost commands from a text file. One command per line.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost run deploy-recipe.txt</code></pre></div>
+  </div>
+
+  <div class="doc-section" id="migrate">
+    <div class="section-header">
+      <h2 class="doc-h2">PM2 Migration</h2>
+    </div>
+    <p>Auto-convert PM2 configuration to mhost format.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost migrate --from pm2    # Reads ~/.pm2/dump.pm2 → generates mhost.toml</code></pre></div>
+  </div>
+
+  <hr class="doc-divider">
+
   <!-- ══════════════════════════════════════════════ CLI REFERENCE -->
 
   <div class="doc-section" id="cli-reference">
@@ -1540,6 +1683,19 @@ acme_dir      = <span class="str">"~/.mhost/certs"</span></div>
         <tr><td><code>mhost bot &lt;cmd&gt;</code></td><td>Chat bot control.</td></tr>
         <tr><td><code>mhost cloud &lt;cmd&gt;</code></td><td>Cloud fleet management.</td></tr>
         <tr><td><code>mhost dev</code></td><td>Dev mode with file watching.</td></tr>
+        <tr><td><code>mhost bench &lt;url&gt;</code></td><td>HTTP load testing.</td></tr>
+        <tr><td><code>mhost canary &lt;app&gt;</code></td><td>Canary deployment.</td></tr>
+        <tr><td><code>mhost snapshot create|list|restore</code></td><td>State snapshots.</td></tr>
+        <tr><td><code>mhost replay &lt;process&gt;</code></td><td>Incident timeline replay.</td></tr>
+        <tr><td><code>mhost link</code></td><td>Dependency graph.</td></tr>
+        <tr><td><code>mhost cost</code></td><td>Cloud cost estimation.</td></tr>
+        <tr><td><code>mhost certs [--url]</code></td><td>SSL certificate monitoring.</td></tr>
+        <tr><td><code>mhost sla &lt;app&gt;</code></td><td>SLA uptime report.</td></tr>
+        <tr><td><code>mhost diff &lt;a&gt; &lt;b&gt;</code></td><td>Environment comparison.</td></tr>
+        <tr><td><code>mhost share &lt;app&gt;</code></td><td>Tunnel exposure.</td></tr>
+        <tr><td><code>mhost run &lt;file&gt;</code></td><td>Recipe runner.</td></tr>
+        <tr><td><code>mhost migrate --from &lt;pm&gt;</code></td><td>PM2 migration.</td></tr>
+        <tr><td><code>mhost playground</code></td><td>Interactive tutorial.</td></tr>
         <tr><td><code>mhost daemon start|stop|status</code></td><td>Daemon lifecycle.</td></tr>
       </tbody>
     </table>
