@@ -398,6 +398,16 @@ code{font-family:var(--mono);font-size:.82em;color:var(--accent3);background:rgb
       </ul>
     </div>
 
+    <div class="sidebar-section" data-section="api">
+      <div class="sidebar-section-title" tabindex="0">API <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#api-rest">REST API</a></li>
+        <li><a href="#api-auth">Authentication</a></li>
+        <li><a href="#api-websocket">WebSocket</a></li>
+        <li><a href="#api-webhooks">Webhooks</a></li>
+      </ul>
+    </div>
+
     <div class="sidebar-section" data-section="production">
       <div class="sidebar-section-title" tabindex="0">Production Tools <span class="chevron">&#9660;</span></div>
       <ul>
@@ -1648,6 +1658,92 @@ mhost share api-server --port 8080     # Override port</code></pre></div>
     <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code>mhost migrate --from pm2    # Reads ~/.pm2/dump.pm2 → generates mhost.toml</code></pre></div>
   </div>
 
+  <!-- ══════════════════════════════════════════════ API -->
+  <hr class="doc-divider">
+
+  <div class="doc-section" id="api-rest">
+    <div class="section-header">
+      <h2 class="doc-h2">REST API</h2>
+    </div>
+    <p>mhost exposes 25 REST endpoints on port <code>19516</code> with JSON request/response format.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code># Start the API server
+mhost api start --port 19516
+
+# List processes
+curl -H "Authorization: Bearer mhost_tok_..." http://localhost:19516/api/v1/processes
+
+# Start a new process
+curl -X POST -H "Authorization: Bearer mhost_tok_..." \
+  -H "Content-Type: application/json" \
+  -d '{"script": "server.js", "name": "api"}' \
+  http://localhost:19516/api/v1/processes</code></pre></div>
+    <table class="doc-table">
+      <thead><tr><th>Category</th><th>Endpoints</th><th>Auth</th></tr></thead>
+      <tbody>
+        <tr><td>Processes</td><td>GET/POST/DELETE /processes/*</td><td>viewer/operator</td></tr>
+        <tr><td>Logs</td><td>GET /logs/:name, /logs/:name/search</td><td>viewer</td></tr>
+        <tr><td>Health</td><td>GET /health, /health/:name</td><td>public/viewer</td></tr>
+        <tr><td>Metrics</td><td>GET /metrics, /metrics/:name</td><td>viewer</td></tr>
+        <tr><td>System</td><td>POST /save, /resurrect, /kill</td><td>operator/admin</td></tr>
+        <tr><td>Tokens</td><td>GET/POST/DELETE /tokens/*</td><td>admin</td></tr>
+        <tr><td>Webhooks</td><td>GET/POST/DELETE /webhooks/*</td><td>admin</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section" id="api-auth">
+    <div class="section-header">
+      <h2 class="doc-h2">Authentication</h2>
+    </div>
+    <p>Bearer token authentication with role-based access control. Tokens are hashed with Argon2 before storage.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code># Create a token with a specific role
+mhost api token create --name my-app --role operator
+
+# List active tokens
+mhost api token list
+
+# Revoke a token
+mhost api token revoke &lt;id&gt;</code></pre></div>
+    <p>Four roles with increasing permissions: <code>viewer</code> (read-only), <code>operator</code> (start/stop/restart), <code>admin</code> (token and webhook management), <code>super_admin</code> (full access).</p>
+  </div>
+
+  <div class="doc-section" id="api-websocket">
+    <div class="section-header">
+      <h2 class="doc-h2">WebSocket Streaming</h2>
+    </div>
+    <p>Real-time event, log, and metrics streaming over WebSocket at <code>/api/v1/ws</code>.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code># Connect with token
+wscat -c "ws://localhost:19516/api/v1/ws?token=mhost_tok_..."
+
+# Subscribe to channels
+{"type": "subscribe", "channel": "events"}
+{"type": "subscribe", "channel": "logs", "process": "api-server"}
+{"type": "subscribe", "channel": "metrics"}
+
+# Unsubscribe
+{"type": "unsubscribe", "channel": "events"}</code></pre></div>
+    <p>Channels: <code>events</code> (process lifecycle), <code>logs</code> (stdout/stderr per process), <code>metrics</code> (CPU/memory snapshots).</p>
+  </div>
+
+  <div class="doc-section" id="api-webhooks">
+    <div class="section-header">
+      <h2 class="doc-h2">Outbound Webhooks</h2>
+    </div>
+    <p>Register HTTP endpoints to receive process events. Payloads are signed with HMAC-SHA256.</p>
+    <div class="code-block"><button class="copy-btn" aria-label="Copy">&#128203;</button><pre><code># Register a webhook
+mhost api webhook add --url https://myapp.com/hook --events crash,restart --secret my-key
+
+# List registered webhooks
+mhost api webhook list
+
+# Test a webhook
+mhost api webhook test &lt;id&gt;
+
+# View failed deliveries
+mhost api webhook failures</code></pre></div>
+    <p>Features: configurable retry with exponential backoff, dead letter logging for failed deliveries, per-webhook secret for payload verification.</p>
+  </div>
+
   <hr class="doc-divider">
 
   <!-- ══════════════════════════════════════════════ CLI REFERENCE -->
@@ -1696,6 +1792,11 @@ mhost share api-server --port 8080     # Override port</code></pre></div>
         <tr><td><code>mhost run &lt;file&gt;</code></td><td>Recipe runner.</td></tr>
         <tr><td><code>mhost migrate --from &lt;pm&gt;</code></td><td>PM2 migration.</td></tr>
         <tr><td><code>mhost playground</code></td><td>Interactive tutorial.</td></tr>
+        <tr><td><code>mhost api start [--port]</code></td><td>Start API server.</td></tr>
+        <tr><td><code>mhost api stop</code></td><td>Stop API server.</td></tr>
+        <tr><td><code>mhost api status</code></td><td>API server status.</td></tr>
+        <tr><td><code>mhost api token create|list|revoke</code></td><td>Token management.</td></tr>
+        <tr><td><code>mhost api webhook add|list|remove|test|failures</code></td><td>Webhook management.</td></tr>
         <tr><td><code>mhost daemon start|stop|status</code></td><td>Daemon lifecycle.</td></tr>
       </tbody>
     </table>
