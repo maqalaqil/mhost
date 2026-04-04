@@ -275,6 +275,11 @@ pub enum BotAction {
     },
     /// Show bot audit log.
     Logs,
+    /// Get your Telegram chat ID (send /start to your bot first).
+    ChatId {
+        /// Your Telegram bot token.
+        token: String,
+    },
 }
 
 // ---------------------------------------------------------------------------

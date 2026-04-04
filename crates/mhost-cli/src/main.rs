@@ -139,6 +139,7 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             }
             BotAction::RemoveUser { user_id } => commands::bot::run_remove_user(paths, user_id),
             BotAction::Logs => commands::bot::run_logs(paths),
+            BotAction::ChatId { token } => commands::bot::run_chat_id(&token).await,
         },
 
         // ---- Agent commands (Setup/Status don't need daemon) -------------

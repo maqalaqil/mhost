@@ -157,6 +157,59 @@ pub fn run_logs(paths: &MhostPaths) -> Result<(), String> {
     Ok(())
 }
 
+pub async fn run_chat_id(token: &str) -> Result<(), String> {
+    println!("\n  Send /start to your bot in Telegram, then press Enter here...");
+    let mut buf = String::new();
+    let _ = io::stdin().read_line(&mut buf);
+
+    println!("  Fetching chat ID...\n");
+
+    let url = format!("https://api.telegram.org/bot{token}/getUpdates?timeout=1");
+    let client = reqwest::Client::new();
+    let resp = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("Telegram API error: {e}"))?;
+    let body: serde_json::Value = resp.json().await.map_err(|e| format!("Parse error: {e}"))?;
+
+    let results = body["result"].as_array();
+    if let Some(updates) = results {
+        let mut found = std::collections::HashMap::new();
+        for update in updates {
+            if let Some(chat) = update.get("message").and_then(|m| m.get("chat")) {
+                let id = chat["id"].as_i64().unwrap_or(0);
+                let name = chat["first_name"]
+                    .as_str()
+                    .or_else(|| chat["username"].as_str())
+                    .unwrap_or("Unknown");
+                if id != 0 {
+                    found.insert(id, name.to_string());
+                }
+            }
+        }
+        if found.is_empty() {
+            println!("  No messages found. Make sure you sent /start to the bot.");
+        } else {
+            for (id, name) in &found {
+                println!("  ╔══════════════════════════════════════╗");
+                println!("  ║  User: {:<29}║", name);
+                println!("  ║  Chat ID: {:<27}║", id);
+                println!("  ╚══════════════════════════════════════╝");
+            }
+            println!();
+            println!("  Use this Chat ID in:");
+            println!("    mhost notify setup");
+            println!("    mhost agent setup");
+            println!("    mhost bot setup");
+        }
+    } else {
+        println!("  No updates from Telegram. Send /start to the bot first.");
+    }
+    println!();
+    Ok(())
+}
+
 fn prompt(label: &str) -> String {
     print!("  {label}: ");
     io::stdout().flush().unwrap();
