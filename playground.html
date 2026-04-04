@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mhost Playground — Interactive Terminal, API Tester, Config Builder</title>
+<meta name="description" content="Try mhost interactively. Terminal simulator, REST API tester, visual config builder, architecture visualizer, and PM2 migration tool.">
+<meta name="theme-color" content="#8b5cf6">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ─── Design System ─────────────────────────────────────────── */
+:root {
+  --bg-primary: #0a0a14;
+  --bg-secondary: #0e0e1a;
+  --bg-card: #12121e;
+  --bg-elevated: #1a1a28;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent: #8b5cf6;
+  --accent-light: #a78bfa;
+  --accent-dark: #7c3aed;
+  --accent-glow: rgba(139, 92, 246, 0.15);
+  --mint: #06d6a0;
+  --mint-light: #34d399;
+  --green: #10b981;
+  --green2: #06d6a0;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --cyan: #06b6d4;
+  --blue: #3b82f6;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(139, 92, 246, 0.3);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --mono: 'JetBrains Mono','Fira Code','SF Mono', monospace;
+  --shadow-card: 0 1px 3px rgba(0,0,0,.3),0 0 0 1px var(--border);
+}
+
+/* ─── Reset ─────────────────────────────────────────────────── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font);line-height:1.7;overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent-light);text-decoration:none;transition:color .2s}
+a:hover{color:#ddd6fe}
+::selection{background:var(--accent);color:#fff}
+button{font-family:inherit}
+
+/* ─── Nav ───────────────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;background:rgba(9,9,11,.85);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+nav .container{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:32px}
+.nav-logo{display:flex;align-items:center;gap:10px;color:var(--text-primary);font-weight:800;font-size:1.1rem;letter-spacing:-0.5px}
+.nav-logo svg{flex-shrink:0}
+nav ul{list-style:none;display:flex;gap:4px;flex:1;justify-content:center}
+nav ul a{color:var(--text-secondary);font-size:.875rem;font-weight:500;padding:6px 14px;border-radius:var(--radius-sm);transition:all .2s}
+nav ul a:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
+nav ul a.active{color:var(--accent-light);background:rgba(139,92,246,.1)}
+.nav-cta{padding:8px 20px;border-radius:20px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-weight:700;font-size:.85rem;transition:all .2s;box-shadow:0 2px 12px rgba(139,92,246,.3);white-space:nowrap}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(139,92,246,.4);color:#fff}
+.nav-toggle{display:none;background:none;border:none;color:var(--text-primary);font-size:1.4rem;cursor:pointer;padding:6px;line-height:1}
+@media(max-width:768px){
+  nav ul{display:none;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--bg-elevated);padding:16px 24px;border-bottom:1px solid var(--border);gap:2px;z-index:99}
+  nav ul.open{display:flex}
+  nav ul a{padding:10px 12px;font-size:.95rem}
+  .nav-toggle{display:block}
+  .nav-cta{display:none}
+}
+
+/* ─── Page Layout ───────────────────────────────────────────── */
+.page-wrap{flex:1;padding-top:72px;display:flex;flex-direction:column}
+
+/* ─── Tabs ──────────────────────────────────────────────────── */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg-secondary);padding:0 24px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-btn{padding:14px 20px;font-size:.875rem;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;position:relative;white-space:nowrap;transition:color .2s}
+.tab-btn:hover{color:var(--text-secondary)}
+.tab-btn.active{color:var(--accent-light)}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent);border-radius:2px 2px 0 0}
+.tab-content{display:none;flex:1;overflow:hidden}
+.tab-content.active{display:flex;flex-direction:column}
+
+/* ─── Terminal ──────────────────────────────────────────────── */
+.terminal-wrap{display:flex;flex:1;overflow:hidden}
+.terminal-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.terminal-header{display:flex;align-items:center;gap:8px;padding:12px 16px;background:#0d0d0d;border-bottom:1px solid rgba(255,255,255,.08)}
+.terminal-dot{width:12px;height:12px;border-radius:50%}
+.terminal-dot.r{background:#ff5f56}.terminal-dot.y{background:#ffbd2e}.terminal-dot.g{background:#27c93f}
+.terminal-title{margin-left:8px;font-size:.75rem;color:var(--text-muted);font-family:var(--mono)}
+.terminal-body{flex:1;background:#0a0a0a;padding:16px;overflow-y:auto;font-family:var(--mono);font-size:.8rem;line-height:1.8;cursor:text;min-height:400px}
+.terminal-line{white-space:pre-wrap;word-break:break-all}
+.terminal-input-line{display:flex;align-items:center}
+.term-prompt{color:var(--cyan);margin-right:0}
+.term-prompt .user{color:var(--green2)}
+.term-prompt .at{color:var(--text-muted)}
+.term-prompt .host{color:var(--cyan)}
+.term-prompt .colon{color:var(--text-muted)}
+.term-prompt .path{color:var(--accent-light)}
+.term-prompt .dollar{color:var(--text-muted);margin-right:8px}
+.term-input{background:none;border:none;color:var(--text-primary);font-family:var(--mono);font-size:.8rem;flex:1;outline:none;caret-color:var(--green2)}
+.term-cursor{display:inline-block;width:8px;height:16px;background:var(--green2);animation:blink 1s step-end infinite;vertical-align:middle;margin-left:1px}
+@keyframes blink{50%{opacity:0}}
+.c-green{color:var(--green2)}.c-red{color:var(--red)}.c-yellow{color:var(--yellow)}.c-cyan{color:var(--cyan)}.c-accent{color:var(--accent-light)}.c-blue{color:var(--blue)}.c-dim{color:var(--text-muted)}.c-white{color:var(--text-primary)}.c-bold{font-weight:700}
+.terminal-sidebar{width:260px;background:var(--bg-card);border-left:1px solid var(--border);padding:16px;overflow-y:auto;flex-shrink:0}
+.sidebar-title{font-size:.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.sidebar-cmd{padding:6px 10px;font-size:.75rem;font-family:var(--mono);color:var(--text-secondary);cursor:pointer;border-radius:var(--radius-sm);transition:all .15s;margin-bottom:2px}
+.sidebar-cmd:hover{background:rgba(139,92,246,.1);color:var(--accent-light)}
+@media(max-width:900px){.terminal-sidebar{display:none}}
+
+/* ─── API Tester ────────────────────────────────────────────── */
+.api-wrap{display:flex;flex:1;overflow:hidden}
+.api-sidebar{width:260px;background:var(--bg-card);border-right:1px solid var(--border);overflow-y:auto;padding:12px;flex-shrink:0}
+.api-cat{margin-bottom:8px}
+.api-cat-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;font-size:.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;cursor:pointer;border-radius:var(--radius-sm);transition:background .15s}
+.api-cat-header:hover{background:rgba(255,255,255,.03)}
+.api-cat-header .arrow{transition:transform .2s;font-size:.6rem}
+.api-cat.collapsed .api-cat-items{display:none}
+.api-cat.collapsed .arrow{transform:rotate(-90deg)}
+.api-cat-items{padding:2px 0}
+.api-endpoint{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:.75rem;cursor:pointer;border-radius:var(--radius-sm);transition:all .15s;color:var(--text-secondary)}
+.api-endpoint:hover{background:rgba(255,255,255,.04)}
+.api-endpoint.active{background:rgba(139,92,246,.1);color:var(--accent-light)}
+.api-method{font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:4px;font-family:var(--mono);min-width:36px;text-align:center}
+.method-GET{background:rgba(16,185,129,.15);color:var(--green)}
+.method-POST{background:rgba(59,130,246,.15);color:var(--blue)}
+.method-DELETE{background:rgba(239,68,68,.15);color:var(--red)}
+.method-PUT{background:rgba(234,179,8,.15);color:var(--yellow)}
+.api-main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:auto}
+.api-sub-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg-secondary);padding:0 16px}
+.api-sub-tab{padding:10px 16px;font-size:.8rem;font-weight:600;color:var(--text-muted);background:none;border:none;cursor:pointer;position:relative;white-space:nowrap;transition:color .2s}
+.api-sub-tab:hover{color:var(--text-secondary)}
+.api-sub-tab.active{color:var(--accent-light)}
+.api-sub-tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent);border-radius:2px 2px 0 0}
+.api-panel{display:none;flex:1;flex-direction:column;overflow:auto}
+.api-panel.active{display:flex}
+.api-request{padding:20px;border-bottom:1px solid var(--border)}
+.api-url-bar{display:flex;gap:8px;margin-bottom:16px;align-items:center}
+.api-url-method{padding:8px 14px;border-radius:var(--radius-sm);font-weight:800;font-size:.75rem;font-family:var(--mono);border:none;color:#fff;min-width:70px;text-align:center}
+.api-url-input{flex:1;padding:8px 14px;border-radius:var(--radius-sm);background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-family:var(--mono);font-size:.8rem;outline:none;transition:border-color .2s}
+.api-url-input:focus{border-color:var(--accent)}
+.api-send-btn{padding:8px 20px;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-weight:700;font-size:.8rem;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+.api-send-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(139,92,246,.3)}
+.api-send-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.api-section{margin-bottom:16px}
+.api-section-title{font-size:.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.api-textarea{width:100%;min-height:80px;padding:12px;border-radius:var(--radius-sm);background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-family:var(--mono);font-size:.78rem;line-height:1.6;outline:none;resize:vertical;transition:border-color .2s}
+.api-textarea:focus{border-color:var(--accent)}
+.api-response{flex:1;padding:20px;overflow:auto}
+.api-status{display:inline-flex;align-items:center;gap:8px;margin-bottom:12px}
+.api-status-badge{padding:4px 12px;border-radius:12px;font-weight:800;font-size:.75rem;font-family:var(--mono)}
+.status-2xx{background:rgba(16,185,129,.15);color:var(--green)}
+.status-4xx{background:rgba(234,179,8,.15);color:var(--yellow)}
+.status-5xx{background:rgba(239,68,68,.15);color:var(--red)}
+.api-response-time{font-size:.75rem;color:var(--text-muted)}
+.api-response-body{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;font-family:var(--mono);font-size:.78rem;line-height:1.6;overflow:auto;white-space:pre-wrap;color:var(--text-secondary)}
+.json-key{color:var(--accent-light)}.json-string{color:var(--green2)}.json-number{color:var(--yellow)}.json-bool{color:var(--cyan)}.json-null{color:var(--text-muted)}
+.api-loading{display:flex;align-items:center;gap:8px;padding:20px;color:var(--text-muted);font-size:.85rem}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* WS tester */
+.ws-wrap{padding:20px;flex:1;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.ws-status{display:flex;align-items:center;gap:8px;font-size:.85rem}
+.ws-dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
+.ws-channels{display:flex;gap:8px;flex-wrap:wrap}
+.ws-channel-btn{padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:600;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s}
+.ws-channel-btn.subscribed{background:rgba(139,92,246,.15);border-color:var(--accent);color:var(--accent-light)}
+.ws-log{flex:1;background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;overflow-y:auto;font-family:var(--mono);font-size:.75rem;line-height:1.8;min-height:200px;max-height:400px}
+.ws-msg{display:flex;gap:8px}.ws-msg-time{color:var(--text-muted);flex-shrink:0}.ws-msg-ch{color:var(--accent-light);flex-shrink:0}
+/* Webhook tester */
+.wh-wrap{padding:20px;flex:1;overflow:auto}
+.wh-row{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end}
+.wh-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+.wh-field label{font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.wh-field input,.wh-field select{padding:8px 12px;border-radius:var(--radius-sm);background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:.8rem;outline:none;font-family:var(--font)}
+.wh-field input:focus{border-color:var(--accent)}
+.wh-btn{padding:8px 16px;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-weight:700;font-size:.78rem;border:none;cursor:pointer;transition:all .2s;white-space:nowrap;align-self:flex-end}
+.wh-events{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.wh-event-check{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--text-secondary);cursor:pointer}
+.wh-event-check input{accent-color:var(--accent)}
+.wh-payload{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;font-family:var(--mono);font-size:.75rem;line-height:1.6;overflow:auto;white-space:pre-wrap;color:var(--text-secondary);margin-top:16px}
+.wh-sig-section{margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+@media(max-width:768px){.api-sidebar{display:none}}
+
+/* ─── Config Builder ────────────────────────────────────────── */
+.config-wrap{display:flex;flex:1;overflow:hidden}
+.config-left{flex:1;overflow-y:auto;padding:20px;min-width:0}
+.config-right{width:45%;max-width:500px;background:var(--bg-card);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.config-right-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.config-right-title{font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.config-right-actions{display:flex;gap:8px}
+.config-copy-btn,.config-dl-btn{padding:6px 12px;border-radius:var(--radius-sm);font-size:.7rem;font-weight:700;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s}
+.config-copy-btn:hover,.config-dl-btn:hover{border-color:var(--accent);color:var(--accent-light)}
+.config-preview{flex:1;overflow:auto;padding:16px;font-family:var(--mono);font-size:.78rem;line-height:1.7;white-space:pre-wrap;color:var(--text-secondary)}
+.toml-key{color:var(--accent-light)}.toml-string{color:var(--green2)}.toml-number{color:var(--yellow)}.toml-section{color:var(--cyan);font-weight:700}.toml-comment{color:var(--text-muted);font-style:italic}.toml-bool{color:var(--yellow)}
+.config-templates{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.config-tpl-btn{padding:8px 16px;border-radius:20px;font-size:.78rem;font-weight:600;border:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;transition:all .15s}
+.config-tpl-btn:hover,.config-tpl-btn.active{border-color:var(--accent);color:var(--accent-light);background:rgba(139,92,246,.08)}
+.process-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-bottom:12px;transition:border-color .2s}
+.process-card:hover{border-color:var(--border-hover)}
+.process-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.process-card-title{font-weight:700;font-size:.9rem}
+.process-card-remove{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;transition:color .15s;padding:4px}
+.process-card-remove:hover{color:var(--red)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field.full{grid-column:1/-1}
+.field label{font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{padding:8px 10px;border-radius:var(--radius-sm);background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:.8rem;outline:none;font-family:var(--font);transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field input[type="number"]{font-family:var(--mono)}
+.add-process-btn{width:100%;padding:12px;border-radius:var(--radius-md);border:2px dashed var(--border);background:none;color:var(--text-muted);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;margin-bottom:16px}
+.add-process-btn:hover{border-color:var(--accent);color:var(--accent-light)}
+.toggle-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.78rem;color:var(--text-secondary)}
+.toggle-row input[type="checkbox"]{accent-color:var(--accent)}
+.toggle-fields{margin-top:8px;padding:10px;background:var(--bg-primary);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.env-row{display:flex;gap:8px;margin-bottom:6px;align-items:center}
+.env-row input{flex:1;padding:6px 8px;border-radius:4px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);font-size:.78rem;font-family:var(--mono);outline:none}
+.env-row input:focus{border-color:var(--accent)}
+.env-add-btn,.env-rm-btn{padding:4px 8px;border-radius:4px;font-size:.7rem;font-weight:700;border:none;cursor:pointer;transition:all .15s}
+.env-add-btn{background:rgba(139,92,246,.15);color:var(--accent-light)}
+.env-rm-btn{background:rgba(239,68,68,.1);color:var(--red)}
+.groups-section{margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+.groups-section h3{font-size:.85rem;font-weight:700;margin-bottom:12px}
+@media(max-width:900px){
+  .config-wrap{flex-direction:column}
+  .config-right{width:100%;max-width:none;border-left:none;border-top:1px solid var(--border);max-height:350px}
+}
+
+/* ─── Architecture ──────────────────────────────────────────── */
+.arch-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg-primary)}
+.arch-canvas{width:100%;height:100%;min-height:600px;position:relative}
+.arch-node{position:absolute;padding:12px 18px;border-radius:var(--radius-md);border:1px solid var(--border);cursor:pointer;transition:all .25s;text-align:center;z-index:2;user-select:none}
+.arch-node:hover{transform:scale(1.08);z-index:3}
+.arch-node.highlight{border-color:var(--accent);box-shadow:0 0 24px var(--accent-glow)}
+.arch-node.dimmed{opacity:.25}
+.arch-node-icon{font-size:1.3rem;margin-bottom:4px}
+.arch-node-label{font-size:.72rem;font-weight:700;white-space:nowrap}
+.arch-layer-cli{background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.2)}
+.arch-layer-cli .arch-node-label{color:var(--cyan)}
+.arch-layer-core{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.2)}
+.arch-layer-core .arch-node-label{color:var(--accent-light)}
+.arch-layer-integration{background:rgba(234,179,8,.08);border-color:rgba(234,179,8,.2)}
+.arch-layer-integration .arch-node-label{color:var(--yellow)}
+.arch-layer-ai{background:rgba(6,214,160,.08);border-color:rgba(6,214,160,.2)}
+.arch-layer-ai .arch-node-label{color:var(--green2)}
+.arch-desc{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 24px;max-width:500px;z-index:10;text-align:center;transition:all .3s;opacity:0;pointer-events:none}
+.arch-desc.show{opacity:1;pointer-events:auto}
+.arch-desc-title{font-weight:700;margin-bottom:4px;font-size:.9rem}
+.arch-desc-text{font-size:.8rem;color:var(--text-secondary);line-height:1.5}
+.arch-legend{position:absolute;top:16px;right:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;z-index:5;font-size:.72rem}
+.arch-legend-item{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.arch-legend-dot{width:10px;height:10px;border-radius:3px}
+svg.arch-lines{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.arch-line{stroke-dasharray:6 4;stroke-width:1.5;fill:none;animation:dash 1.5s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-20}}
+
+/* ─── Migration ─────────────────────────────────────────────── */
+.migration-wrap{display:flex;flex:1;overflow:hidden}
+.migration-left,.migration-right{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.migration-left{border-right:1px solid var(--border)}
+.migration-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg-secondary)}
+.migration-title{font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.migration-actions{display:flex;gap:8px}
+.migration-textarea{flex:1;padding:16px;background:var(--bg-primary);border:none;color:var(--text-primary);font-family:var(--mono);font-size:.78rem;line-height:1.7;resize:none;outline:none;overflow:auto}
+.migration-preview{flex:1;padding:16px;overflow:auto;font-family:var(--mono);font-size:.78rem;line-height:1.7;white-space:pre-wrap;color:var(--text-secondary)}
+.migration-convert-btn{padding:10px 24px;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;font-weight:700;font-size:.8rem;border:none;cursor:pointer;transition:all .2s}
+.migration-convert-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(139,92,246,.3)}
+.migration-diff{margin-top:16px;padding:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.migration-diff h4{font-size:.8rem;font-weight:700;color:var(--accent-light);margin-bottom:8px}
+.migration-diff-item{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text-secondary);padding:4px 0}
+.migration-diff-item .check{color:var(--green2)}
+@media(max-width:768px){
+  .migration-wrap{flex-direction:column}
+  .migration-left{border-right:none;border-bottom:1px solid var(--border);max-height:45vh}
+}
+
+/* ─── Footer ────────────────────────────────────────────────── */
+footer{padding:24px 0;text-align:center;border-top:1px solid var(--border);color:var(--text-muted);font-size:.8rem}
+footer a{color:var(--text-secondary)}
+footer a:hover{color:var(--accent-light)}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2)}
+
+/* ─── Utility ───────────────────────────────────────────────── */
+.hidden{display:none!important}
+.gap-8{gap:8px}
+</style>
+</head>
+<body>
+
+<!-- ─── Nav ──────────────────────────────────────────────────── -->
+<nav>
+  <div class="container">
+    <a href="index.html" class="nav-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 40" fill="none" width="105" height="30" aria-hidden="true">
+        <path d="M8 8 L20 4 L32 8 L32 22 C32 28 20 34 20 34 C20 34 8 28 8 22 Z" stroke="#8b5cf6" stroke-width="2" fill="none"/>
+        <polyline points="4,19 12,19 15,12 18,26 21,16 24,19 36,19" stroke="#06d6a0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="42" y="26" font-family="Inter, -apple-system, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5"><tspan fill="#fafafa">m</tspan><tspan fill="#a1a1aa">host</tspan></text>
+      </svg>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu" onclick="document.querySelector('nav ul').classList.toggle('open')">&#9776;</button>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="docs.html">Docs</a></li>
+      <li><a href="playground.html" class="active">Playground</a></li>
+      <li><a href="https://github.com/maqalaqil/mhost" target="_blank">GitHub</a></li>
+    </ul>
+    <a href="index.html#install" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+<!-- ─── Tab Bar ──────────────────────────────────────────────── -->
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="terminal" role="tab" aria-selected="true">Terminal</button>
+  <button class="tab-btn" data-tab="api" role="tab">API Tester</button>
+  <button class="tab-btn" data-tab="config" role="tab">Config Builder</button>
+  <button class="tab-btn" data-tab="architecture" role="tab">Architecture</button>
+  <button class="tab-btn" data-tab="migration" role="tab">Migration</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- TAB 1: TERMINAL                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-terminal">
+  <div class="terminal-wrap">
+    <div class="terminal-main">
+      <div class="terminal-header">
+        <div class="terminal-dot r"></div>
+        <div class="terminal-dot y"></div>
+        <div class="terminal-dot g"></div>
+        <span class="terminal-title">mhost playground</span>
+      </div>
+      <div class="terminal-body" id="term-body">
+        <div class="terminal-line c-dim">Welcome to the mhost interactive playground.</div>
+        <div class="terminal-line c-dim">Type a command or click an example from the sidebar.</div>
+        <div class="terminal-line">&nbsp;</div>
+      </div>
+    </div>
+    <div class="terminal-sidebar">
+      <div class="sidebar-title">Try these commands</div>
+      <div id="sidebar-cmds"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- TAB 2: API TESTER                                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-api">
+  <div class="api-wrap">
+    <div class="api-sidebar" id="api-sidebar"></div>
+    <div class="api-main">
+      <div class="api-sub-tabs">
+        <button class="api-sub-tab active" data-api-tab="rest">REST API</button>
+        <button class="api-sub-tab" data-api-tab="ws">WebSocket</button>
+        <button class="api-sub-tab" data-api-tab="wh">Webhooks</button>
+      </div>
+      <!-- REST panel -->
+      <div class="api-panel active" id="api-panel-rest">
+        <div class="api-request" id="api-request"></div>
+        <div class="api-response" id="api-response">
+          <div style="color:var(--text-muted);font-size:.85rem;padding:40px;text-align:center">Select an endpoint from the sidebar and click Send</div>
+        </div>
+      </div>
+      <!-- WebSocket panel -->
+      <div class="api-panel" id="api-panel-ws">
+        <div class="ws-wrap">
+          <div class="ws-status"><div class="ws-dot"></div> Connected to ws://localhost:19516/ws</div>
+          <div>
+            <div class="api-section-title">Channels</div>
+            <div class="ws-channels" id="ws-channels"></div>
+          </div>
+          <div class="api-section-title">Message Log</div>
+          <div class="ws-log" id="ws-log"></div>
+        </div>
+      </div>
+      <!-- Webhook panel -->
+      <div class="api-panel" id="api-panel-wh">
+        <div class="wh-wrap">
+          <div class="api-section-title" style="margin-bottom:12px">Register Webhook</div>
+          <div class="wh-row">
+            <div class="wh-field"><label>Webhook URL</label><input type="text" id="wh-url" value="https://example.com/webhook" /></div>
+            <div class="wh-field"><label>Secret</label><input type="text" id="wh-secret" value="whsec_mhost_demo_secret_key" /></div>
+          </div>
+          <div class="api-section-title" style="margin-bottom:8px">Events</div>
+          <div class="wh-events" id="wh-events"></div>
+          <button class="wh-btn" id="wh-trigger">Trigger Test Event</button>
+          <div class="wh-payload hidden" id="wh-payload"></div>
+          <div class="wh-sig-section">
+            <div class="api-section-title" style="margin-bottom:8px">Signature Verification</div>
+            <div class="wh-row">
+              <div class="wh-field"><label>Secret</label><input type="text" id="wh-verify-secret" value="whsec_mhost_demo_secret_key"/></div>
+              <div class="wh-field"><label>Body</label><input type="text" id="wh-verify-body" placeholder="paste request body"/></div>
+              <button class="wh-btn" id="wh-verify-btn" style="margin-bottom:0">Verify</button>
+            </div>
+            <div class="wh-payload hidden" id="wh-verify-result" style="margin-top:12px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- TAB 3: CONFIG BUILDER                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-config">
+  <div class="config-wrap">
+    <div class="config-left" id="config-left">
+      <div class="config-templates">
+        <button class="config-tpl-btn" data-tpl="simple">Simple API</button>
+        <button class="config-tpl-btn" data-tpl="fullstack">Full Stack</button>
+        <button class="config-tpl-btn" data-tpl="micro">Microservices</button>
+      </div>
+      <div id="config-processes"></div>
+      <button class="add-process-btn" id="add-process-btn">+ Add Process</button>
+      <div class="groups-section">
+        <h3>Groups</h3>
+        <div id="config-groups"></div>
+        <button class="add-process-btn" id="add-group-btn" style="margin-top:8px">+ Add Group</button>
+      </div>
+    </div>
+    <div class="config-right">
+      <div class="config-right-header">
+        <span class="config-right-title">mhost.toml preview</span>
+        <div class="config-right-actions">
+          <button class="config-copy-btn" id="config-copy">Copy</button>
+          <button class="config-dl-btn" id="config-download">Download</button>
+        </div>
+      </div>
+      <div class="config-preview" id="config-preview"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- TAB 4: ARCHITECTURE                                        -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-architecture">
+  <div class="arch-wrap">
+    <div class="arch-canvas" id="arch-canvas">
+      <svg class="arch-lines" id="arch-lines"></svg>
+    </div>
+    <div class="arch-legend">
+      <div class="arch-legend-item"><div class="arch-legend-dot" style="background:var(--cyan)"></div> CLI Layer</div>
+      <div class="arch-legend-item"><div class="arch-legend-dot" style="background:var(--accent)"></div> Core</div>
+      <div class="arch-legend-item"><div class="arch-legend-dot" style="background:var(--yellow)"></div> Integrations</div>
+      <div class="arch-legend-item"><div class="arch-legend-dot" style="background:var(--green2)"></div> AI</div>
+    </div>
+    <div class="arch-desc" id="arch-desc">
+      <div class="arch-desc-title" id="arch-desc-title"></div>
+      <div class="arch-desc-text" id="arch-desc-text"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- TAB 5: MIGRATION                                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-migration">
+  <div class="migration-wrap">
+    <div class="migration-left">
+      <div class="migration-header">
+        <span class="migration-title">PM2 Config (ecosystem.config.js / JSON)</span>
+        <button class="migration-convert-btn" id="migrate-btn">Convert</button>
+      </div>
+      <textarea class="migration-textarea" id="pm2-input" spellcheck="false"></textarea>
+    </div>
+    <div class="migration-right">
+      <div class="migration-header">
+        <span class="migration-title">mhost.toml Output</span>
+        <div class="migration-actions">
+          <button class="config-copy-btn" id="migrate-copy">Copy</button>
+          <button class="config-dl-btn" id="migrate-download">Download</button>
+        </div>
+      </div>
+      <div class="migration-preview" id="migrate-output"></div>
+      <div class="migration-diff hidden" id="migrate-diff">
+        <h4>Features you gain with mhost</h4>
+        <div id="migrate-diff-items"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- .page-wrap -->
+
+<!-- ─── Footer ──────────────────────────────────────────────── -->
+<footer>
+  <div>mhost -- The process manager that PM2 should have been. &nbsp;<a href="https://github.com/maqalaqil/mhost" target="_blank">GitHub</a></div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   PLAYGROUND — ALL JS INLINE
+   ═══════════════════════════════════════════════════════════════ */
+
+// ─── Tab Routing ────────────────────────────────────────────
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+function activateTab(name) {
+  tabBtns.forEach(b => {
+    const isActive = b.dataset.tab === name;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive);
+  });
+  tabContents.forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+  if (name === 'architecture') requestAnimationFrame(drawArchLines);
+}
+
+tabBtns.forEach(b => b.addEventListener('click', () => {
+  const name = b.dataset.tab;
+  history.replaceState(null, '', '#' + name);
+  activateTab(name);
+}));
+
+function getTabFromHash() {
+  const h = location.hash.replace('#', '');
+  return ['terminal','api','config','architecture','migration'].includes(h) ? h : 'terminal';
+}
+activateTab(getTabFromHash());
+window.addEventListener('hashchange', () => activateTab(getTabFromHash()));
+
+// ═══════════════════════════════════════════════════════════════
+// TAB 1: TERMINAL SIMULATOR
+// ═══════════════════════════════════════════════════════════════
+
+const termBody = document.getElementById('term-body');
+const sidebarCmds = document.getElementById('sidebar-cmds');
+
+// Process state
+let processes = {};
+let nextPid = 28100;
+function getPid() { return nextPid++; }
+function uptime() { return Math.floor(Math.random()*48) + 'h ' + Math.floor(Math.random()*60) + 'm'; }
+function mem() { return (Math.random()*120+10).toFixed(1) + ' MB'; }
+function cpu() { return (Math.random()*15).toFixed(1) + '%'; }
+
+// Command history
+let cmdHistory = [];
+let historyIdx = -1;
+
+// Prompt HTML
+function promptHTML() {
+  return '<span class="term-prompt"><span class="user">user</span><span class="at">@</span><span class="host">mhost</span><span class="colon">:</span><span class="path">~</span><span class="dollar">$ </span></span>';
+}
+
+// Render input line
+function renderInputLine() {
+  const existing = document.getElementById('term-input-line');
+  if (existing) existing.remove();
+  const line = document.createElement('div');
+  line.className = 'terminal-input-line';
+  line.id = 'term-input-line';
+  line.innerHTML = promptHTML() + '<input class="term-input" id="term-input" type="text" autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />';
+  termBody.appendChild(line);
+  const input = document.getElementById('term-input');
+  input.focus();
+  input.addEventListener('keydown', handleTermKey);
+  termBody.scrollTop = termBody.scrollHeight;
+}
+
+termBody.addEventListener('click', () => {
+  const inp = document.getElementById('term-input');
+  if (inp) inp.focus();
+});
+
+// Tab completion
+const allCommands = [
+  'mhost start', 'mhost stop', 'mhost restart', 'mhost list', 'mhost scale',
+  'mhost logs', 'mhost health', 'mhost info', 'mhost save', 'mhost resurrect',
+  'mhost ai diagnose', 'mhost ai ask', 'mhost ai config',
+  'mhost brain status', 'mhost brain playbooks',
+  'mhost notify setup', 'mhost notify list',
+  'mhost bot status', 'mhost agent status',
+  'mhost metrics show', 'mhost api status', 'mhost api token create',
+  'mhost api token list', 'mhost api webhook list',
+  'mhost benchmark', 'mhost cost', 'mhost sla', 'mhost version', 'mhost help',
+  'clear'
+];
+
+function handleTermKey(e) {
+  const input = e.target;
+  if (e.key === 'Enter') {
+    const cmd = input.value.trim();
+    if (cmd) {
+      cmdHistory.push(cmd);
+      historyIdx = cmdHistory.length;
+    }
+    // Show the typed command as static text
+    const inputLine = document.getElementById('term-input-line');
+    inputLine.innerHTML = promptHTML() + '<span class="c-white">' + escHtml(cmd) + '</span>';
+    inputLine.id = '';
+    inputLine.classList.remove('terminal-input-line');
+    inputLine.classList.add('terminal-line');
+    if (cmd) executeCommand(cmd);
+    else renderInputLine();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (historyIdx > 0) { historyIdx--; input.value = cmdHistory[historyIdx]; }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (historyIdx < cmdHistory.length - 1) { historyIdx++; input.value = cmdHistory[historyIdx]; }
+    else { historyIdx = cmdHistory.length; input.value = ''; }
+  } else if (e.key === 'Tab') {
+    e.preventDefault();
+    const val = input.value;
+    const matches = allCommands.filter(c => c.startsWith(val));
+    if (matches.length === 1) input.value = matches[0] + ' ';
+    else if (matches.length > 1) {
+      // find common prefix
+      let prefix = matches[0];
+      for (const m of matches) {
+        while (!m.startsWith(prefix)) prefix = prefix.slice(0, -1);
+      }
+      if (prefix.length > val.length) input.value = prefix;
+    }
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function addOutputLines(lines, callback) {
+  let i = 0;
+  function next() {
+    if (i >= lines.length) { if (callback) callback(); return; }
+    const div = document.createElement('div');
+    div.className = 'terminal-line';
+    div.innerHTML = lines[i];
+    termBody.appendChild(div);
+    termBody.scrollTop = termBody.scrollHeight;
+    i++;
+    setTimeout(next, 12);
+  }
+  next();
+}
+
+function addOutput(lines) {
+  return new Promise(resolve => addOutputLines(lines, resolve));
+}
+
+async function executeCommand(raw) {
+  const parts = raw.split(/\s+/);
+  const cmd = parts[0];
+
+  if (raw === 'clear') {
+    termBody.innerHTML = '';
+    renderInputLine();
+    return;
+  }
+
+  if (cmd !== 'mhost') {
+    await addOutput([`<span class="c-red">command not found: ${escHtml(cmd)}</span>`, `<span class="c-dim">Type "mhost help" for available commands.</span>`]);
+    renderInputLine();
+    return;
+  }
+
+  const sub = parts[1] || '';
+  const sub2 = parts[2] || '';
+  const lines = getCommandOutput(raw, parts);
+  await addOutput(lines);
+  renderInputLine();
+}
+
+function getCommandOutput(raw, parts) {
+  const sub = parts[1] || '';
+  const sub2 = parts[2] || '';
+  const flags = parseFlags(raw);
+
+  switch(sub) {
+    case 'start': return cmdStart(parts, flags);
+    case 'list': case 'ls': return cmdList();
+    case 'stop': return cmdStop(parts);
+    case 'restart': return cmdRestart(parts);
+    case 'scale': return cmdScale(parts);
+    case 'logs': return cmdLogs(parts, flags);
+    case 'health': return cmdHealth(parts);
+    case 'info': return cmdInfo(parts);
+    case 'save': return cmdSave();
+    case 'resurrect': return cmdResurrect();
+    case 'ai': return cmdAi(parts, raw);
+    case 'brain': return cmdBrain(parts);
+    case 'notify': return cmdNotify(parts);
+    case 'bot': return cmdBot(parts);
+    case 'agent': return cmdAgent(parts);
+    case 'metrics': return cmdMetrics(parts);
+    case 'api': return cmdApi(parts, flags);
+    case 'benchmark': return cmdBenchmark(parts);
+    case 'cost': return cmdCost();
+    case 'sla': return cmdSla(parts);
+    case 'version': return [`<span class="c-accent">mhost</span> <span class="c-white">0.1.0</span> <span class="c-dim">(rustc 1.82.0, built 2025-12-01)</span>`];
+    case 'help': return cmdHelp();
+    default: return [`<span class="c-red">Unknown command: mhost ${escHtml(sub)}</span>`, `<span class="c-dim">Run "mhost help" for usage.</span>`];
+  }
+}
+
+function parseFlags(raw) {
+  const flags = {};
+  const re = /--(\w[\w-]*)(?:\s+"([^"]*)"|\s+(\S+))?/g;
+  let m;
+  while ((m = re.exec(raw))) flags[m[1]] = m[2] || m[3] || true;
+  return flags;
+}
+
+function cmdStart(parts, flags) {
+  const name = flags.name || 'app-' + Object.keys(processes).length;
+  const cmdStr = parts.slice(2).filter(p => !p.startsWith('--')).join(' ').replace(/"/g,'') || 'node app.js';
+  if (processes[name]) return [`<span class="c-yellow">Process "${name}" is already running.</span>`];
+  const pid = getPid();
+  processes[name] = { name, cmd: cmdStr, pid, instances: 1, status: 'online', startedAt: Date.now() };
+  return [
+    `<span class="c-green">&#10003;</span> <span class="c-white">Process started</span>`,
+    `  <span class="c-dim">Name:</span>      <span class="c-cyan">${name}</span>`,
+    `  <span class="c-dim">Command:</span>   <span class="c-white">${escHtml(cmdStr)}</span>`,
+    `  <span class="c-dim">PID:</span>       <span class="c-yellow">${pid}</span>`,
+    `  <span class="c-dim">Status:</span>    <span class="c-green">online</span>`,
+  ];
+}
+
+function cmdList() {
+  const procs = Object.values(processes);
+  if (procs.length === 0) return [`<span class="c-dim">No processes running. Use "mhost start" to start one.</span>`];
+  const lines = [];
+  const header = `<span class="c-dim">┌──────────────────┬──────────┬────────┬────────────┬──────────┬──────────┐</span>`;
+  const titles = `<span class="c-dim">│</span> <span class="c-accent c-bold">${pad('Name',16)}</span> <span class="c-dim">│</span> <span class="c-accent c-bold">${pad('Status',8)}</span> <span class="c-dim">│</span> <span class="c-accent c-bold">${pad('PID',6)}</span> <span class="c-dim">│</span> <span class="c-accent c-bold">${pad('Instances',10)}</span> <span class="c-dim">│</span> <span class="c-accent c-bold">${pad('CPU',8)}</span> <span class="c-dim">│</span> <span class="c-accent c-bold">${pad('Memory',8)}</span> <span class="c-dim">│</span>`;
+  const sep = `<span class="c-dim">├──────────────────┼──────────┼────────┼────────────┼──────────┼──────────┤</span>`;
+  const bottom = `<span class="c-dim">└──────────────────┴──────────┴────────┴────────────┴──────────┴──────────┘</span>`;
+  lines.push(header, titles, sep);
+  for (const p of procs) {
+    const st = p.status === 'online' ? `<span class="c-green">${pad('online',8)}</span>` : `<span class="c-red">${pad('stopped',8)}</span>`;
+    lines.push(`<span class="c-dim">│</span> <span class="c-white">${pad(p.name,16)}</span> <span class="c-dim">│</span> ${st} <span class="c-dim">│</span> <span class="c-yellow">${pad(String(p.pid),6)}</span> <span class="c-dim">│</span> <span class="c-white">${pad(String(p.instances),10)}</span> <span class="c-dim">│</span> <span class="c-cyan">${pad(cpu(),8)}</span> <span class="c-dim">│</span> <span class="c-cyan">${pad(mem(),8)}</span> <span class="c-dim">│</span>`);
+  }
+  lines.push(bottom);
+  return lines;
+}
+
+function pad(s, n) { return s.length >= n ? s.slice(0,n) : s + ' '.repeat(n - s.length); }
+
+function cmdStop(parts) {
+  const name = parts[2];
+  if (!name) return [`<span class="c-red">Usage: mhost stop &lt;name&gt;</span>`];
+  if (!processes[name]) return [`<span class="c-red">Process "${escHtml(name)}" not found.</span>`];
+  processes[name].status = 'stopped';
+  return [`<span class="c-green">&#10003;</span> <span class="c-white">Process "${name}" stopped</span> <span class="c-dim">(PID ${processes[name].pid})</span>`];
+}
+
+function cmdRestart(parts) {
+  const name = parts[2];
+  if (!name) return [`<span class="c-red">Usage: mhost restart &lt;name&gt;</span>`];
+  if (!processes[name]) return [`<span class="c-red">Process "${escHtml(name)}" not found.</span>`];
+  const newPid = getPid();
+  processes[name].pid = newPid;
+  processes[name].status = 'online';
+  return [
+    `<span class="c-yellow">&#8635;</span> <span class="c-white">Restarting "${name}"...</span>`,
+    `<span class="c-green">&#10003;</span> <span class="c-white">Process "${name}" restarted</span> <span class="c-dim">(new PID ${newPid})</span>`,
+  ];
+}
+
+function cmdScale(parts) {
+  const name = parts[2];
+  const count = parseInt(parts[3]);
+  if (!name || isNaN(count)) return [`<span class="c-red">Usage: mhost scale &lt;name&gt; &lt;count&gt;</span>`];
+  if (!processes[name]) return [`<span class="c-red">Process "${escHtml(name)}" not found.</span>`];
+  const old = processes[name].instances;
+  processes[name].instances = count;
+  return [
+    `<span class="c-green">&#10003;</span> <span class="c-white">Scaled "${name}" from ${old} to ${count} instances</span>`,
+    ...Array.from({length:count}, (_,i) => `  <span class="c-dim">Instance ${i}:</span> <span class="c-green">online</span> <span class="c-dim">(PID ${getPid()})</span>`),
+  ];
+}
+
+function cmdLogs(parts, flags) {
+  const name = parts[2];
+  if (!name) return [`<span class="c-red">Usage: mhost logs &lt;name&gt;</span>`];
+  if (!processes[name]) return [`<span class="c-red">Process "${escHtml(name)}" not found.</span>`];
+  const search = flags.search || '';
+  const logEntries = [
+    { ts: '14:23:01', level: 'info', msg: 'Server listening on port 3000' },
+    { ts: '14:23:02', level: 'info', msg: 'Connected to database (pool: 10)' },
+    { ts: '14:23:05', level: 'info', msg: 'GET /api/health 200 2ms' },
+    { ts: '14:23:08', level: 'warn', msg: 'Slow query detected: SELECT * FROM orders (342ms)' },
+    { ts: '14:23:12', level: 'info', msg: 'POST /api/users 201 15ms' },
+    { ts: '14:23:15', level: 'error', msg: 'Connection timeout to redis:6379' },
+    { ts: '14:23:16', level: 'info', msg: 'Retrying redis connection (attempt 2/5)' },
+    { ts: '14:23:17', level: 'info', msg: 'Redis reconnected successfully' },
+    { ts: '14:23:20', level: 'info', msg: 'GET /api/products 200 8ms' },
+    { ts: '14:23:22', level: 'error', msg: 'Unhandled error in /api/checkout: payment_declined' },
+    { ts: '14:23:25', level: 'info', msg: 'WebSocket client connected (total: 42)' },
+    { ts: '14:23:30', level: 'info', msg: 'Cron job: cleanup_sessions completed (removed 158)' },
+  ];
+  const filtered = search ? logEntries.filter(l => l.msg.toLowerCase().includes(search.toLowerCase())) : logEntries;
+  if (filtered.length === 0) return [`<span class="c-dim">No log entries matching "${escHtml(search)}"</span>`];
+  const colorMap = { info: 'c-cyan', warn: 'c-yellow', error: 'c-red' };
+  const lines = [`<span class="c-accent c-bold">Logs for ${name}</span> <span class="c-dim">(last ${filtered.length} entries)</span>`, ''];
+  for (const l of filtered) {
+    lines.push(`<span class="c-dim">${l.ts}</span> <span class="${colorMap[l.level]}">[${l.level.toUpperCase().padEnd(5)}]</span> ${escHtml(l.msg)}`);
+  }
+  return lines;
+}
+
+function cmdHealth(parts) {
+  const name = parts[2];
+  if (!name) return [`<span class="c-red">Usage: mhost health &lt;name&gt;</span>`];
+  if (!processes[name]) return [`<span class="c-red">Process "${escHtml(name)}" not found.</span>`];
+  return [
+    `<span class="c-accent c-bold">Health Check: ${name}</span>`,
+    '',
+    `  <span class="c-dim">Type:</span>       <span class="c-white">HTTP GET</span>`,
+    `  <span class="c-dim">URL:</span>        <span class="c-cyan">http://localhost:3000/health</span>`,
+    `  <span class="c-dim">Interval:</span>   <span class="c-white">30s</span>`,
+    `  <span class="c-dim">Timeout:</span>    <span class="c-white">5s</span>`,
+    `  <span class="c-dim">Status:</span>     <span class="c-green">&#10003; healthy</span>`,
+    `  <span class="c-dim">Last check:</span> <span class="c-white">2s ago</span> <span class="c-dim">(200 OK, 12ms)</span>`,
+    `  <span class="c-dim">Uptime:</span>     <span class="c-white">99.97%</span> <span class="c-dim">(last 24h)</span>`,
+    `  <span class="c-dim">Failures:</span>   <span class="c-white">1</span> <span class="c-dim">(auto-recovered)</span>`,
+  ];
+}
+
+function cmdInfo(parts) {
+  const name = parts[2];
+  if (!name) return [`<span class="c-red">Usage: mhost info &lt;name&gt;</span>`];
+  const p = processes[name];
+  if (!p) return [`<span class="c-red">Process "${escHtml(name)}" not found.</span>`];
+  return [
+    `<span class="c-accent c-bold">Process: ${name}</span>`,
+    '',
+    `  <span class="c-dim">Command:</span>     <span class="c-white">${escHtml(p.cmd)}</span>`,
+    `  <span class="c-dim">PID:</span>         <span class="c-yellow">${p.pid}</span>`,
+    `  <span class="c-dim">Status:</span>      ${p.status === 'online' ? '<span class="c-green">online</span>' : '<span class="c-red">stopped</span>'}`,
+    `  <span class="c-dim">Instances:</span>   <span class="c-white">${p.instances}</span>`,
+    `  <span class="c-dim">Restarts:</span>    <span class="c-white">${Math.floor(Math.random()*3)}</span>`,
+    `  <span class="c-dim">Uptime:</span>      <span class="c-white">${uptime()}</span>`,
+    `  <span class="c-dim">CPU:</span>         <span class="c-cyan">${cpu()}</span>`,
+    `  <span class="c-dim">Memory:</span>      <span class="c-cyan">${mem()}</span>`,
+    `  <span class="c-dim">Watch:</span>       <span class="c-white">disabled</span>`,
+    `  <span class="c-dim">CWD:</span>         <span class="c-white">/home/deploy/app</span>`,
+  ];
+}
+
+function cmdSave() {
+  const count = Object.keys(processes).length;
+  return [
+    `<span class="c-green">&#10003;</span> <span class="c-white">Process list saved</span>`,
+    `  <span class="c-dim">${count} process(es) saved to ~/.mhost/dump.toml</span>`,
+  ];
+}
+
+function cmdResurrect() {
+  return [
+    `<span class="c-green">&#10003;</span> <span class="c-white">Resurrecting saved processes...</span>`,
+    `  <span class="c-dim">Restored ${Object.keys(processes).length} process(es) from ~/.mhost/dump.toml</span>`,
+  ];
+}
+
+function cmdAi(parts, raw) {
+  const sub2 = parts[2] || '';
+  if (sub2 === 'diagnose') {
+    const name = parts[3] || 'api';
+    return [
+      `<span class="c-accent c-bold">AI Diagnosis: ${escHtml(name)}</span>`,
+      '',
+      `<span class="c-dim">Analyzing process metrics, logs, and health data...</span>`,
+      '',
+      `<span class="c-green c-bold">Findings:</span>`,
+      `  <span class="c-yellow">1.</span> <span class="c-white">Memory usage trending upward (+15% over 6h)</span>`,
+      `     <span class="c-dim">Potential memory leak in request handler</span>`,
+      `  <span class="c-yellow">2.</span> <span class="c-white">Elevated p99 latency (342ms vs 45ms baseline)</span>`,
+      `     <span class="c-dim">Correlated with slow database queries since 14:20</span>`,
+      `  <span class="c-yellow">3.</span> <span class="c-white">1 health check failure at 14:23:15</span>`,
+      `     <span class="c-dim">Redis connection timeout, auto-recovered in 2s</span>`,
+      '',
+      `<span class="c-cyan c-bold">Recommendations:</span>`,
+      `  <span class="c-white">1. Add connection pooling for Redis (max_connections: 20)</span>`,
+      `  <span class="c-white">2. Review /api/checkout handler for memory leaks</span>`,
+      `  <span class="c-white">3. Add database query timeout (5s) to prevent cascading</span>`,
+    ];
+  }
+  if (sub2 === 'ask') {
+    const question = raw.match(/"([^"]+)"/)?.[1] || 'general question';
+    return [
+      `<span class="c-accent c-bold">AI Response</span>`,
+      '',
+      `<span class="c-dim">Q: ${escHtml(question)}</span>`,
+      '',
+      `<span class="c-white">Based on current metrics:</span>`,
+      `  <span class="c-cyan">api-server</span> uses the most memory at <span class="c-yellow">87.3 MB</span>`,
+      `  <span class="c-dim">followed by worker (45.2 MB) and redis-cache (32.1 MB)</span>`,
+      '',
+      `<span class="c-dim">The api-server memory has grown 15% in the last 6 hours,</span>`,
+      `<span class="c-dim">suggesting a slow leak. Consider scheduling a restart or</span>`,
+      `<span class="c-dim">investigating the /api/checkout endpoint.</span>`,
+    ];
+  }
+  if (sub2 === 'config') {
+    const desc = raw.match(/"([^"]+)"/)?.[1] || 'node api with 2 python workers';
+    return [
+      `<span class="c-accent c-bold">AI Config Generator</span>`,
+      '',
+      `<span class="c-dim">Generating configuration for: "${escHtml(desc)}"</span>`,
+      '',
+      `<span class="c-cyan">[process.api]</span>`,
+      `<span class="c-accent">command</span> = <span class="c-green">"node server.js"</span>`,
+      `<span class="c-accent">instances</span> = <span class="c-yellow">1</span>`,
+      `<span class="c-accent">max_memory</span> = <span class="c-green">"256M"</span>`,
+      '',
+      `<span class="c-cyan">[process.worker]</span>`,
+      `<span class="c-accent">command</span> = <span class="c-green">"python3 worker.py"</span>`,
+      `<span class="c-accent">instances</span> = <span class="c-yellow">2</span>`,
+      `<span class="c-accent">max_memory</span> = <span class="c-green">"128M"</span>`,
+      '',
+      `<span class="c-dim">Config saved to mhost.toml</span>`,
+    ];
+  }
+  return [`<span class="c-red">Usage: mhost ai &lt;diagnose|ask|config&gt;</span>`];
+}
+
+function cmdBrain(parts) {
+  const sub2 = parts[2] || '';
+  if (sub2 === 'status') {
+    return [
+      `<span class="c-accent c-bold">Brain Status</span>`,
+      '',
+      `  <span class="c-dim">Status:</span>      <span class="c-green">active</span>`,
+      `  <span class="c-dim">Memory:</span>      <span class="c-white">47 incidents recorded</span>`,
+      `  <span class="c-dim">Playbooks:</span>   <span class="c-white">12 auto-generated</span>`,
+      `  <span class="c-dim">Last learn:</span>  <span class="c-white">2h ago</span> <span class="c-dim">(redis timeout pattern)</span>`,
+      `  <span class="c-dim">Accuracy:</span>    <span class="c-cyan">94.2%</span> <span class="c-dim">(last 30 days)</span>`,
+    ];
+  }
+  if (sub2 === 'playbooks') {
+    return [
+      `<span class="c-accent c-bold">Playbooks</span> <span class="c-dim">(12 total)</span>`,
+      '',
+      `  <span class="c-yellow">1.</span> <span class="c-white">memory-leak-restart</span>    <span class="c-dim">Restart on memory > 512MB</span>`,
+      `  <span class="c-yellow">2.</span> <span class="c-white">redis-reconnect</span>        <span class="c-dim">Auto-retry with backoff</span>`,
+      `  <span class="c-yellow">3.</span> <span class="c-white">db-slow-query-alert</span>    <span class="c-dim">Alert on queries > 200ms</span>`,
+      `  <span class="c-yellow">4.</span> <span class="c-white">oom-kill-recovery</span>      <span class="c-dim">Restart + reduce instances</span>`,
+      `  <span class="c-yellow">5.</span> <span class="c-white">ssl-cert-renewal</span>       <span class="c-dim">Auto-renew 7d before expiry</span>`,
+    ];
+  }
+  return [`<span class="c-red">Usage: mhost brain &lt;status|playbooks&gt;</span>`];
+}
+
+function cmdNotify(parts) {
+  const sub2 = parts[2] || '';
+  if (sub2 === 'setup') {
+    return [
+      `<span class="c-accent c-bold">Notification Setup</span>`,
+      '',
+      `  <span class="c-green">&#10003;</span> <span class="c-white">Telegram</span>  <span class="c-dim">configured (bot: @mhost_alerts_bot)</span>`,
+      `  <span class="c-green">&#10003;</span> <span class="c-white">Slack</span>     <span class="c-dim">configured (#ops-alerts)</span>`,
+      `  <span class="c-dim">-</span> <span class="c-dim">Discord   not configured</span>`,
+      `  <span class="c-dim">-</span> <span class="c-dim">Email     not configured</span>`,
+      '',
+      `<span class="c-dim">Run "mhost notify add &lt;channel&gt;" to add more.</span>`,
+    ];
+  }
+  if (sub2 === 'list') {
+    return [
+      `<span class="c-accent c-bold">Notification Rules</span>`,
+      '',
+      `  <span class="c-cyan">1.</span> <span class="c-white">process.crash</span>    <span class="c-dim">&#8594; Telegram, Slack</span>`,
+      `  <span class="c-cyan">2.</span> <span class="c-white">health.fail</span>      <span class="c-dim">&#8594; Telegram</span>`,
+      `  <span class="c-cyan">3.</span> <span class="c-white">memory.warning</span>   <span class="c-dim">&#8594; Slack</span>`,
+      `  <span class="c-cyan">4.</span> <span class="c-white">deploy.complete</span>  <span class="c-dim">&#8594; Telegram, Slack</span>`,
+    ];
+  }
+  return [`<span class="c-red">Usage: mhost notify &lt;setup|list&gt;</span>`];
+}
+
+function cmdBot(parts) {
+  if (parts[2] === 'status') {
+    return [
+      `<span class="c-accent c-bold">Telegram Bot</span>`,
+      '',
+      `  <span class="c-dim">Status:</span>     <span class="c-green">online</span>`,
+      `  <span class="c-dim">Bot:</span>        <span class="c-white">@mhost_alerts_bot</span>`,
+      `  <span class="c-dim">Chat ID:</span>    <span class="c-white">-1001234567890</span>`,
+      `  <span class="c-dim">Commands:</span>   <span class="c-white">15 registered</span>`,
+      `  <span class="c-dim">Last msg:</span>   <span class="c-white">3m ago</span>`,
+    ];
+  }
+  return [`<span class="c-red">Usage: mhost bot &lt;status&gt;</span>`];
+}
+
+function cmdAgent(parts) {
+  if (parts[2] === 'status') {
+    return [
+      `<span class="c-accent c-bold">AI Agent</span>`,
+      '',
+      `  <span class="c-dim">Status:</span>      <span class="c-green">monitoring</span>`,
+      `  <span class="c-dim">Mode:</span>        <span class="c-white">autonomous</span>`,
+      `  <span class="c-dim">Watched:</span>     <span class="c-white">${Object.keys(processes).length} processes</span>`,
+      `  <span class="c-dim">Actions:</span>     <span class="c-white">3 taken today</span>`,
+      `  <span class="c-dim">Last action:</span> <span class="c-white">Restarted worker-2 after OOM kill</span> <span class="c-dim">(1h ago)</span>`,
+      `  <span class="c-dim">Confidence:</span>  <span class="c-cyan">96.1%</span>`,
+    ];
+  }
+  return [`<span class="c-red">Usage: mhost agent &lt;status&gt;</span>`];
+}
+
+function cmdMetrics(parts) {
+  const name = parts[3] || parts[2];
+  if (parts[2] !== 'show' || !name || name === 'show') return [`<span class="c-red">Usage: mhost metrics show &lt;name&gt;</span>`];
+  return [
+    `<span class="c-accent c-bold">Metrics: ${escHtml(name)}</span> <span class="c-dim">(Prometheus format)</span>`,
+    '',
+    `<span class="c-dim"># HELP</span> mhost_process_cpu_percent CPU usage`,
+    `<span class="c-cyan">mhost_process_cpu_percent</span>{name="${name}"} <span class="c-yellow">${(Math.random()*12).toFixed(2)}</span>`,
+    '',
+    `<span class="c-dim"># HELP</span> mhost_process_memory_bytes Memory usage`,
+    `<span class="c-cyan">mhost_process_memory_bytes</span>{name="${name}"} <span class="c-yellow">${Math.floor(Math.random()*100000000)}</span>`,
+    '',
+    `<span class="c-dim"># HELP</span> mhost_process_restarts_total Total restarts`,
+    `<span class="c-cyan">mhost_process_restarts_total</span>{name="${name}"} <span class="c-yellow">${Math.floor(Math.random()*5)}</span>`,
+    '',
+    `<span class="c-dim"># HELP</span> mhost_http_requests_total Total HTTP requests`,
+    `<span class="c-cyan">mhost_http_requests_total</span>{name="${name}",code="200"} <span class="c-yellow">${Math.floor(Math.random()*50000)}</span>`,
+    `<span class="c-cyan">mhost_http_requests_total</span>{name="${name}",code="500"} <span class="c-yellow">${Math.floor(Math.random()*20)}</span>`,
+  ];
+}
+
+function cmdApi(parts, flags) {
+  const sub2 = parts[2] || '';
+  if (sub2 === 'status') {
+    return [
+      `<span class="c-accent c-bold">API Server</span>`,
+      '',
+      `  <span class="c-dim">Status:</span>    <span class="c-green">running</span>`,
+      `  <span class="c-dim">Address:</span>   <span class="c-cyan">http://0.0.0.0:19516</span>`,
+      `  <span class="c-dim">Auth:</span>      <span class="c-white">Bearer token</span>`,
+      `  <span class="c-dim">Tokens:</span>    <span class="c-white">3 active</span>`,
+      `  <span class="c-dim">Webhooks:</span>  <span class="c-white">2 registered</span>`,
+      `  <span class="c-dim">Requests:</span>  <span class="c-white">1,247 today</span>`,
+    ];
+  }
+  if (sub2 === 'token') {
+    const sub3 = parts[3] || '';
+    if (sub3 === 'create') {
+      const tokenName = flags.name || 'demo';
+      const role = flags.role || 'admin';
+      return [
+        `<span class="c-green">&#10003;</span> <span class="c-white">Token created</span>`,
+        '',
+        `  <span class="c-dim">ID:</span>     <span class="c-white">tok_${Math.random().toString(36).slice(2,8)}</span>`,
+        `  <span class="c-dim">Name:</span>   <span class="c-white">${escHtml(tokenName)}</span>`,
+        `  <span class="c-dim">Role:</span>   <span class="c-white">${escHtml(role)}</span>`,
+        `  <span class="c-dim">Token:</span>  <span class="c-yellow">mhost_tok_${Math.random().toString(36).slice(2,14)}</span>`,
+        '',
+        `<span class="c-red c-bold">Save this token now. It won't be shown again.</span>`,
+      ];
+    }
+    if (sub3 === 'list') {
+      return [
+        `<span class="c-accent c-bold">API Tokens</span>`,
+        '',
+        `  <span class="c-dim">ID</span>           <span class="c-dim">Name</span>         <span class="c-dim">Role</span>     <span class="c-dim">Created</span>`,
+        `  <span class="c-white">tok_a1b2c3</span>   <span class="c-white">deploy-ci</span>    <span class="c-cyan">admin</span>    <span class="c-dim">2025-11-20</span>`,
+        `  <span class="c-white">tok_d4e5f6</span>   <span class="c-white">monitoring</span>   <span class="c-cyan">read</span>     <span class="c-dim">2025-11-25</span>`,
+        `  <span class="c-white">tok_g7h8i9</span>   <span class="c-white">webhook-svc</span>  <span class="c-cyan">write</span>    <span class="c-dim">2025-12-01</span>`,
+      ];
+    }
+  }
+  if (sub2 === 'webhook') {
+    if (parts[3] === 'list') {
+      return [
+        `<span class="c-accent c-bold">Webhooks</span>`,
+        '',
+        `  <span class="c-dim">ID</span>       <span class="c-dim">URL</span>                              <span class="c-dim">Events</span>`,
+        `  <span class="c-white">wh_001</span>   <span class="c-cyan">https://ci.example.com/hook</span>      <span class="c-white">process.crash, deploy.*</span>`,
+        `  <span class="c-white">wh_002</span>   <span class="c-cyan">https://slack.example.com/mhost</span>  <span class="c-white">health.fail</span>`,
+      ];
+    }
+  }
+  return [`<span class="c-red">Usage: mhost api &lt;status|token create|token list|webhook list&gt;</span>`];
+}
+
+function cmdBenchmark(parts) {
+  const url = parts[2] || 'https://api.example.com';
+  return [
+    `<span class="c-accent c-bold">Benchmark: ${escHtml(url)}</span>`,
+    '',
+    `  <span class="c-dim">Requests:</span>   <span class="c-white">10,000</span>`,
+    `  <span class="c-dim">Concurrency:</span><span class="c-white"> 100</span>`,
+    `  <span class="c-dim">Duration:</span>   <span class="c-white">4.2s</span>`,
+    '',
+    `  <span class="c-dim">RPS:</span>        <span class="c-green c-bold">2,381</span>`,
+    `  <span class="c-dim">Avg:</span>        <span class="c-white">42ms</span>`,
+    `  <span class="c-dim">P50:</span>        <span class="c-white">38ms</span>`,
+    `  <span class="c-dim">P95:</span>        <span class="c-white">89ms</span>`,
+    `  <span class="c-dim">P99:</span>        <span class="c-yellow">142ms</span>`,
+    `  <span class="c-dim">Max:</span>        <span class="c-red">312ms</span>`,
+    `  <span class="c-dim">Errors:</span>     <span class="c-white">0 (0.00%)</span>`,
+  ];
+}
+
+function cmdCost() {
+  return [
+    `<span class="c-accent c-bold">Cost Analysis</span> <span class="c-dim">(estimated monthly)</span>`,
+    '',
+    `  <span class="c-dim">Process</span>        <span class="c-dim">CPU</span>    <span class="c-dim">Memory</span>   <span class="c-dim">Est. Cost</span>`,
+    `  <span class="c-white">api-server</span>     <span class="c-cyan">2.1%</span>   <span class="c-cyan">87 MB</span>    <span class="c-green">$4.20</span>`,
+    `  <span class="c-white">worker</span>         <span class="c-cyan">8.3%</span>   <span class="c-cyan">45 MB</span>    <span class="c-green">$6.80</span>`,
+    `  <span class="c-white">redis-cache</span>    <span class="c-cyan">0.5%</span>   <span class="c-cyan">32 MB</span>    <span class="c-green">$2.10</span>`,
+    `  <span class="c-dim">───────────────────────────────────────</span>`,
+    `  <span class="c-white c-bold">Total</span>                           <span class="c-green c-bold">$13.10/mo</span>`,
+    '',
+    `<span class="c-dim">Based on AWS t3.medium pricing ($0.0416/hr)</span>`,
+  ];
+}
+
+function cmdSla(parts) {
+  const name = parts[2] || 'api';
+  return [
+    `<span class="c-accent c-bold">SLA Report: ${escHtml(name)}</span>`,
+    '',
+    `  <span class="c-dim">Period:</span>       <span class="c-white">Last 30 days</span>`,
+    `  <span class="c-dim">Uptime:</span>       <span class="c-green c-bold">99.97%</span>`,
+    `  <span class="c-dim">Downtime:</span>     <span class="c-white">12m 48s</span>`,
+    `  <span class="c-dim">Incidents:</span>    <span class="c-white">2</span>`,
+    `  <span class="c-dim">MTTR:</span>         <span class="c-white">6m 24s</span>`,
+    `  <span class="c-dim">MTBF:</span>         <span class="c-white">15d 0h</span>`,
+    '',
+    `  <span class="c-dim">SLA Target:</span>   <span class="c-white">99.9%</span>  <span class="c-green">&#10003; PASSING</span>`,
+  ];
+}
+
+function cmdHelp() {
+  return [
+    `<span class="c-accent c-bold">mhost</span> <span class="c-dim">- AI-Powered Process Manager</span>`,
+    '',
+    `<span class="c-white c-bold">Process Management</span>`,
+    `  <span class="c-cyan">start</span>     <span class="c-dim">Start a process</span>`,
+    `  <span class="c-cyan">stop</span>      <span class="c-dim">Stop a process</span>`,
+    `  <span class="c-cyan">restart</span>   <span class="c-dim">Restart a process</span>`,
+    `  <span class="c-cyan">list</span>      <span class="c-dim">List all processes</span>`,
+    `  <span class="c-cyan">scale</span>     <span class="c-dim">Scale process instances</span>`,
+    `  <span class="c-cyan">logs</span>      <span class="c-dim">View process logs</span>`,
+    `  <span class="c-cyan">health</span>    <span class="c-dim">Check process health</span>`,
+    `  <span class="c-cyan">info</span>      <span class="c-dim">Process details</span>`,
+    `  <span class="c-cyan">save</span>      <span class="c-dim">Save process list</span>`,
+    `  <span class="c-cyan">resurrect</span> <span class="c-dim">Restore saved processes</span>`,
+    '',
+    `<span class="c-white c-bold">AI &amp; Agent</span>`,
+    `  <span class="c-cyan">ai diagnose</span>  <span class="c-dim">AI-powered diagnosis</span>`,
+    `  <span class="c-cyan">ai ask</span>       <span class="c-dim">Ask AI a question</span>`,
+    `  <span class="c-cyan">ai config</span>    <span class="c-dim">Generate config with AI</span>`,
+    `  <span class="c-cyan">brain status</span> <span class="c-dim">Self-healing brain status</span>`,
+    `  <span class="c-cyan">agent status</span> <span class="c-dim">AI agent status</span>`,
+    '',
+    `<span class="c-white c-bold">Monitoring</span>`,
+    `  <span class="c-cyan">metrics show</span> <span class="c-dim">Prometheus metrics</span>`,
+    `  <span class="c-cyan">benchmark</span>    <span class="c-dim">HTTP benchmark</span>`,
+    `  <span class="c-cyan">cost</span>         <span class="c-dim">Cost analysis</span>`,
+    `  <span class="c-cyan">sla</span>          <span class="c-dim">SLA report</span>`,
+    '',
+    `<span class="c-white c-bold">API &amp; Integrations</span>`,
+    `  <span class="c-cyan">api status</span>   <span class="c-dim">API server status</span>`,
+    `  <span class="c-cyan">notify</span>       <span class="c-dim">Notification channels</span>`,
+    `  <span class="c-cyan">bot status</span>   <span class="c-dim">Telegram bot</span>`,
+    `  <span class="c-cyan">version</span>      <span class="c-dim">Show version</span>`,
+  ];
+}
+
+// Sidebar examples
+const sidebarExamples = [
+  'mhost start "node server.js" --name api',
+  'mhost start "python3 worker.py" --name worker',
+  'mhost list',
+  'mhost stop api',
+  'mhost restart worker',
+  'mhost scale worker 4',
+  'mhost logs api',
+  'mhost logs api --search "error"',
+  'mhost health api',
+  'mhost info api',
+  'mhost ai diagnose api',
+  'mhost ai ask "which process uses the most memory?"',
+  'mhost ai config "node api with 2 python workers"',
+  'mhost brain status',
+  'mhost brain playbooks',
+  'mhost metrics show api',
+  'mhost benchmark https://api.example.com',
+  'mhost cost',
+  'mhost sla api',
+  'mhost api status',
+  'mhost api token create --name demo --role admin',
+  'mhost notify list',
+  'mhost agent status',
+  'mhost bot status',
+  'mhost version',
+  'mhost help',
+];
+
+sidebarExamples.forEach(cmd => {
+  const div = document.createElement('div');
+  div.className = 'sidebar-cmd';
+  div.textContent = cmd;
+  div.addEventListener('click', () => {
+    const input = document.getElementById('term-input');
+    if (input) { input.value = cmd; input.focus(); }
+  });
+  sidebarCmds.appendChild(div);
+});
+
+renderInputLine();
+
+
+// ═══════════════════════════════════════════════════════════════
+// TAB 2: API TESTER
+// ═══════════════════════════════════════════════════════════════
+
+const apiEndpoints = [
+  { cat: 'Processes', endpoints: [
+    { method: 'GET', path: '/api/v1/processes', body: null },
+    { method: 'GET', path: '/api/v1/processes/:name', body: null },
+    { method: 'POST', path: '/api/v1/processes', body: '{\n  "name": "api-server",\n  "command": "node server.js",\n  "instances": 1\n}' },
+    { method: 'POST', path: '/api/v1/processes/:name/start', body: null },
+    { method: 'POST', path: '/api/v1/processes/:name/stop', body: null },
+    { method: 'POST', path: '/api/v1/processes/:name/restart', body: null },
+    { method: 'POST', path: '/api/v1/processes/:name/scale', body: '{\n  "instances": 4\n}' },
+    { method: 'DELETE', path: '/api/v1/processes/:name', body: null },
+    { method: 'GET', path: '/api/v1/processes/:name/env', body: null },
+    { method: 'PUT', path: '/api/v1/processes/:name/env', body: '{\n  "NODE_ENV": "production",\n  "PORT": "3000"\n}' },
+  ]},
+  { cat: 'Logs', endpoints: [
+    { method: 'GET', path: '/api/v1/logs/:name', body: null },
+    { method: 'GET', path: '/api/v1/logs/:name/search?q=error', body: null },
+  ]},
+  { cat: 'Health', endpoints: [
+    { method: 'GET', path: '/api/v1/health', body: null },
+    { method: 'GET', path: '/api/v1/health/:name', body: null },
+  ]},
+  { cat: 'Metrics', endpoints: [
+    { method: 'GET', path: '/api/v1/metrics', body: null },
+    { method: 'GET', path: '/api/v1/metrics/:name', body: null },
+  ]},
+  { cat: 'System', endpoints: [
+    { method: 'GET', path: '/api/v1/system/info', body: null },
+    { method: 'POST', path: '/api/v1/system/save', body: null },
+    { method: 'POST', path: '/api/v1/system/resurrect', body: null },
+    { method: 'GET', path: '/api/v1/system/config', body: null },
+  ]},
+  { cat: 'Tokens', endpoints: [
+    { method: 'GET', path: '/api/v1/tokens', body: null },
+    { method: 'POST', path: '/api/v1/tokens', body: '{\n  "name": "deploy-ci",\n  "role": "admin"\n}' },
+    { method: 'DELETE', path: '/api/v1/tokens/:id', body: null },
+  ]},
+  { cat: 'Webhooks', endpoints: [
+    { method: 'GET', path: '/api/v1/webhooks', body: null },
+    { method: 'POST', path: '/api/v1/webhooks', body: '{\n  "url": "https://example.com/hook",\n  "events": ["process.crash", "health.fail"],\n  "secret": "whsec_abc123"\n}' },
+    { method: 'DELETE', path: '/api/v1/webhooks/:id', body: null },
+    { method: 'POST', path: '/api/v1/webhooks/:id/test', body: null },
+  ]},
+];
+
+// Mock response generator
+function mockResponse(method, path) {
+  const p = path.replace(/:[a-zA-Z_]+/g, ':param');
+  const delay = 200 + Math.random() * 600;
+  if (p === '/api/v1/processes' && method === 'GET') return { status: 200, delay, body: { ok: true, data: [
+    { name: 'api-server', status: 'online', pid: 12345, instances: 1, cpu: '2.1%', memory: '87.3 MB', uptime: '3d 14h 22m', restarts: 0 },
+    { name: 'worker', status: 'online', pid: 12350, instances: 2, cpu: '8.3%', memory: '45.2 MB', uptime: '3d 14h 22m', restarts: 1 },
+    { name: 'redis-cache', status: 'online', pid: 12360, instances: 1, cpu: '0.5%', memory: '32.1 MB', uptime: '7d 2h 10m', restarts: 0 },
+  ]}};
+  if (p === '/api/v1/processes/:param' && method === 'GET') return { status: 200, delay, body: { ok: true, data: { name: 'api-server', status: 'online', pid: 12345, command: 'node server.js', instances: 1, cpu: '2.1%', memory: '87.3 MB', uptime: '3d 14h 22m', restarts: 0, cwd: '/home/deploy/app', env: { NODE_ENV: 'production', PORT: '3000' }}}};
+  if (p === '/api/v1/processes' && method === 'POST') return { status: 201, delay, body: { ok: true, data: { name: 'api-server', pid: 28199, status: 'online' }}};
+  if (p.match(/processes\/:param\/(start|stop|restart)/) && method === 'POST') return { status: 200, delay, body: { ok: true, message: 'Operation completed successfully' }};
+  if (p.includes('/scale') && method === 'POST') return { status: 200, delay, body: { ok: true, data: { name: 'api-server', instances: 4 }}};
+  if (p === '/api/v1/processes/:param' && method === 'DELETE') return { status: 200, delay, body: { ok: true, message: 'Process deleted' }};
+  if (p.includes('/env') && method === 'GET') return { status: 200, delay, body: { ok: true, data: { NODE_ENV: 'production', PORT: '3000', DATABASE_URL: 'postgres://...' }}};
+  if (p.includes('/env') && method === 'PUT') return { status: 200, delay, body: { ok: true, message: 'Environment updated' }};
+  if (p === '/api/v1/logs/:param' && method === 'GET') return { status: 200, delay, body: { ok: true, data: { lines: ['14:23:01 [INFO] Server listening on port 3000','14:23:02 [INFO] Connected to database','14:23:05 [INFO] GET /api/health 200 2ms','14:23:08 [WARN] Slow query detected (342ms)','14:23:15 [ERROR] Connection timeout to redis:6379'], total: 1247 }}};
+  if (p.includes('/search') && method === 'GET') return { status: 200, delay, body: { ok: true, data: { lines: ['14:23:15 [ERROR] Connection timeout to redis:6379','14:23:22 [ERROR] Unhandled error in /api/checkout'], total: 2 }}};
+  if (p === '/api/v1/health' && method === 'GET') return { status: 200, delay, body: { ok: true, data: { status: 'ok', version: '0.1.0', uptime: '7d 2h 10m', processes: { total: 3, online: 3, stopped: 0 }}}};
+  if (p === '/api/v1/health/:param' && method === 'GET') return { status: 200, delay, body: { ok: true, data: { name: 'api-server', healthy: true, type: 'http', url: 'http://localhost:3000/health', last_check: '2s ago', response_time: '12ms', uptime_percent: '99.97%' }}};
+  if (p === '/api/v1/metrics' && method === 'GET') return { status: 200, delay, body: { ok: true, data: { processes: 3, total_cpu: '10.9%', total_memory: '164.6 MB', total_restarts: 1, requests_today: 12470 }}};
+  if (p === '/api/v1/metrics/:param' && method === 'GET') return { status: 200, delay, body: { ok: true, data: { name: 'api-server', cpu: '2.1%', memory: '87.3 MB', memory_percent: '4.3%', open_files: 42, connections: 156 }}};
+  if (p === '/api/v1/system/info') return { status: 200, delay, body: { ok: true, data: { version: '0.1.0', platform: 'linux-x86_64', rust_version: '1.82.0', pid: 1001, config_path: '/etc/mhost/config.toml', log_path: '/var/log/mhost/', uptime: '7d 2h 10m' }}};
+  if (p === '/api/v1/system/save') return { status: 200, delay, body: { ok: true, message: 'Process list saved (3 processes)' }};
+  if (p === '/api/v1/system/resurrect') return { status: 200, delay, body: { ok: true, message: 'Restored 3 processes' }};
+  if (p === '/api/v1/system/config') return { status: 200, delay, body: { ok: true, data: { log_level: 'info', api_port: 19516, health_check_interval: '30s', max_restarts: 10, notifications: ['telegram','slack'] }}};
+  if (p === '/api/v1/tokens' && method === 'GET') return { status: 200, delay, body: { ok: true, data: [{ id: 'tok_a1b2c3', name: 'deploy-ci', role: 'admin', created_at: '2025-11-20T10:00:00Z' },{ id: 'tok_d4e5f6', name: 'monitoring', role: 'read', created_at: '2025-11-25T14:30:00Z' }]}};
+  if (p === '/api/v1/tokens' && method === 'POST') return { status: 201, delay, body: { ok: true, data: { id: 'tok_' + Math.random().toString(36).slice(2,8), name: 'deploy-ci', role: 'admin', token: 'mhost_tok_' + Math.random().toString(36).slice(2,26), created_at: new Date().toISOString() }}};
+  if (p === '/api/v1/tokens/:param' && method === 'DELETE') return { status: 200, delay, body: { ok: true, message: 'Token revoked' }};
+  if (p === '/api/v1/webhooks' && method === 'GET') return { status: 200, delay, body: { ok: true, data: [{ id: 'wh_001', url: 'https://ci.example.com/hook', events: ['process.crash','deploy.complete'], created_at: '2025-11-20T10:00:00Z' }]}};
+  if (p === '/api/v1/webhooks' && method === 'POST') return { status: 201, delay, body: { ok: true, data: { id: 'wh_' + Math.random().toString(36).slice(2,6), url: 'https://example.com/hook', events: ['process.crash','health.fail'], secret: 'whsec_abc123' }}};
+  if (p === '/api/v1/webhooks/:param' && method === 'DELETE') return { status: 200, delay, body: { ok: true, message: 'Webhook deleted' }};
+  if (p.includes('/test')) return { status: 200, delay, body: { ok: true, message: 'Test event sent', delivered: true, response_status: 200 }};
+  return { status: 404, delay: 100, body: { ok: false, error: 'Not found' }};
+}
+
+function syntaxHighlightJSON(json) {
+  const str = typeof json === 'string' ? json : JSON.stringify(json, null, 2);
+  return str.replace(/("(?:[^"\\]|\\.)*")\s*:/g, '<span class="json-key">$1</span>:')
+    .replace(/:\s*("(?:[^"\\]|\\.)*")/g, ': <span class="json-string">$1</span>')
+    .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+    .replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>')
+    .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>')
+    // standalone strings in arrays
+    .replace(/\[\s*\n/g, '[\n')
+    .replace(/"(?:[^"\\]|\\.)*"/g, m => {
+      if (m.includes('json-')) return m;
+      return '<span class="json-string">' + m + '</span>';
+    });
+}
+
+// Build sidebar
+const apiSidebarEl = document.getElementById('api-sidebar');
+let activeEndpoint = null;
+
+apiEndpoints.forEach(cat => {
+  const catDiv = document.createElement('div');
+  catDiv.className = 'api-cat';
+  catDiv.innerHTML = `<div class="api-cat-header"><span>${cat.cat}</span><span class="arrow">&#9660;</span></div><div class="api-cat-items"></div>`;
+  catDiv.querySelector('.api-cat-header').addEventListener('click', () => catDiv.classList.toggle('collapsed'));
+  const items = catDiv.querySelector('.api-cat-items');
+  cat.endpoints.forEach(ep => {
+    const div = document.createElement('div');
+    div.className = 'api-endpoint';
+    div.innerHTML = `<span class="api-method method-${ep.method}">${ep.method}</span><span>${ep.path.replace('/api/v1/', '')}</span>`;
+    div.addEventListener('click', () => selectEndpoint(ep, div));
+    items.appendChild(div);
+  });
+  apiSidebarEl.appendChild(catDiv);
+});
+
+let apiBaseUrl = 'http://localhost:19516';
+
+function selectEndpoint(ep, el) {
+  document.querySelectorAll('.api-endpoint').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  activeEndpoint = ep;
+  renderRequest(ep);
+}
+
+function renderRequest(ep) {
+  const reqEl = document.getElementById('api-request');
+  const methodColors = { GET: 'var(--green)', POST: 'var(--blue)', DELETE: 'var(--red)', PUT: 'var(--yellow)' };
+  let html = `<div class="api-url-bar">
+    <span class="api-url-method" style="background:${methodColors[ep.method]}">${ep.method}</span>
+    <input class="api-url-input" id="api-url" value="${apiBaseUrl}${ep.path}" />
+    <button class="api-send-btn" id="api-send">Send</button>
+  </div>`;
+  html += `<div class="api-section"><div class="api-section-title">Headers</div>
+    <textarea class="api-textarea" id="api-headers" rows="2">Authorization: Bearer mhost_tok_demo123\nContent-Type: application/json</textarea></div>`;
+  if (ep.body) {
+    html += `<div class="api-section"><div class="api-section-title">Body</div>
+      <textarea class="api-textarea" id="api-body" rows="6">${escHtml(ep.body)}</textarea></div>`;
+  }
+  reqEl.innerHTML = html;
+  document.getElementById('api-send').addEventListener('click', () => sendApiRequest(ep));
+}
+
+function sendApiRequest(ep) {
+  const btn = document.getElementById('api-send');
+  const respEl = document.getElementById('api-response');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  respEl.innerHTML = '<div class="api-loading"><div class="spinner"></div> Sending request...</div>';
+
+  const mock = mockResponse(ep.method, ep.path);
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = 'Send';
+    const statusClass = mock.status < 300 ? 'status-2xx' : mock.status < 500 ? 'status-4xx' : 'status-5xx';
+    respEl.innerHTML = `<div class="api-status">
+      <span class="api-status-badge ${statusClass}">${mock.status} ${mock.status < 300 ? 'OK' : mock.status < 500 ? 'Unauthorized' : 'Error'}</span>
+      <span class="api-response-time">${Math.floor(mock.delay)}ms</span>
+    </div>
+    <div class="api-response-body">${syntaxHighlightJSON(mock.body)}</div>`;
+  }, mock.delay);
+}
+
+// API sub-tabs
+document.querySelectorAll('.api-sub-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.api-sub-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.api-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('api-panel-' + btn.dataset.apiTab).classList.add('active');
+  });
+});
+
+// WebSocket tester
+const wsChannels = ['events', 'logs', 'metrics'];
+const wsChannelStates = {};
+const wsLog = document.getElementById('ws-log');
+const wsChannelsEl = document.getElementById('ws-channels');
+let wsIntervals = {};
+
+wsChannels.forEach(ch => {
+  wsChannelStates[ch] = false;
+  const btn = document.createElement('button');
+  btn.className = 'ws-channel-btn';
+  btn.textContent = ch;
+  btn.addEventListener('click', () => {
+    wsChannelStates[ch] = !wsChannelStates[ch];
+    btn.classList.toggle('subscribed', wsChannelStates[ch]);
+    btn.textContent = wsChannelStates[ch] ? `${ch} (subscribed)` : ch;
+    if (wsChannelStates[ch]) {
+      wsIntervals[ch] = setInterval(() => addWsMessage(ch), 2000 + Math.random() * 2000);
+    } else {
+      clearInterval(wsIntervals[ch]);
+    }
+  });
+  wsChannelsEl.appendChild(btn);
+});
+
+function addWsMessage(channel) {
+  const msgs = {
+    events: [
+      { type: 'process.cpu', data: { name: 'api-server', cpu: (Math.random()*10).toFixed(1) + '%' }},
+      { type: 'process.restart', data: { name: 'worker', pid: getPid() }},
+      { type: 'health.check', data: { name: 'api-server', healthy: true, latency: Math.floor(Math.random()*50) + 'ms' }},
+    ],
+    logs: [
+      { level: 'info', message: 'GET /api/products 200 ' + Math.floor(Math.random()*40) + 'ms' },
+      { level: 'warn', message: 'High memory usage: ' + (Math.random()*200+50).toFixed(0) + 'MB' },
+      { level: 'info', message: 'WebSocket client connected (total: ' + Math.floor(Math.random()*100) + ')' },
+    ],
+    metrics: [
+      { metric: 'cpu_percent', value: (Math.random()*15).toFixed(2), process: 'api-server' },
+      { metric: 'memory_bytes', value: Math.floor(Math.random()*100000000), process: 'worker' },
+      { metric: 'requests_per_second', value: Math.floor(Math.random()*500), process: 'api-server' },
+    ],
+  };
+  const msg = msgs[channel][Math.floor(Math.random()*msgs[channel].length)];
+  const now = new Date().toLocaleTimeString();
+  const div = document.createElement('div');
+  div.className = 'ws-msg';
+  div.innerHTML = `<span class="ws-msg-time">${now}</span> <span class="ws-msg-ch">[${channel}]</span> <span style="color:var(--text-secondary)">${escHtml(JSON.stringify(msg))}</span>`;
+  wsLog.appendChild(div);
+  wsLog.scrollTop = wsLog.scrollHeight;
+}
+
+// Webhook tester
+const whEvents = ['process.start','process.stop','process.crash','health.fail','health.recover','deploy.start','deploy.complete'];
+const whEventsEl = document.getElementById('wh-events');
+const whSelectedEvents = new Set(['process.crash','health.fail']);
+
+whEvents.forEach(ev => {
+  const label = document.createElement('label');
+  label.className = 'wh-event-check';
+  const checked = whSelectedEvents.has(ev) ? 'checked' : '';
+  label.innerHTML = `<input type="checkbox" ${checked} value="${ev}" /> ${ev}`;
+  label.querySelector('input').addEventListener('change', e => {
+    if (e.target.checked) whSelectedEvents.add(ev); else whSelectedEvents.delete(ev);
+  });
+  whEventsEl.appendChild(label);
+});
+
+document.getElementById('wh-trigger').addEventListener('click', () => {
+  const url = document.getElementById('wh-url').value;
+  const secret = document.getElementById('wh-secret').value;
+  const event = [...whSelectedEvents][0] || 'process.crash';
+  const timestamp = new Date().toISOString();
+  const payload = {
+    id: 'evt_' + Math.random().toString(36).slice(2,10),
+    type: event,
+    timestamp,
+    data: {
+      process: 'api-server',
+      pid: 12345,
+      exit_code: event.includes('crash') ? 1 : 0,
+      message: event.includes('crash') ? 'Process exited unexpectedly' : 'Health check passed',
+    }
+  };
+  const bodyStr = JSON.stringify(payload, null, 2);
+  const signature = 'sha256=' + simpleHash(secret + bodyStr);
+  const payloadEl = document.getElementById('wh-payload');
+  payloadEl.classList.remove('hidden');
+  payloadEl.innerHTML = `<div style="margin-bottom:8px"><span class="c-accent c-bold">POST</span> <span class="c-cyan">${escHtml(url)}</span></div>
+<div style="margin-bottom:8px;color:var(--text-muted)">Headers:</div>
+<div style="color:var(--text-secondary)">Content-Type: application/json
+X-Mhost-Signature: ${signature}
+X-Mhost-Event: ${event}
+X-Mhost-Delivery: ${payload.id}</div>
+<div style="margin-top:8px;margin-bottom:4px;color:var(--text-muted)">Body:</div>
+${syntaxHighlightJSON(bodyStr)}`;
+});
+
+function simpleHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + c;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(16).padStart(16, '0');
+}
+
+document.getElementById('wh-verify-btn').addEventListener('click', () => {
+  const secret = document.getElementById('wh-verify-secret').value;
+  const body = document.getElementById('wh-verify-body').value;
+  const result = document.getElementById('wh-verify-result');
+  result.classList.remove('hidden');
+  if (!body) {
+    result.innerHTML = '<span class="c-red">Please paste a request body to verify.</span>';
+    return;
+  }
+  const computed = 'sha256=' + simpleHash(secret + body);
+  result.innerHTML = `<span class="c-accent c-bold">Computed Signature:</span>\n<span class="c-white">${computed}</span>\n\n<span class="c-dim">Compare this with the X-Mhost-Signature header from the webhook delivery.</span>`;
+});
+
+
+// ═══════════════════════════════════════════════════════════════
+// TAB 3: CONFIG BUILDER
+// ═══════════════════════════════════════════════════════════════
+
+let configProcesses = [];
+let configGroups = [];
+let configIdCounter = 0;
+
+function newProcess(overrides) {
+  return {
+    id: configIdCounter++,
+    name: overrides?.name || 'app',
+    command: overrides?.command || 'node server.js',
+    instances: overrides?.instances || 1,
+    cwd: overrides?.cwd || '/home/deploy/app',
+    env: overrides?.env || [],
+    max_memory: overrides?.max_memory || '',
+    max_restarts: overrides?.max_restarts || 10,
+    health_check: overrides?.health_check || false,
+    health_type: overrides?.health_type || 'http',
+    health_url: overrides?.health_url || 'http://localhost:3000/health',
+    health_interval: overrides?.health_interval || '30s',
+    notify: overrides?.notify || false,
+    notify_channel: overrides?.notify_channel || 'telegram',
+    ...overrides,
+  };
+}
+
+function renderConfigProcesses() {
+  const container = document.getElementById('config-processes');
+  container.innerHTML = '';
+  configProcesses.forEach((proc, idx) => {
+    const card = document.createElement('div');
+    card.className = 'process-card';
+    card.innerHTML = `
+      <div class="process-card-header">
+        <span class="process-card-title">${escHtml(proc.name) || 'Unnamed'}</span>
+        <button class="process-card-remove" data-idx="${idx}" title="Remove">&times;</button>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Name</label><input type="text" value="${escHtml(proc.name)}" data-idx="${idx}" data-field="name" /></div>
+        <div class="field"><label>Command</label><input type="text" value="${escHtml(proc.command)}" data-idx="${idx}" data-field="command" /></div>
+        <div class="field"><label>Instances</label><input type="number" value="${proc.instances}" min="1" data-idx="${idx}" data-field="instances" /></div>
+        <div class="field"><label>CWD</label><input type="text" value="${escHtml(proc.cwd)}" data-idx="${idx}" data-field="cwd" /></div>
+        <div class="field"><label>Max Memory</label><input type="text" value="${escHtml(proc.max_memory)}" placeholder="e.g. 256M" data-idx="${idx}" data-field="max_memory" /></div>
+        <div class="field"><label>Max Restarts</label><input type="number" value="${proc.max_restarts}" min="0" data-idx="${idx}" data-field="max_restarts" /></div>
+      </div>
+      <div class="api-section-title" style="margin-top:12px;margin-bottom:4px">Environment Variables</div>
+      <div class="env-vars" data-idx="${idx}">
+        ${proc.env.map((e, ei) => `<div class="env-row"><input type="text" value="${escHtml(e.key)}" placeholder="KEY" data-idx="${idx}" data-ei="${ei}" data-efield="key"/><input type="text" value="${escHtml(e.value)}" placeholder="value" data-idx="${idx}" data-ei="${ei}" data-efield="value"/><button class="env-rm-btn" data-idx="${idx}" data-ei="${ei}">&times;</button></div>`).join('')}
+      </div>
+      <button class="env-add-btn" data-idx="${idx}" style="margin-top:4px">+ Add Env Var</button>
+      <div class="toggle-row"><input type="checkbox" ${proc.health_check ? 'checked' : ''} data-idx="${idx}" data-field="health_check" /> Health Check</div>
+      ${proc.health_check ? `<div class="toggle-fields"><div class="field-grid">
+        <div class="field"><label>Type</label><select data-idx="${idx}" data-field="health_type"><option value="http" ${proc.health_type==='http'?'selected':''}>HTTP</option><option value="tcp" ${proc.health_type==='tcp'?'selected':''}>TCP</option><option value="script" ${proc.health_type==='script'?'selected':''}>Script</option></select></div>
+        <div class="field"><label>URL / Port / Script</label><input type="text" value="${escHtml(proc.health_url)}" data-idx="${idx}" data-field="health_url" /></div>
+        <div class="field"><label>Interval</label><input type="text" value="${escHtml(proc.health_interval)}" data-idx="${idx}" data-field="health_interval" /></div>
+      </div></div>` : ''}
+      <div class="toggle-row"><input type="checkbox" ${proc.notify ? 'checked' : ''} data-idx="${idx}" data-field="notify" /> Notifications</div>
+      ${proc.notify ? `<div class="toggle-fields"><div class="field-grid">
+        <div class="field"><label>Channel</label><select data-idx="${idx}" data-field="notify_channel"><option value="telegram" ${proc.notify_channel==='telegram'?'selected':''}>Telegram</option><option value="slack" ${proc.notify_channel==='slack'?'selected':''}>Slack</option><option value="discord" ${proc.notify_channel==='discord'?'selected':''}>Discord</option></select></div>
+      </div></div>` : ''}
+    `;
+    container.appendChild(card);
+  });
+
+  // Wire up events via delegation
+  container.querySelectorAll('input[data-field],select[data-field]').forEach(el => {
+    const evt = el.type === 'checkbox' ? 'change' : 'input';
+    el.addEventListener(evt, () => {
+      const idx = parseInt(el.dataset.idx);
+      const field = el.dataset.field;
+      const val = el.type === 'checkbox' ? el.checked : el.type === 'number' ? parseInt(el.value) || 0 : el.value;
+      configProcesses = configProcesses.map((p, i) => i === idx ? { ...p, [field]: val } : p);
+      if (field === 'health_check' || field === 'notify') renderConfigProcesses();
+      updateTomlPreview();
+    });
+  });
+  container.querySelectorAll('input[data-efield]').forEach(el => {
+    el.addEventListener('input', () => {
+      const idx = parseInt(el.dataset.idx);
+      const ei = parseInt(el.dataset.ei);
+      const efield = el.dataset.efield;
+      configProcesses = configProcesses.map((p, i) => i === idx ? { ...p, env: p.env.map((e, j) => j === ei ? { ...e, [efield]: el.value } : e) } : p);
+      updateTomlPreview();
+    });
+  });
+  container.querySelectorAll('.process-card-remove').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      configProcesses = configProcesses.filter((_, i) => i !== idx);
+      renderConfigProcesses();
+      updateTomlPreview();
+    });
+  });
+  container.querySelectorAll('.env-add-btn').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      configProcesses = configProcesses.map((p, i) => i === idx ? { ...p, env: [...p.env, { key: '', value: '' }] } : p);
+      renderConfigProcesses();
+      updateTomlPreview();
+    });
+  });
+  container.querySelectorAll('.env-rm-btn').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      const ei = parseInt(el.dataset.ei);
+      configProcesses = configProcesses.map((p, i) => i === idx ? { ...p, env: p.env.filter((_, j) => j !== ei) } : p);
+      renderConfigProcesses();
+      updateTomlPreview();
+    });
+  });
+}
+
+function updateTomlPreview() {
+  const preview = document.getElementById('config-preview');
+  preview.innerHTML = syntaxHighlightTOML(generateToml());
+}
+
+function generateToml() {
+  let toml = '# mhost.toml — Generated by mhost Playground\n\n';
+  for (const proc of configProcesses) {
+    toml += `[process.${proc.name || 'unnamed'}]\n`;
+    toml += `command = "${proc.command}"\n`;
+    if (proc.instances > 1) toml += `instances = ${proc.instances}\n`;
+    if (proc.cwd) toml += `cwd = "${proc.cwd}"\n`;
+    if (proc.max_memory) toml += `max_memory = "${proc.max_memory}"\n`;
+    toml += `max_restarts = ${proc.max_restarts}\n`;
+    const envPairs = proc.env.filter(e => e.key);
+    if (envPairs.length > 0) {
+      toml += '\n[process.' + (proc.name || 'unnamed') + '.env]\n';
+      for (const e of envPairs) toml += `${e.key} = "${e.value}"\n`;
+    }
+    if (proc.health_check) {
+      toml += `\n[process.${proc.name || 'unnamed'}.health]\n`;
+      toml += `type = "${proc.health_type}"\n`;
+      toml += `${proc.health_type === 'http' ? 'url' : proc.health_type === 'tcp' ? 'port' : 'script'} = "${proc.health_url}"\n`;
+      toml += `interval = "${proc.health_interval}"\n`;
+    }
+    if (proc.notify) {
+      toml += `\n[process.${proc.name || 'unnamed'}.notify]\n`;
+      toml += `channel = "${proc.notify_channel}"\n`;
+      toml += `on = ["crash", "restart", "health_fail"]\n`;
+    }
+    toml += '\n';
+  }
+  for (const grp of configGroups) {
+    toml += `[group.${grp.name || 'unnamed'}]\n`;
+    toml += `processes = [${grp.processes.map(p => '"' + p + '"').join(', ')}]\n`;
+    if (grp.depends_on) toml += `depends_on = [${grp.depends_on.map(d => '"' + d + '"').join(', ')}]\n`;
+    toml += '\n';
+  }
+  return toml;
+}
+
+function syntaxHighlightTOML(toml) {
+  return toml.split('\n').map(line => {
+    if (line.startsWith('#')) return `<span class="toml-comment">${escHtml(line)}</span>`;
+    if (line.match(/^\[.+\]$/)) return `<span class="toml-section">${escHtml(line)}</span>`;
+    if (line.includes(' = ')) {
+      const [key, ...rest] = line.split(' = ');
+      const val = rest.join(' = ');
+      const hVal = val.startsWith('"') ? `<span class="toml-string">${escHtml(val)}</span>` :
+        val.match(/^\d+$/) ? `<span class="toml-number">${val}</span>` :
+        val.startsWith('[') ? escHtml(val).replace(/"[^"]*"/g, m => `<span class="toml-string">${m}</span>`) :
+        (val === 'true' || val === 'false') ? `<span class="toml-bool">${val}</span>` :
+        escHtml(val);
+      return `<span class="toml-key">${escHtml(key)}</span> = ${hVal}`;
+    }
+    return escHtml(line);
+  }).join('\n');
+}
+
+// Templates
+const templates = {
+  simple: [newProcess({ name: 'api', command: 'node server.js', cwd: '/home/deploy/api', env: [{ key: 'NODE_ENV', value: 'production' }, { key: 'PORT', value: '3000' }], max_memory: '256M', health_check: true, health_url: 'http://localhost:3000/health' })],
+  fullstack: [
+    newProcess({ name: 'api', command: 'node server.js', instances: 2, cwd: '/home/deploy/api', env: [{ key: 'NODE_ENV', value: 'production' }, { key: 'PORT', value: '3000' }], max_memory: '256M', health_check: true, health_url: 'http://localhost:3000/health', notify: true, notify_channel: 'telegram' }),
+    newProcess({ name: 'worker', command: 'python3 worker.py', cwd: '/home/deploy/worker', env: [{ key: 'REDIS_URL', value: 'redis://localhost:6379' }], max_memory: '128M' }),
+    newProcess({ name: 'frontend', command: 'npx serve -s build -l 8080', cwd: '/home/deploy/frontend' }),
+  ],
+  micro: [
+    newProcess({ name: 'gateway', command: 'node gateway.js', cwd: '/home/deploy/gateway', env: [{ key: 'PORT', value: '8000' }], max_memory: '128M', health_check: true, health_url: 'http://localhost:8000/health' }),
+    newProcess({ name: 'auth-svc', command: 'go run main.go', cwd: '/home/deploy/auth', env: [{ key: 'PORT', value: '8001' }], max_memory: '64M', health_check: true, health_type: 'tcp', health_url: '8001' }),
+    newProcess({ name: 'user-svc', command: 'python3 -m uvicorn main:app --port 8002', cwd: '/home/deploy/users', instances: 2, max_memory: '128M' }),
+    newProcess({ name: 'order-svc', command: 'node order.js', cwd: '/home/deploy/orders', env: [{ key: 'PORT', value: '8003' }], max_memory: '128M' }),
+    newProcess({ name: 'notification-svc', command: 'node notify.js', cwd: '/home/deploy/notifications', max_memory: '64M', notify: true, notify_channel: 'slack' }),
+  ],
+};
+
+document.querySelectorAll('.config-tpl-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.config-tpl-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    configProcesses = templates[btn.dataset.tpl].map(p => ({ ...p, id: configIdCounter++ }));
+    configGroups = [];
+    renderConfigProcesses();
+    renderConfigGroups();
+    updateTomlPreview();
+  });
+});
+
+document.getElementById('add-process-btn').addEventListener('click', () => {
+  configProcesses = [...configProcesses, newProcess({ name: 'process-' + configProcesses.length })];
+  renderConfigProcesses();
+  updateTomlPreview();
+});
+
+function renderConfigGroups() {
+  const container = document.getElementById('config-groups');
+  container.innerHTML = '';
+  configGroups.forEach((grp, idx) => {
+    const card = document.createElement('div');
+    card.className = 'process-card';
+    card.innerHTML = `
+      <div class="process-card-header">
+        <span class="process-card-title">Group: ${escHtml(grp.name)}</span>
+        <button class="process-card-remove" data-gidx="${idx}">&times;</button>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Name</label><input type="text" value="${escHtml(grp.name)}" data-gidx="${idx}" data-gfield="name" /></div>
+        <div class="field"><label>Processes (comma-sep)</label><input type="text" value="${grp.processes.join(', ')}" data-gidx="${idx}" data-gfield="processes" /></div>
+        <div class="field"><label>Depends On (comma-sep)</label><input type="text" value="${(grp.depends_on||[]).join(', ')}" data-gidx="${idx}" data-gfield="depends_on" /></div>
+      </div>`;
+    container.appendChild(card);
+    card.querySelectorAll('input[data-gfield]').forEach(el => {
+      el.addEventListener('input', () => {
+        const i = parseInt(el.dataset.gidx);
+        const f = el.dataset.gfield;
+        const val = f === 'name' ? el.value : el.value.split(',').map(s => s.trim()).filter(Boolean);
+        configGroups = configGroups.map((g, gi) => gi === i ? { ...g, [f]: val } : g);
+        updateTomlPreview();
+      });
+    });
+    card.querySelector('.process-card-remove').addEventListener('click', () => {
+      configGroups = configGroups.filter((_, gi) => gi !== idx);
+      renderConfigGroups();
+      updateTomlPreview();
+    });
+  });
+}
+
+document.getElementById('add-group-btn').addEventListener('click', () => {
+  configGroups = [...configGroups, { name: 'group-' + configGroups.length, processes: [], depends_on: [] }];
+  renderConfigGroups();
+  updateTomlPreview();
+});
+
+document.getElementById('config-copy').addEventListener('click', () => {
+  navigator.clipboard.writeText(generateToml());
+  const btn = document.getElementById('config-copy');
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 1500);
+});
+
+document.getElementById('config-download').addEventListener('click', () => {
+  const blob = new Blob([generateToml()], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mhost.toml';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// Init with simple template
+configProcesses = templates.simple.map(p => ({ ...p, id: configIdCounter++ }));
+renderConfigProcesses();
+updateTomlPreview();
+
+
+// ═══════════════════════════════════════════════════════════════
+// TAB 4: ARCHITECTURE VISUALIZER
+// ═══════════════════════════════════════════════════════════════
+
+const archNodes = [
+  { id: 'cli', label: 'CLI', icon: '>', layer: 'cli', desc: 'Command-line interface for all mhost operations. Communicates with the daemon via Unix socket or TCP.', x: 50, y: 40 },
+  { id: 'daemon', label: 'Daemon', icon: 'D', layer: 'core', desc: 'Background daemon that manages all processes. Runs as a system service with auto-restart.', x: 250, y: 40 },
+  { id: 'supervisor', label: 'Supervisor', icon: 'S', layer: 'core', desc: 'Process supervisor with restart policies, graceful shutdown, and signal forwarding.', x: 250, y: 140 },
+  { id: 'health', label: 'Health Probes', icon: '+', layer: 'core', desc: 'HTTP, TCP, and script-based health checks with configurable intervals and thresholds.', x: 450, y: 40 },
+  { id: 'logengine', label: 'Log Engine', icon: 'L', layer: 'core', desc: 'Structured log collection, rotation, and real-time streaming via WebSocket.', x: 450, y: 140 },
+  { id: 'metrics', label: 'Metrics', icon: 'M', layer: 'integration', desc: 'Prometheus-compatible metrics endpoint. CPU, memory, request rates, and custom gauges.', x: 650, y: 40 },
+  { id: 'notify', label: 'Notifications', icon: 'N', layer: 'integration', desc: '8 notification channels: Telegram, Slack, Discord, email, PagerDuty, Opsgenie, webhook, Gotify.', x: 650, y: 140 },
+  { id: 'proxy', label: 'Proxy', icon: 'P', layer: 'integration', desc: 'Built-in reverse proxy with auto-TLS, load balancing, and WebSocket support.', x: 650, y: 240 },
+  { id: 'api', label: 'API Server', icon: 'A', layer: 'integration', desc: 'REST API + WebSocket server for external integrations. Bearer token auth, HMAC webhooks.', x: 450, y: 240 },
+  { id: 'ai', label: 'AI Engine', icon: '*', layer: 'ai', desc: 'AI-powered diagnostics, config generation, anomaly detection, and natural language queries.', x: 50, y: 240 },
+  { id: 'agent', label: 'Agent', icon: '@', layer: 'ai', desc: 'Autonomous AI agent that monitors 24/7. Auto-scales, restarts, and alerts via Telegram.', x: 50, y: 140 },
+  { id: 'brain', label: 'Brain', icon: 'B', layer: 'ai', desc: 'Persistent memory and self-healing playbooks. Learns from every incident and improves over time.', x: 250, y: 240 },
+  { id: 'cloud', label: 'Cloud', icon: 'C', layer: 'integration', desc: 'Multi-cloud fleet management. SSH-based deployment to EC2, Azure, DigitalOcean, and more.', x: 450, y: 340 },
+  { id: 'bot', label: 'Bot', icon: 'T', layer: 'integration', desc: 'Telegram bot for remote management. Send commands, get alerts, view status from your phone.', x: 250, y: 340 },
+];
+
+const archEdges = [
+  ['cli', 'daemon'], ['daemon', 'supervisor'], ['supervisor', 'health'],
+  ['supervisor', 'logengine'], ['daemon', 'api'], ['api', 'metrics'],
+  ['api', 'notify'], ['api', 'proxy'], ['daemon', 'brain'],
+  ['brain', 'ai'], ['brain', 'agent'], ['agent', 'daemon'],
+  ['ai', 'daemon'], ['notify', 'bot'], ['api', 'cloud'],
+  ['health', 'notify'], ['logengine', 'metrics'],
+];
+
+function buildArchitecture() {
+  const canvas = document.getElementById('arch-canvas');
+  // Remove old nodes
+  canvas.querySelectorAll('.arch-node').forEach(n => n.remove());
+
+  archNodes.forEach(node => {
+    const el = document.createElement('div');
+    el.className = `arch-node arch-layer-${node.layer}`;
+    el.id = 'arch-' + node.id;
+    el.dataset.id = node.id;
+    el.style.left = node.x + 'px';
+    el.style.top = node.y + 'px';
+    el.innerHTML = `<div class="arch-node-icon">${node.icon}</div><div class="arch-node-label">${node.label}</div>`;
+    el.addEventListener('click', () => selectArchNode(node));
+    canvas.appendChild(el);
+  });
+}
+
+let selectedArchNode = null;
+
+function selectArchNode(node) {
+  const connected = new Set();
+  archEdges.forEach(([a, b]) => {
+    if (a === node.id) connected.add(b);
+    if (b === node.id) connected.add(a);
+  });
+  connected.add(node.id);
+
+  document.querySelectorAll('.arch-node').forEach(el => {
+    const id = el.dataset.id;
+    el.classList.toggle('highlight', id === node.id);
+    el.classList.toggle('dimmed', !connected.has(id));
+  });
+
+  const desc = document.getElementById('arch-desc');
+  document.getElementById('arch-desc-title').textContent = node.label;
+  document.getElementById('arch-desc-text').textContent = node.desc;
+  desc.classList.add('show');
+  selectedArchNode = node.id;
+
+  drawArchLines();
+}
+
+function drawArchLines() {
+  const svg = document.getElementById('arch-lines');
+  const canvas = document.getElementById('arch-canvas');
+  const rect = canvas.getBoundingClientRect();
+  svg.innerHTML = '';
+
+  archEdges.forEach(([aId, bId]) => {
+    const aEl = document.getElementById('arch-' + aId);
+    const bEl = document.getElementById('arch-' + bId);
+    if (!aEl || !bEl) return;
+
+    const aRect = aEl.getBoundingClientRect();
+    const bRect = bEl.getBoundingClientRect();
+    const x1 = aRect.left - rect.left + aRect.width / 2;
+    const y1 = aRect.top - rect.top + aRect.height / 2;
+    const x2 = bRect.left - rect.left + bRect.width / 2;
+    const y2 = bRect.top - rect.top + bRect.height / 2;
+
+    let color = 'rgba(139,92,246,0.3)';
+    if (selectedArchNode) {
+      if (aId === selectedArchNode || bId === selectedArchNode) color = 'rgba(139,92,246,0.7)';
+      else color = 'rgba(255,255,255,0.04)';
+    }
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.setAttribute('stroke', color);
+    line.classList.add('arch-line');
+    svg.appendChild(line);
+  });
+}
+
+buildArchitecture();
+window.addEventListener('resize', drawArchLines);
+
+// Click canvas background to deselect
+document.getElementById('arch-canvas').addEventListener('click', (e) => {
+  if (e.target.id === 'arch-canvas' || e.target.tagName === 'svg') {
+    selectedArchNode = null;
+    document.querySelectorAll('.arch-node').forEach(el => {
+      el.classList.remove('highlight', 'dimmed');
+    });
+    document.getElementById('arch-desc').classList.remove('show');
+    drawArchLines();
+  }
+});
+
+
+// ═══════════════════════════════════════════════════════════════
+// TAB 5: MIGRATION TOOL
+// ═══════════════════════════════════════════════════════════════
+
+const defaultPm2Config = `module.exports = {
+  apps: [
+    {
+      name: "api-server",
+      script: "server.js",
+      instances: 2,
+      exec_mode: "cluster",
+      max_memory_restart: "300M",
+      cwd: "/home/deploy/api",
+      watch: true,
+      env: {
+        NODE_ENV: "production",
+        PORT: 3000
+      }
+    },
+    {
+      name: "worker",
+      script: "worker.py",
+      interpreter: "python3",
+      instances: 1,
+      max_memory_restart: "200M",
+      cwd: "/home/deploy/worker",
+      cron_restart: "0 */6 * * *",
+      env: {
+        REDIS_URL: "redis://localhost:6379"
+      }
+    },
+    {
+      name: "scheduler",
+      script: "cron.js",
+      instances: 1,
+      cwd: "/home/deploy/scheduler",
+      watch: false,
+      env: {
+        NODE_ENV: "production"
+      }
+    }
+  ]
+};`;
+
+document.getElementById('pm2-input').value = defaultPm2Config;
+
+document.getElementById('migrate-btn').addEventListener('click', convertPm2);
+
+function convertPm2() {
+  const input = document.getElementById('pm2-input').value;
+  let apps;
+  try {
+    let src = input.trim();
+    // Strip module.exports =
+    src = src.replace(/^module\.exports\s*=\s*/, '');
+    // Strip trailing semicolons
+    src = src.replace(/;\s*$/, '');
+    // Safely evaluate JS object literal using Function constructor
+    // This handles unquoted keys, trailing commas, template literals, numbers, etc.
+    const parsed = (new Function('return (' + src + ')'))();
+    apps = parsed.apps || (Array.isArray(parsed) ? parsed : [parsed]);
+  } catch (e) {
+    document.getElementById('migrate-output').innerHTML = `<span class="c-red">Failed to parse PM2 config. Please check the format.</span>\n<span class="c-dim">${escHtml(e.message)}</span>`;
+    return;
+  }
+
+  let toml = '# mhost.toml — Converted from PM2 ecosystem.config.js\n# Generated by mhost Migration Tool\n\n';
+  for (const app of apps) {
+    const name = app.name || 'app';
+    let cmd = app.script || 'node app.js';
+    if (app.interpreter && app.interpreter !== 'node') cmd = app.interpreter + ' ' + cmd;
+    toml += `[process.${name}]\n`;
+    toml += `command = "${cmd}"\n`;
+    if (app.instances && app.instances > 1) toml += `instances = ${app.instances}\n`;
+    if (app.cwd) toml += `cwd = "${app.cwd}"\n`;
+    if (app.max_memory_restart) toml += `max_memory = "${app.max_memory_restart}"\n`;
+    if (app.cron_restart) toml += `cron_restart = "${app.cron_restart}"\n`;
+    if (app.watch) toml += `# watch = true  (mhost uses health checks instead)\n`;
+    if (app.env && Object.keys(app.env).length > 0) {
+      toml += `\n[process.${name}.env]\n`;
+      for (const [k, v] of Object.entries(app.env)) {
+        toml += `${k} = "${v}"\n`;
+      }
+    }
+    toml += '\n';
+  }
+
+  document.getElementById('migrate-output').innerHTML = syntaxHighlightTOML(toml);
+
+  // Show diff
+  const diffEl = document.getElementById('migrate-diff');
+  diffEl.classList.remove('hidden');
+  const diffItems = document.getElementById('migrate-diff-items');
+  const gains = [
+    'Built-in HTTP/TCP/Script health checks',
+    'Process groups with dependency ordering',
+    'Telegram, Slack, Discord notifications',
+    'Prometheus metrics endpoint',
+    'Built-in reverse proxy with auto-TLS',
+    'AI-powered crash diagnostics',
+    'Autonomous self-healing agent',
+    'REST API + WebSocket for integrations',
+    'No Node.js runtime required (single binary)',
+  ];
+  diffItems.innerHTML = gains.map(g => `<div class="migration-diff-item"><span class="check">&#10003;</span> ${g}</div>`).join('');
+}
+
+document.getElementById('migrate-copy').addEventListener('click', () => {
+  const text = document.getElementById('migrate-output').textContent;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('migrate-copy');
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 1500);
+});
+
+document.getElementById('migrate-download').addEventListener('click', () => {
+  const text = document.getElementById('migrate-output').textContent;
+  if (!text) return;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mhost.toml';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// Auto-convert on load
+convertPm2();
+</script>
+</body>
+</html>
