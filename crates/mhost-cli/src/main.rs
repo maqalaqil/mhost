@@ -3,6 +3,7 @@ mod commands;
 mod daemon_launcher;
 pub mod embedded;
 mod output;
+pub mod resolve;
 
 use clap::Parser;
 use mhost_core::paths::MhostPaths;
@@ -186,7 +187,8 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         Commands::Reload { target } => {
             daemon_launcher::ensure_daemon_running(paths)?;
             let client = IpcClient::new(&paths.socket());
-            commands::reload::run(&client, &target).await
+            let name = resolve::resolve_target(&client, &target).await?;
+            commands::reload::run(&client, &name).await
         }
 
         // ---- Commands that require a running daemon ----------------------
@@ -219,23 +221,46 @@ async fn dispatch_daemon(
             if let Some(ref g) = group {
                 commands::group::stop(client, g).await
             } else {
-                commands::stop::run(client, &target).await
+                let name = resolve::resolve_target(client, &target).await?;
+                commands::stop::run(client, &name).await
             }
         }
-        Commands::Restart { target } => commands::restart::run(client, &target).await,
-        Commands::Delete { target } => commands::delete::run(client, &target).await,
+        Commands::Restart { target } => {
+            let name = resolve::resolve_target(client, &target).await?;
+            commands::restart::run(client, &name).await
+        }
+        Commands::Delete { target } => {
+            let name = resolve::resolve_target(client, &target).await?;
+            commands::delete::run(client, &name).await
+        }
         Commands::List => commands::list::run(client).await,
-        Commands::Info { name } => commands::info::run(client, &name).await,
-        Commands::Env { name } => commands::env_cmd::run(client, &name).await,
-        Commands::Scale { name, instances } => commands::scale::run(client, &name, instances).await,
+        Commands::Info { name } => {
+            let resolved = resolve::resolve_target(client, &name).await?;
+            commands::info::run(client, &resolved).await
+        }
+        Commands::Env { name } => {
+            let resolved = resolve::resolve_target(client, &name).await?;
+            commands::env_cmd::run(client, &resolved).await
+        }
+        Commands::Scale { name, instances } => {
+            let resolved = resolve::resolve_target(client, &name).await?;
+            commands::scale::run(client, &resolved, instances).await
+        }
         Commands::Save => commands::save::run(client).await,
         Commands::Resurrect => commands::resurrect::run(client).await,
         Commands::Ping => commands::ping::run(client).await,
         Commands::Kill => commands::kill::run(client).await,
-        Commands::Config { name } => commands::config_cmd::run(client, &name).await,
-        Commands::Health { name } => commands::health::run(client, &name).await,
+        Commands::Config { name } => {
+            let resolved = resolve::resolve_target(client, &name).await?;
+            commands::config_cmd::run(client, &resolved).await
+        }
+        Commands::Health { name } => {
+            let resolved = resolve::resolve_target(client, &name).await?;
+            commands::health::run(client, &resolved).await
+        }
         Commands::Cluster { name, instances } => {
-            commands::cluster::run(client, &name, instances).await
+            let resolved = resolve::resolve_target(client, &name).await?;
+            commands::cluster::run(client, &resolved, instances).await
         }
 
         Commands::Metrics { action } => match action {
