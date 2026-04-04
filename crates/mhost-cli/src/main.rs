@@ -11,7 +11,7 @@ use mhost_ipc::IpcClient;
 
 use cli::{
     AgentAction, AiAction, BotAction, BrainAction, Cli, CloudAction, Commands, MetricsAction,
-    NotifyAction,
+    NotifyAction, SnapshotAction,
 };
 
 // Bring new top-level commands into scope for the dispatch match
@@ -213,6 +213,17 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         // ---- Playground (non-daemon, stub) --------------------------------
         Commands::Playground => commands::playground::run(),
 
+        // ---- Run recipe (non-daemon, shell out) ---------------------------
+        Commands::Run { file } => commands::recipe::run(&file),
+
+        // ---- Diff (non-daemon, reads fleet.json) --------------------------
+        Commands::Diff { env_a, env_b } => commands::diff::run(paths, &env_a, &env_b),
+
+        // ---- Snapshot list (non-daemon, reads files) ----------------------
+        Commands::Snapshot {
+            action: SnapshotAction::List,
+        } => commands::snapshot::list(paths),
+
         // ---- Reload (needs daemon) ----------------------------------------
         Commands::Reload { target } => {
             daemon_launcher::ensure_daemon_running(paths)?;
@@ -328,6 +339,24 @@ async fn dispatch_daemon(
         Commands::Rollback { env } => commands::rollback::run(client, &env).await,
         Commands::Proxy => commands::proxy_cmd::run(client).await,
 
+        // ---- Canary (needs daemon) ----------------------------------------
+        Commands::Canary {
+            app,
+            percent,
+            duration,
+        } => commands::canary::run(client, &app, percent, duration).await,
+
+        // ---- Share (needs daemon to detect port) --------------------------
+        Commands::Share { app, port } => commands::share::run(client, &app, port).await,
+
+        // ---- Snapshot create / restore (need daemon) ----------------------
+        Commands::Snapshot {
+            action: SnapshotAction::Create { name },
+        } => commands::snapshot::create(client, _paths, &name).await,
+        Commands::Snapshot {
+            action: SnapshotAction::Restore { name },
+        } => commands::snapshot::restore(client, _paths, &name).await,
+
         // These are handled earlier; this arm is unreachable.
         Commands::Startup
         | Commands::Unstartup
@@ -350,7 +379,12 @@ async fn dispatch_daemon(
         | Commands::Sla { .. }
         | Commands::Migrate { .. }
         | Commands::Team
-        | Commands::Playground => unreachable!(),
+        | Commands::Playground
+        | Commands::Run { .. }
+        | Commands::Diff { .. }
+        | Commands::Snapshot {
+            action: SnapshotAction::List,
+        } => unreachable!(),
     }
 }
 
