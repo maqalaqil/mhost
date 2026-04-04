@@ -252,8 +252,8 @@ pub async fn run_chat_id(token: &str) -> Result<(), String> {
         } else {
             for (id, name) in &found {
                 println!("  ╔══════════════════════════════════════╗");
-                println!("  ║  User: {:<29}║", name);
-                println!("  ║  Chat ID: {:<27}║", id);
+                println!("  ║  User: {name:<29}║");
+                println!("  ║  Chat ID: {id:<27}║");
                 println!("  ╚══════════════════════════════════════╝");
             }
             println!();

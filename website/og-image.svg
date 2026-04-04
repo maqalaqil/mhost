@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a14"/>
+      <stop offset="100%" stop-color="#12121e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#06d6a0"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.03" stroke="white" stroke-width="1">
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(100)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(200)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(300)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(400)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(500)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(600)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(700)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(800)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(900)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(1000)"/>
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(1100)"/>
+    <line x1="0" y1="0" x2="1200" y2="0" transform="translate(0,100)"/>
+    <line x1="0" y1="0" x2="1200" y2="0" transform="translate(0,200)"/>
+    <line x1="0" y1="0" x2="1200" y2="0" transform="translate(0,300)"/>
+    <line x1="0" y1="0" x2="1200" y2="0" transform="translate(0,400)"/>
+    <line x1="0" y1="0" x2="1200" y2="0" transform="translate(0,500)"/>
+  </g>
+
+  <!-- Glow orb -->
+  <circle cx="900" cy="300" r="250" fill="#8b5cf6" opacity="0.06"/>
+  <circle cx="300" cy="400" r="200" fill="#06d6a0" opacity="0.04"/>
+
+  <!-- Shield logo (large) -->
+  <g transform="translate(80, 180) scale(3.5)">
+    <path d="M8 8 L20 4 L32 8 L32 22 C32 28 20 34 20 34 C20 34 8 28 8 22 Z"
+          stroke="url(#shieldGrad)" stroke-width="2" fill="none"/>
+    <polyline points="4,19 12,19 15,12 18,26 21,16 24,19 36,19"
+             stroke="#06d6a0" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Title -->
+  <text x="240" y="260" font-family="Inter, -apple-system, sans-serif" font-size="72" font-weight="800" fill="#fafafa" letter-spacing="-2">mhost</text>
+
+  <!-- Subtitle -->
+  <text x="240" y="320" font-family="Inter, -apple-system, sans-serif" font-size="28" fill="#a1a1aa" letter-spacing="-0.5">AI-Powered Process Manager</text>
+
+  <!-- Tagline -->
+  <text x="240" y="370" font-family="Inter, -apple-system, sans-serif" font-size="20" fill="#71717a">Single binary. Zero dependencies. Written in Rust.</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(240, 410)">
+    <rect x="0" y="0" width="130" height="36" rx="18" fill="#8b5cf6" opacity="0.15" stroke="#8b5cf6" stroke-width="1" opacity="0.3"/>
+    <text x="65" y="23" font-family="Inter, sans-serif" font-size="14" fill="#a78bfa" text-anchor="middle" font-weight="600">AI Agent</text>
+
+    <rect x="145" y="0" width="140" height="36" rx="18" fill="#06d6a0" opacity="0.15" stroke="#06d6a0" stroke-width="1" opacity="0.3"/>
+    <text x="215" y="23" font-family="Inter, sans-serif" font-size="14" fill="#06d6a0" text-anchor="middle" font-weight="600">Self-Healing</text>
+
+    <rect x="300" y="0" width="130" height="36" rx="18" fill="#8b5cf6" opacity="0.15" stroke="#8b5cf6" stroke-width="1" opacity="0.3"/>
+    <text x="365" y="23" font-family="Inter, sans-serif" font-size="14" fill="#a78bfa" text-anchor="middle" font-weight="600">Cloud Fleet</text>
+
+    <rect x="445" y="0" width="120" height="36" rx="18" fill="#06d6a0" opacity="0.15" stroke="#06d6a0" stroke-width="1" opacity="0.3"/>
+    <text x="505" y="23" font-family="Inter, sans-serif" font-size="14" fill="#06d6a0" text-anchor="middle" font-weight="600">Dashboard</text>
+  </g>
+
+  <!-- URL -->
+  <text x="240" y="520" font-family="JetBrains Mono, monospace" font-size="18" fill="#71717a">mhostai.com</text>
+
+  <!-- Terminal preview -->
+  <g transform="translate(720, 160)">
+    <rect x="0" y="0" width="420" height="300" rx="12" fill="#12121e" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    <!-- Title bar -->
+    <rect x="0" y="0" width="420" height="36" rx="12" fill="#1a1a28"/>
+    <rect x="0" y="24" width="420" height="12" fill="#1a1a28"/>
+    <circle cx="16" cy="18" r="5" fill="#ef4444"/>
+    <circle cx="32" cy="18" r="5" fill="#eab308"/>
+    <circle cx="48" cy="18" r="5" fill="#22c55e"/>
+    <!-- Terminal lines -->
+    <text x="16" y="65" font-family="JetBrains Mono, monospace" font-size="13" fill="#06d6a0">$</text>
+    <text x="30" y="65" font-family="JetBrains Mono, monospace" font-size="13" fill="#fafafa">mhost list</text>
+    <text x="16" y="100" font-family="JetBrains Mono, monospace" font-size="11" fill="#71717a">ID   Name            Status</text>
+    <text x="16" y="120" font-family="JetBrains Mono, monospace" font-size="11" fill="#fafafa">0    api-server</text>
+    <text x="215" y="120" font-family="JetBrains Mono, monospace" font-size="11" fill="#10b981">● online</text>
+    <text x="16" y="140" font-family="JetBrains Mono, monospace" font-size="11" fill="#fafafa">1    worker</text>
+    <text x="215" y="140" font-family="JetBrains Mono, monospace" font-size="11" fill="#10b981">● online</text>
+    <text x="16" y="160" font-family="JetBrains Mono, monospace" font-size="11" fill="#fafafa">2    monitor</text>
+    <text x="215" y="160" font-family="JetBrains Mono, monospace" font-size="11" fill="#10b981">● online</text>
+    <text x="16" y="195" font-family="JetBrains Mono, monospace" font-size="13" fill="#06d6a0">$</text>
+    <text x="30" y="195" font-family="JetBrains Mono, monospace" font-size="13" fill="#fafafa">mhost ai diagnose api</text>
+    <text x="16" y="225" font-family="JetBrains Mono, monospace" font-size="11" fill="#a78bfa">Root Cause:</text>
+    <text x="110" y="225" font-family="JetBrains Mono, monospace" font-size="11" fill="#a1a1aa">Pool exhausted</text>
+    <text x="16" y="245" font-family="JetBrains Mono, monospace" font-size="11" fill="#06d6a0">Fix:</text>
+    <text x="60" y="245" font-family="JetBrains Mono, monospace" font-size="11" fill="#a1a1aa">Increase pool_size</text>
+  </g>
+
+  <!-- Border -->
+  <rect x="0" y="0" width="1200" height="630" rx="0" fill="none" stroke="rgba(139,92,246,0.1)" stroke-width="2"/>
+</svg>
