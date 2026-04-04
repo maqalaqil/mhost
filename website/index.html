@@ -67,6 +67,111 @@
 <meta name="apple-mobile-web-app-title" content="mhost">
 <meta name="application-name" content="mhost">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9881;</text></svg>">
+<link rel="sitemap" type="application/xml" href="/sitemap.xml">
+
+<!-- ─── FAQ Schema (helps Google show Q&A in search) ───────── -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is mhost?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "mhost is an AI-powered process manager written in Rust. It's a PM2 replacement with built-in health probes, notifications (Telegram, Slack, Discord), Prometheus metrics, reverse proxy, deploy engine, cloud fleet management, and an autonomous AI agent. Single binary, zero dependencies."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install mhost?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Install via Homebrew (brew install maqalaqil/tap/mhost), npm (npm install -g @maqalaqil93/mhost), Cargo (cargo install mhost), or curl (curl -fsSL mhostai.com/install.sh | sh). It works on macOS, Linux, and Windows."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is mhost different from PM2?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unlike PM2, mhost requires no Node.js runtime (single 14MB Rust binary), has built-in health probes (HTTP/TCP/script), 8 notification channels, Prometheus metrics, a reverse proxy with auto-TLS, a deploy engine with rollback, cloud fleet management via SSH, an autonomous AI agent with self-healing brain, and a web dashboard."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does mhost have AI features?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. mhost has 10 AI commands (diagnose, optimize, config generation, postmortem, anomaly detection, natural language log queries), an autonomous agent that monitors 24/7 via Telegram, and a self-healing brain with persistent memory that learns from every incident."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can mhost manage processes on remote servers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. mhost cloud lets you manage processes across EC2, Azure, DigitalOcean, Railway, and any SSH-accessible server. Auto-import servers from cloud providers, deploy configs remotely, stream logs, and run fleet-wide operations."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is mhost free and open source?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. mhost is free, open source, and licensed under MIT. The source code is available on GitHub at github.com/maqalaqil/mhost."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- ─── HowTo Schema (helps Google show step-by-step) ──────── -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to manage processes with mhost",
+  "description": "Get started with mhost in 3 steps — install, start processes, and monitor.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "Install mhost",
+      "text": "Install with: curl -fsSL mhostai.com/install.sh | sh"
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Start your processes",
+      "text": "Run: mhost start server.js — auto-detects Node.js and starts the process."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Monitor with dashboard",
+      "text": "Run: mhost dashboard — opens a real-time web UI showing all processes, logs, and metrics."
+    }
+  ]
+}
+</script>
+
+<!-- ─── Organization Schema ────────────────────────────────── -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "mhost",
+  "url": "https://mhostai.com",
+  "logo": "https://mhostai.com/og-image.png",
+  "sameAs": [
+    "https://github.com/maqalaqil/mhost",
+    "https://www.npmjs.com/package/@maqalaqil93/mhost"
+  ]
+}
+</script>
+
+<!-- ─── Preconnect for performance ─────────────────────────── -->
+<link rel="preconnect" href="https://api.github.com">
+<link rel="dns-prefetch" href="https://api.github.com">
 
 <style>
 /* ─── Reset + Base ─────────────────────────────────────────── */

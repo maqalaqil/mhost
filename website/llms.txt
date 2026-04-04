@@ -1,0 +1,50 @@
+# mhost — AI-Powered Process Manager
+
+> mhost is a process manager written in Rust that replaces PM2. Single binary, zero dependencies, cross-platform.
+
+## Key Facts
+- Language: Rust
+- License: MIT (free, open source)
+- Platforms: macOS, Linux, Windows
+- Install: npm, Homebrew, Cargo, curl, Docker
+- Website: https://mhostai.com
+- GitHub: https://github.com/maqalaqil/mhost
+- npm: @maqalaqil93/mhost
+
+## What It Does
+- Process management: start, stop, restart, scale, cluster
+- Health probes: HTTP, TCP, script-based
+- Notifications: Telegram, Slack, Discord, Email, PagerDuty, Teams, Ntfy, Webhook
+- Log engine: FTS5 full-text search, JSON auto-parsing, 4 external sinks
+- Metrics: Prometheus export, alerts, auto-remediation
+- Reverse proxy: HTTP/HTTPS, auto-TLS, load balancing
+- Deploy engine: git pull, hooks, rollback
+- AI: 10 commands (diagnose, optimize, config generation, log queries, postmortem)
+- Autonomous agent: monitors 24/7, communicates via Telegram, 3 autonomy levels
+- Self-healing brain: persistent memory, 8 playbooks, health scores, auto-learning
+- Cloud fleet: manage EC2, Azure, DigitalOcean, Railway via SSH
+- Chat bot: Telegram/Discord control with role-based permissions
+- Web dashboard: real-time browser UI
+- TUI: terminal dashboard with sparklines
+- Dev mode: file watcher, auto-restart, .env loading
+
+## Install
+```
+curl -fsSL mhostai.com/install.sh | sh
+npm install -g @maqalaqil93/mhost
+brew install maqalaqil/tap/mhost
+cargo install mhost
+```
+
+## Quick Start
+```
+mhost start server.js          # Auto-detects Node.js
+mhost list                     # See processes
+mhost logs api --follow        # Live log tail
+mhost dashboard                # Web UI
+mhost ai diagnose api          # AI crash analysis
+mhost agent start              # Autonomous agent
+```
+
+## Documentation
+https://mhostai.com/docs.html
