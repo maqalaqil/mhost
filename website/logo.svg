@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40">
+  <!-- Stylized "m" made of vertical bars like a process monitor waveform -->
+  <rect x="8" y="20" width="4" height="16" rx="2" fill="#6366f1"/>
+  <rect x="16" y="10" width="4" height="26" rx="2" fill="#818cf8"/>
+  <rect x="24" y="16" width="4" height="20" rx="2" fill="#6366f1"/>
+  <rect x="32" y="8" width="4" height="28" rx="2" fill="#818cf8"/>
+  <rect x="40" y="14" width="4" height="22" rx="2" fill="#6366f1"/>
+  <!-- "host" text -->
+  <text x="52" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="24" font-weight="800" fill="white" letter-spacing="-1">host</text>
+</svg>
