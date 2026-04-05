@@ -20,10 +20,11 @@ Add direct SDK-level API integrations to 7 cloud providers (AWS, GCP, Azure, Rai
 │  │ECS/EKS/ │ │AKS/ACI/ │ │GKE/Run/ │ │         │ │          │ │
 │  │EC2/Lambda│ │ VM/Func │ │GCE/Func │ │         │ │          │ │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └──────────┘ │
-│  ┌─────────┐ ┌─────────┐                                       │
-│  │  Vercel │ │   DO    │                                        │
-│  │         │ │App/Drop │                                        │
-│  └─────────┘ └─────────┘                                        │
+│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌─────────┐ ┌──────────┐ │
+│  │  Vercel │ │   DO    │ │Cloudflare│ │ Netlify │ │ Supabase │ │
+│  │Edge/Sls │ │App/Drop │ │Workers/  │ │Func/Edge│ │Edge/DB   │ │
+│  │         │ │  /Func  │ │Pages/D1  │ │  /Sites │ │          │ │
+│  └─────────┘ └─────────┘ └──────────┘ └─────────┘ └──────────┘ │
 └──────────────────────────┬──────────────────────────────────────┘
                            │ HTTP APIs (reqwest)
                     Cloud Provider APIs
@@ -100,10 +101,13 @@ pub struct ProvisionSpec {
 }
 
 pub enum ServiceType {
-    Container,    // ECS, Cloud Run, Railway, Fly Machines
+    Container,    // ECS Fargate, Cloud Run, Railway, Fly Machines, Azure ACI
     Kubernetes,   // EKS, GKE, AKS
     VM,           // EC2, GCE, Azure VM, DO Droplet
-    Serverless,   // Lambda, Cloud Functions, Vercel
+    Serverless,   // Lambda, Cloud Functions, Vercel, CF Workers, Netlify Functions
+    AppRunner,    // AWS App Runner, Azure Container Apps, GCP App Engine
+    EdgeFunction, // Cloudflare Workers, Vercel Edge, Netlify Edge, Supabase Edge
+    StaticSite,   // Vercel, Netlify, Cloudflare Pages
 }
 
 pub enum ServiceStatus {
@@ -152,13 +156,16 @@ pub struct ServiceMetrics {
 
 | Provider | Services | API | Auth Env Vars |
 |---|---|---|---|
-| **AWS** | ECS Fargate, EKS, EC2, Lambda | AWS REST API (sigv4) | `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` |
-| **GCP** | Cloud Run, GKE, Compute Engine, Cloud Functions | Google REST API | `GOOGLE_APPLICATION_CREDENTIALS` |
-| **Azure** | AKS, Container Instances, VMs, Functions | Azure REST API + OAuth2 | `AZURE_CLIENT_ID` + `AZURE_CLIENT_SECRET` + `AZURE_TENANT_ID` |
+| **AWS** | ECS Fargate, EKS, EC2, Lambda, App Runner, Step Functions | AWS REST API (sigv4) | `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` |
+| **GCP** | Cloud Run, GKE, Compute Engine, Cloud Functions, App Engine | Google REST API | `GOOGLE_APPLICATION_CREDENTIALS` |
+| **Azure** | AKS, Container Instances, VMs, Functions, Container Apps | Azure REST API + OAuth2 | `AZURE_CLIENT_ID` + `AZURE_CLIENT_SECRET` + `AZURE_TENANT_ID` |
 | **Railway** | Services | GraphQL API | `RAILWAY_TOKEN` |
 | **Fly.io** | Machines | REST API v1 | `FLY_API_TOKEN` |
-| **Vercel** | Deployments, Serverless | REST API v9 | `VERCEL_TOKEN` |
-| **DigitalOcean** | App Platform, Droplets | REST API v2 | `DIGITALOCEAN_TOKEN` |
+| **Vercel** | Deployments, Serverless Functions, Edge Functions | REST API v9 | `VERCEL_TOKEN` |
+| **DigitalOcean** | App Platform, Droplets, Functions | REST API v2 | `DIGITALOCEAN_TOKEN` |
+| **Cloudflare** | Workers, Pages, D1, R2 | REST API v4 | `CLOUDFLARE_API_TOKEN` |
+| **Netlify** | Functions, Edge Functions, Sites | REST API | `NETLIFY_TOKEN` |
+| **Supabase** | Edge Functions, Database | REST API | `SUPABASE_ACCESS_TOKEN` |
 
 ### Credential Storage
 
@@ -182,7 +189,10 @@ File: `~/.mhost/cloud-credentials.json`
       "client_secret": "...",
       "tenant_id": "...",
       "subscription_id": "..."
-    }
+    },
+    "cloudflare": { "token": "..." },
+    "netlify": { "token": "..." },
+    "supabase": { "token": "..." }
   }
 }
 ```
@@ -359,13 +369,16 @@ crates/mhost-cloud/src/
 │
 ├── adapter/                    # NEW — unified cloud adapter
 │   ├── mod.rs                  # CloudAdapter trait + core types
-│   ├── aws.rs                  # AWS (ECS/EKS/EC2/Lambda)
-│   ├── gcp.rs                  # GCP (Cloud Run/GKE/GCE)
-│   ├── azure.rs                # Azure (AKS/ACI/VM)
+│   ├── aws.rs                  # AWS (ECS/EKS/EC2/Lambda/App Runner/Step Functions)
+│   ├── gcp.rs                  # GCP (Cloud Run/GKE/GCE/Cloud Functions/App Engine)
+│   ├── azure.rs                # Azure (AKS/ACI/VM/Functions/Container Apps)
 │   ├── railway.rs              # Railway
 │   ├── fly.rs                  # Fly.io Machines
-│   ├── vercel.rs               # Vercel
-│   └── digitalocean.rs         # DigitalOcean
+│   ├── vercel.rs               # Vercel (Deployments/Serverless/Edge)
+│   ├── digitalocean.rs         # DigitalOcean (App Platform/Droplets/Functions)
+│   ├── cloudflare.rs           # Cloudflare (Workers/Pages/D1/R2)
+│   ├── netlify.rs              # Netlify (Functions/Edge/Sites)
+│   └── supabase.rs             # Supabase (Edge Functions/Database)
 │
 ├── credentials.rs              # NEW — credential storage
 ├── secrets.rs                  # NEW — encrypted secrets (AES-256-GCM)
