@@ -15,10 +15,8 @@ pub fn ensure_script(subdir: &str, filename: &str, content: &str) -> Result<Path
     let dir = home.join(".mhost").join(subdir);
     let path = dir.join(filename);
 
-    std::fs::create_dir_all(&dir)
-        .map_err(|e| format!("Cannot create {}: {e}", dir.display()))?;
-    std::fs::write(&path, content)
-        .map_err(|e| format!("Cannot write {}: {e}", path.display()))?;
+    std::fs::create_dir_all(&dir).map_err(|e| format!("Cannot create {}: {e}", dir.display()))?;
+    std::fs::write(&path, content).map_err(|e| format!("Cannot write {}: {e}", path.display()))?;
 
     Ok(path)
 }
