@@ -11,8 +11,8 @@ use mhost_ipc::IpcClient;
 
 use cli::{
     AgentAction, AiAction, BotAction, BrainAction, Cli, CloudAction, Commands, DockerAction,
-    LogAlertAction, MetricsAction, NotifyAction, PluginAction, SecretsAction, SnapshotAction,
-    TemplateAction,
+    HooksAction, LogAlertAction, MetricsAction, NotifyAction, PluginAction, SecretsAction,
+    SnapshotAction, StatusPageAction, TemplateAction, WorkspaceAction,
 };
 
 // Bring new top-level commands into scope for the dispatch match
@@ -293,6 +293,31 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             action: SnapshotAction::List,
         } => commands::snapshot::list(paths),
 
+        // ---- Workspace commands (non-daemon, reads/writes ~/.mhost/) -----
+        Commands::Workspace { action } => match action {
+            WorkspaceAction::List => commands::workspace::run_list(),
+            WorkspaceAction::Create { name } => commands::workspace::run_create(&name),
+            WorkspaceAction::Switch { name } => commands::workspace::run_switch(&name),
+            WorkspaceAction::Current => commands::workspace::run_current(),
+            WorkspaceAction::Delete { name } => commands::workspace::run_delete(&name),
+        },
+
+        // ---- Status page (non-daemon, generates HTML) --------------------
+        Commands::StatusPage { port, action } => match action {
+            Some(StatusPageAction::Generate) => commands::status_page::run_generate(),
+            None => commands::status_page::run_serve(port),
+        },
+
+        // ---- Incoming hooks (non-daemon, manages ~/.mhost/incoming-hooks.json)
+        Commands::Hooks { action } => match action {
+            HooksAction::Create { action, process } => {
+                commands::incoming_hooks::run_create(&action, &process)
+            }
+            HooksAction::List => commands::incoming_hooks::run_list(),
+            HooksAction::Remove { id } => commands::incoming_hooks::run_remove(&id),
+            HooksAction::Test { id } => commands::incoming_hooks::run_test(&id),
+        },
+
         // ---- Reload (needs daemon) ----------------------------------------
         Commands::Reload { target } => {
             daemon_launcher::ensure_daemon_running(paths)?;
@@ -483,7 +508,10 @@ async fn dispatch_daemon(
         | Commands::ConfigHistory { .. }
         | Commands::Snapshot {
             action: SnapshotAction::List,
-        } => unreachable!(),
+        }
+        | Commands::Workspace { .. }
+        | Commands::StatusPage { .. }
+        | Commands::Hooks { .. } => unreachable!(),
     }
 }
 

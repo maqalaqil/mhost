@@ -613,6 +613,72 @@ pub enum TemplateAction {
     },
 }
 
+// ---------------------------------------------------------------------------
+// Workspace subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum WorkspaceAction {
+    /// List all workspaces.
+    List,
+    /// Create a new workspace.
+    Create {
+        /// Workspace name.
+        name: String,
+    },
+    /// Switch to a workspace.
+    Switch {
+        /// Workspace name.
+        name: String,
+    },
+    /// Show the active workspace.
+    Current,
+    /// Delete a workspace.
+    Delete {
+        /// Workspace name.
+        name: String,
+    },
+}
+
+// ---------------------------------------------------------------------------
+// Status page subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum StatusPageAction {
+    /// Generate static HTML to stdout.
+    Generate,
+}
+
+// ---------------------------------------------------------------------------
+// Hooks subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum HooksAction {
+    /// Create a new incoming webhook.
+    Create {
+        /// Action to perform when triggered (restart, stop, start, delete, reload).
+        #[arg(long)]
+        action: String,
+        /// Process name the action applies to.
+        #[arg(long)]
+        process: String,
+    },
+    /// List all configured webhooks.
+    List,
+    /// Remove a webhook by ID.
+    Remove {
+        /// Webhook ID.
+        id: String,
+    },
+    /// Simulate triggering a webhook.
+    Test {
+        /// Webhook ID.
+        id: String,
+    },
+}
+
 #[derive(Parser)]
 #[command(
     name = "mhost",
@@ -1044,5 +1110,28 @@ pub enum Commands {
     ConfigHistory {
         /// Process name.
         process: String,
+    },
+
+    /// Multi-tenancy workspaces — isolate processes and configs.
+    Workspace {
+        #[command(subcommand)]
+        action: WorkspaceAction,
+    },
+
+    /// Generate and serve a public status page.
+    #[command(name = "status-page")]
+    StatusPage {
+        /// Port to serve the status page on.
+        #[arg(long, default_value = "8080")]
+        port: u16,
+        /// Subcommand (e.g. generate).
+        #[command(subcommand)]
+        action: Option<StatusPageAction>,
+    },
+
+    /// Manage incoming webhooks.
+    Hooks {
+        #[command(subcommand)]
+        action: HooksAction,
     },
 }

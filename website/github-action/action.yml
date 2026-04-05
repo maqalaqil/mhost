@@ -1,0 +1,51 @@
+name: 'mhost Deploy'
+description: 'Deploy with mhost process manager'
+branding:
+  icon: 'box'
+  color: 'purple'
+inputs:
+  command:
+    description: 'mhost command to run (e.g., deploy production, start mhost.toml)'
+    required: true
+  version:
+    description: 'mhost version to install (default: latest)'
+    required: false
+    default: 'latest'
+  config:
+    description: 'Path to mhost.toml config file'
+    required: false
+  server:
+    description: 'Remote server name (for cloud deploy)'
+    required: false
+  ssh-key:
+    description: 'SSH private key for remote deployments'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Install mhost
+      shell: bash
+      run: |
+        VERSION="${{ inputs.version }}"
+        if [ "$VERSION" = "latest" ]; then
+          curl -fsSL https://mhostai.com/install.sh | sh
+        else
+          curl -fsSL https://mhostai.com/install.sh | sh -s -- --version "$VERSION"
+        fi
+        echo "$HOME/.mhost/bin" >> $GITHUB_PATH
+
+    - name: Setup SSH key
+      if: inputs.ssh-key != ''
+      shell: bash
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ inputs.ssh-key }}" > ~/.ssh/mhost_deploy_key
+        chmod 600 ~/.ssh/mhost_deploy_key
+
+    - name: Run mhost command
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.config }}" ]; then
+          mhost start "${{ inputs.config }}"
+        fi
+        mhost ${{ inputs.command }}

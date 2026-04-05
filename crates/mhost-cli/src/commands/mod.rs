@@ -25,6 +25,7 @@ pub mod env_cmd;
 pub mod group;
 pub mod health;
 pub mod history;
+pub mod incoming_hooks;
 pub mod info;
 #[allow(dead_code, clippy::redundant_closure)]
 pub mod init;
@@ -60,7 +61,9 @@ pub mod sla;
 pub mod snapshot;
 pub mod start;
 pub mod startup;
+pub mod status_page;
 pub mod stop;
 pub mod team;
 pub mod template;
 pub mod watch;
+pub mod workspace;
