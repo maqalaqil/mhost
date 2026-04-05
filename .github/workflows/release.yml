@@ -401,42 +401,43 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          # Clean the webhook URL (strip whitespace/newlines)
           WEBHOOK_URL=$(echo "$DISCORD_WEBHOOK" | tr -d '[:space:]')
-
           if [ -z "$WEBHOOK_URL" ]; then
-            echo "DISCORD_WEBHOOK secret is not set, skipping notification"
+            echo "DISCORD_WEBHOOK secret is not set, skipping"
             exit 0
           fi
 
           TAG="${{ needs.version.outputs.tag }}"
           PREV_TAG=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
-            CHANGES=$(git log "${PREV_TAG}..${TAG}" --pretty=format:"• %s" --no-merges | head -15)
+            git log "${PREV_TAG}..${TAG}" --pretty=format:"• %s" --no-merges | head -15 > /tmp/changes.txt
           else
-            CHANGES=$(git log --pretty=format:"• %s" --no-merges -15)
+            git log --pretty=format:"• %s" --no-merges -15 > /tmp/changes.txt
           fi
 
-          # Build payload with Python to avoid all shell escaping issues
-          python3 -c "
-          import json, sys
-          changes = sys.stdin.read().strip()
-          payload = {
-              'embeds': [{
-                  'title': '🚀 mhost ${TAG} Released!',
-                  'url': 'https://github.com/maqalaqil/mhost/releases/tag/${TAG}',
-                  'description': 'A new version of mhost is available!\n\n**What'\''s New:**\n' + changes + '\n\n**Install / Update:**\n\`\`\`bash\nnpm install -g @maqalaqil93/mhost\ncargo install mhost\nbrew upgrade mhost\n\`\`\`',
-                  'color': 9132790,
-                  'footer': {'text': 'mhost — AI-powered process manager'}
-              }]
-          }
-          json.dump(payload, open('/tmp/discord-payload.json', 'w'))
-          " <<< "$CHANGES"
+          cat > /tmp/discord-build.py << 'PYEOF'
+          import json, os
+          tag = os.environ.get("RELEASE_TAG", "v0.0.0")
+          with open("/tmp/changes.txt") as f:
+              changes = f.read().strip()
+          desc = f"A new version of mhost is available!\n\n**What's New:**\n{changes}\n\n**Install / Update:**\n```bash\nnpm install -g @maqalaqil93/mhost\ncargo install mhost\nbrew upgrade mhost\n```"
+          payload = {"embeds": [{"title": f"\U0001f680 mhost {tag} Released!", "url": f"https://github.com/maqalaqil/mhost/releases/tag/{tag}", "description": desc, "color": 9132790, "footer": {"text": "mhost \u2014 AI-powered process manager"}}]}
+          with open("/tmp/discord-payload.json", "w") as f:
+              json.dump(payload, f)
+          PYEOF
 
-          curl -sS -o /tmp/discord-response.txt -w "%{http_code}" \
+          RELEASE_TAG="$TAG" python3 /tmp/discord-build.py
+
+          HTTP_CODE=$(curl -sS -o /tmp/discord-resp.txt -w "%{http_code}" \
             -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
-            -d @/tmp/discord-payload.json
+            -d @/tmp/discord-payload.json)
+
+          echo "Discord HTTP: $HTTP_CODE"
+          cat /tmp/discord-resp.txt
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "::warning::Discord notification failed with HTTP $HTTP_CODE"
+          fi
 
           echo ""
           echo "Discord response: $(cat /tmp/discord-response.txt)"
