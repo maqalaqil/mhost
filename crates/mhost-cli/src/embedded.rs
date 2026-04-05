@@ -9,18 +9,16 @@ pub const DASHBOARD_JS: &str = include_str!("../../../examples/mhost-dashboard.j
 pub const NOTIFIER_JS: &str = include_str!("../../../examples/mhost-telegram-notifier.js");
 
 /// Ensure a script is installed at `~/.mhost/<subdir>/<filename>`.
-/// If missing, writes the embedded content. Returns the path.
+/// Always overwrites with the embedded version to stay in sync with the binary.
 pub fn ensure_script(subdir: &str, filename: &str, content: &str) -> Result<PathBuf, String> {
     let home = dirs::home_dir().ok_or("Cannot determine home directory")?;
     let dir = home.join(".mhost").join(subdir);
     let path = dir.join(filename);
 
-    if !path.exists() {
-        std::fs::create_dir_all(&dir)
-            .map_err(|e| format!("Cannot create {}: {e}", dir.display()))?;
-        std::fs::write(&path, content)
-            .map_err(|e| format!("Cannot write {}: {e}", path.display()))?;
-    }
+    std::fs::create_dir_all(&dir)
+        .map_err(|e| format!("Cannot create {}: {e}", dir.display()))?;
+    std::fs::write(&path, content)
+        .map_err(|e| format!("Cannot write {}: {e}", path.display()))?;
 
     Ok(path)
 }

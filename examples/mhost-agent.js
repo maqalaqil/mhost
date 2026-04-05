@@ -962,7 +962,7 @@ function executeTool(name, args) {
 
       case "get_metrics":
         output = execSync(
-          `${MHOST_BIN} metrics ${shellEscape(args.name)} 2>&1`,
+          `${MHOST_BIN} metrics show ${shellEscape(args.name)} 2>&1`,
           { encoding: "utf-8", timeout: 10_000 }
         );
         break;
