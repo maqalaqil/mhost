@@ -6,7 +6,13 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "cloud-native")]
+pub mod aws;
+#[cfg(feature = "cloud-native")]
+pub mod azure;
+#[cfg(feature = "cloud-native")]
 pub mod fly;
+#[cfg(feature = "cloud-native")]
+pub mod gcp;
 #[cfg(feature = "cloud-native")]
 pub mod railway;
 #[cfg(feature = "cloud-native")]

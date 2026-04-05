@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
+use super::aws::AwsAdapter;
+use super::azure::AzureAdapter;
 use super::fly::FlyAdapter;
+use super::gcp::GcpAdapter;
 use super::railway::RailwayAdapter;
 use super::{CloudAdapter, CloudError};
 use crate::credentials::{CloudCredentials, ProviderCredential};
@@ -18,7 +21,7 @@ const SUPPORTED_PROVIDERS: &[&str] = &[
     "supabase",
 ];
 
-const IMPLEMENTED_PROVIDERS: &[&str] = &["railway", "fly"];
+const IMPLEMENTED_PROVIDERS: &[&str] = &["railway", "fly", "aws", "gcp", "azure"];
 
 pub struct AdapterRegistry;
 
@@ -48,6 +51,60 @@ impl AdapterRegistry {
                 let token = extract_token(&cred, "fly")?;
                 Ok(Arc::new(FlyAdapter::new(&token)))
             }
+            "aws" => match cred {
+                ProviderCredential::AwsKeys {
+                    access_key_id,
+                    secret_access_key,
+                    default_region,
+                } => {
+                    let region = default_region.as_deref().unwrap_or("us-east-1");
+                    Ok(Arc::new(AwsAdapter::new(
+                        &access_key_id,
+                        &secret_access_key,
+                        region,
+                    )))
+                }
+                _ => Err(CloudError::AuthError(
+                    "Provider 'aws' requires AwsKeys credentials".into(),
+                )),
+            },
+            "gcp" | "google" => match cred {
+                ProviderCredential::GcpServiceAccount {
+                    credentials_file,
+                    default_region,
+                } => {
+                    let region = default_region.as_deref().unwrap_or("us-central1");
+                    Ok(Arc::new(GcpAdapter::new(&credentials_file, region)))
+                }
+                _ => Err(CloudError::AuthError(
+                    "Provider 'gcp' requires GcpServiceAccount credentials".into(),
+                )),
+            },
+            "azure" => match cred {
+                ProviderCredential::AzureServicePrincipal {
+                    client_id,
+                    client_secret,
+                    tenant_id,
+                    subscription_id,
+                } => {
+                    let sub_id = subscription_id.as_deref().unwrap_or("");
+                    if sub_id.is_empty() {
+                        return Err(CloudError::InvalidConfig(
+                            "Azure requires a subscription_id".into(),
+                        ));
+                    }
+                    Ok(Arc::new(AzureAdapter::new(
+                        &client_id,
+                        &client_secret,
+                        &tenant_id,
+                        sub_id,
+                        "eastus",
+                    )))
+                }
+                _ => Err(CloudError::AuthError(
+                    "Provider 'azure' requires AzureServicePrincipal credentials".into(),
+                )),
+            },
             other => Err(CloudError::NotSupported(format!(
                 "Provider '{other}' is not yet implemented"
             ))),
