@@ -681,7 +681,7 @@ Supports: **AWS EC2**, **Azure VMs**, **DigitalOcean**, **Railway**, any SSH-acc
 
 ---
 
-## Cloud-Native Provider Integrations
+## Cloud-Native Provider Integrations <sup>BETA</sup>
 
 Direct API integration with 10 cloud providers — no SSH required.
 
