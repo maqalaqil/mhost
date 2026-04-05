@@ -85,6 +85,12 @@ pub struct ProcessConfig {
     pub interpreter: Option<String>,
     #[serde(default)]
     pub health_config: Option<HealthConfig>,
+    #[serde(default)]
+    pub tags: Vec<String>,
+    #[serde(default)]
+    pub cpu_limit: Option<String>,
+    #[serde(default)]
+    pub memory_limit_mb: Option<u64>,
 }
 
 impl Default for ProcessConfig {
@@ -104,6 +110,9 @@ impl Default for ProcessConfig {
             cron_restart: None,
             interpreter: None,
             health_config: None,
+            tags: Vec::new(),
+            cpu_limit: None,
+            memory_limit_mb: None,
         }
     }
 }

@@ -255,6 +255,9 @@ impl RawProcessConfig {
             cron_restart: self.cron_restart.clone(),
             interpreter: self.interpreter.clone(),
             health_config: self.health.as_ref().and_then(|h| h.to_health_config()),
+            tags: Vec::new(),
+            cpu_limit: None,
+            memory_limit_mb: None,
         }
     }
 }

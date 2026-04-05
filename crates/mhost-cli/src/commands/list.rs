@@ -5,8 +5,8 @@ use serde_json::json;
 
 use crate::output::{print_error, print_process_table};
 
-/// List all registered processes.
-pub async fn run(client: &IpcClient) -> Result<(), String> {
+/// List all registered processes, optionally filtered by tag.
+pub async fn run(client: &IpcClient, tag: Option<&str>) -> Result<(), String> {
     let resp = client
         .call(methods::PROCESS_LIST, json!({}))
         .await
@@ -24,8 +24,16 @@ pub async fn run(client: &IpcClient) -> Result<(), String> {
     } else {
         result
     };
-    let processes: Vec<ProcessInfo> = serde_json::from_value(process_list)
+    let all_processes: Vec<ProcessInfo> = serde_json::from_value(process_list)
         .map_err(|e| format!("Failed to parse process list: {e}"))?;
+
+    let processes: Vec<ProcessInfo> = match tag {
+        Some(t) => all_processes
+            .into_iter()
+            .filter(|p| p.config.tags.contains(&t.to_string()))
+            .collect(),
+        None => all_processes,
+    };
 
     print_process_table(&processes);
     Ok(())

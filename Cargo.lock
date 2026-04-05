@@ -1729,6 +1729,7 @@ dependencies = [
  "clap",
  "clap_complete",
  "colored",
+ "cron",
  "dirs",
  "libc",
  "mhost-ai",

@@ -1,6 +1,8 @@
 pub mod agent;
 pub mod ai;
 pub mod api;
+#[allow(clippy::needless_borrow)]
+pub mod audit;
 pub mod bench;
 pub mod bot;
 pub mod brain;
@@ -11,19 +13,28 @@ pub mod cluster;
 pub mod completion;
 pub mod config_cmd;
 pub mod cost;
+#[allow(dead_code, clippy::print_literal)]
+pub mod cron;
 pub mod dashboard;
 pub mod delete;
 pub mod deploy;
 pub mod dev;
 pub mod diff;
+pub mod docker;
 pub mod env_cmd;
 pub mod group;
 pub mod health;
 pub mod history;
 pub mod info;
+#[allow(dead_code, clippy::redundant_closure)]
+pub mod init;
 pub mod kill;
+#[allow(dead_code, clippy::print_literal, clippy::manual_strip)]
+pub mod limits;
 pub mod link;
 pub mod list;
+#[allow(dead_code, clippy::print_literal)]
+pub mod log_alerts;
 pub mod logs;
 pub mod metrics;
 pub mod migrate;
@@ -31,6 +42,9 @@ pub mod monit;
 pub mod notify;
 pub mod ping;
 pub mod playground;
+pub mod plugin;
+#[allow(unused_imports)]
+pub mod process_rollback;
 pub mod proxy_cmd;
 pub mod recipe;
 pub mod reload;
@@ -48,3 +62,5 @@ pub mod start;
 pub mod startup;
 pub mod stop;
 pub mod team;
+pub mod template;
+pub mod watch;

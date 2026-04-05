@@ -10,8 +10,9 @@ use mhost_core::paths::MhostPaths;
 use mhost_ipc::IpcClient;
 
 use cli::{
-    AgentAction, AiAction, BotAction, BrainAction, Cli, CloudAction, Commands, MetricsAction,
-    NotifyAction, SecretsAction, SnapshotAction,
+    AgentAction, AiAction, BotAction, BrainAction, Cli, CloudAction, Commands, DockerAction,
+    LogAlertAction, MetricsAction, NotifyAction, PluginAction, SecretsAction, SnapshotAction,
+    TemplateAction,
 };
 
 // Bring new top-level commands into scope for the dispatch match
@@ -172,6 +173,21 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             BrainAction::Explain { process } => commands::brain::run_explain(paths, &process),
         },
 
+        // ---- Init (non-daemon, scans CWD for project files) ----------------
+        Commands::Init => commands::init::run(),
+
+        // ---- Log alerts (non-daemon, manages ~/.mhost/log-alerts.json) ----
+        Commands::LogAlert { action } => match action {
+            LogAlertAction::Add {
+                process,
+                pattern,
+                notify,
+                cooldown,
+            } => commands::log_alerts::run_add(&process, &pattern, &notify, cooldown),
+            LogAlertAction::List => commands::log_alerts::run_list(),
+            LogAlertAction::Remove { id } => commands::log_alerts::run_remove(&id),
+        },
+
         // ---- API commands (non-daemon, manage tokens/webhooks/server) ------
         Commands::Api { action } => commands::api::run(action).await,
 
@@ -222,6 +238,56 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
         // ---- Diff (non-daemon, reads fleet.json) --------------------------
         Commands::Diff { env_a, env_b } => commands::diff::run(paths, &env_a, &env_b),
 
+        // ---- Docker commands (non-daemon, shells out to docker CLI) --------
+        Commands::Docker { action } => match action {
+            DockerAction::Run {
+                image,
+                name,
+                port,
+                envs,
+            } => commands::docker::run_docker_run(&image, &name, port, &envs),
+            DockerAction::List => commands::docker::run_docker_list(),
+            DockerAction::Stop { name } => commands::docker::run_docker_stop(&name),
+            DockerAction::Restart { name } => commands::docker::run_docker_restart(&name),
+            DockerAction::Logs { name, lines } => commands::docker::run_docker_logs(&name, lines),
+            DockerAction::Rm { name } => commands::docker::run_docker_rm(&name),
+            DockerAction::Pull { image } => commands::docker::run_docker_pull(&image),
+        },
+
+        // ---- Template commands (non-daemon, generates files) -------------
+        Commands::Template { action } => match action {
+            TemplateAction::List => commands::template::run_list(),
+            TemplateAction::Init { name } => commands::template::run_init(&name),
+        },
+
+        // ---- Plugin commands (non-daemon, reads ~/.mhost/plugins/) ---------
+        Commands::Plugin { action } => match action {
+            PluginAction::List => commands::plugin::run_list(),
+            PluginAction::Install { path } => commands::plugin::run_install(&path),
+            PluginAction::Remove { name } => commands::plugin::run_remove(&name),
+            PluginAction::Info { name } => commands::plugin::run_info(&name),
+        },
+
+        // ---- Audit trail (non-daemon, reads ~/.mhost/audit.jsonl) --------
+        Commands::Audit {
+            process,
+            since,
+            limit,
+        } => commands::audit::run(process.as_deref(), since.as_deref(), limit),
+
+        // ---- Watch config (non-daemon, polling loop) ---------------------
+        Commands::Watch { config } => commands::watch::run(config.as_deref()),
+
+        // ---- Process rollback (non-daemon, reads DB + dump) --------------
+        Commands::RollbackProcess { process } => {
+            commands::process_rollback::run_rollback(paths, &process)
+        }
+
+        // ---- Config history (non-daemon, reads DB + dump) ----------------
+        Commands::ConfigHistory { process } => {
+            commands::process_rollback::run_config_history(paths, &process)
+        }
+
         // ---- Snapshot list (non-daemon, reads files) ----------------------
         Commands::Snapshot {
             action: SnapshotAction::List,
@@ -254,11 +320,22 @@ async fn dispatch_daemon(
             target,
             name,
             group,
+            tags,
+            cpu_limit,
+            memory_limit,
         } => {
             if let Some(ref g) = group {
                 commands::group::start(client, g).await
             } else {
-                commands::start::run(client, &target, name.as_deref()).await
+                commands::start::run(
+                    client,
+                    &target,
+                    name.as_deref(),
+                    &tags,
+                    cpu_limit.as_deref(),
+                    memory_limit,
+                )
+                .await
             }
         }
         Commands::Stop { target, group } => {
@@ -277,7 +354,7 @@ async fn dispatch_daemon(
             let name = resolve::resolve_target(client, &target).await?;
             commands::delete::run(client, &name).await
         }
-        Commands::List => commands::list::run(client).await,
+        Commands::List { tag } => commands::list::run(client, tag.as_deref()).await,
         Commands::Info { name } => {
             let resolved = resolve::resolve_target(client, &name).await?;
             commands::info::run(client, &resolved).await
@@ -360,6 +437,15 @@ async fn dispatch_daemon(
             action: SnapshotAction::Restore { name },
         } => commands::snapshot::restore(client, _paths, &name).await,
 
+        // ---- Cron dashboard (needs daemon to list processes) ----------------
+        Commands::Cron => commands::cron::run(client).await,
+
+        // ---- Limits (needs daemon for metrics) ----------------------------
+        Commands::Limits { process } => {
+            let resolved = resolve::resolve_target(client, &process).await?;
+            commands::limits::run(client, &resolved).await
+        }
+
         // These are handled earlier; this arm is unreachable.
         Commands::Startup
         | Commands::Unstartup
@@ -386,6 +472,15 @@ async fn dispatch_daemon(
         | Commands::Run { .. }
         | Commands::Diff { .. }
         | Commands::Api { .. }
+        | Commands::Init
+        | Commands::LogAlert { .. }
+        | Commands::Docker { .. }
+        | Commands::Template { .. }
+        | Commands::Plugin { .. }
+        | Commands::Audit { .. }
+        | Commands::Watch { .. }
+        | Commands::RollbackProcess { .. }
+        | Commands::ConfigHistory { .. }
         | Commands::Snapshot {
             action: SnapshotAction::List,
         } => unreachable!(),

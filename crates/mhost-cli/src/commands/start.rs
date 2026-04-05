@@ -14,8 +14,15 @@ use crate::output::{print_error, print_success};
 ///   ecosystem config and every app in it is started.
 /// - Any other string — treated as a bare command and started under `name`
 ///   (or `target` itself when no name is given).
-pub async fn run(client: &IpcClient, target: &str, name: Option<&str>) -> Result<(), String> {
-    let configs = build_configs(target, name)?;
+pub async fn run(
+    client: &IpcClient,
+    target: &str,
+    name: Option<&str>,
+    tags: &[String],
+    cpu_limit: Option<&str>,
+    memory_limit: Option<u64>,
+) -> Result<(), String> {
+    let configs = build_configs(target, name, tags, cpu_limit, memory_limit)?;
 
     for cfg in &configs {
         let params = serde_json::to_value(cfg).map_err(|e| format!("Serialize error: {e}"))?;
@@ -38,7 +45,13 @@ pub async fn run(client: &IpcClient, target: &str, name: Option<&str>) -> Result
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-fn build_configs(target: &str, name: Option<&str>) -> Result<Vec<ProcessConfig>, String> {
+fn build_configs(
+    target: &str,
+    name: Option<&str>,
+    tags: &[String],
+    cpu_limit: Option<&str>,
+    memory_limit: Option<u64>,
+) -> Result<Vec<ProcessConfig>, String> {
     let caller_cwd = std::env::current_dir().ok();
 
     if is_config_file(target) {
@@ -63,6 +76,15 @@ fn build_configs(target: &str, name: Option<&str>) -> Result<Vec<ProcessConfig>,
                         cfg.cwd = Some(resolved.to_string_lossy().to_string());
                     }
                 }
+            }
+            if !tags.is_empty() {
+                cfg.tags = tags.to_vec();
+            }
+            if let Some(cl) = cpu_limit {
+                cfg.cpu_limit = Some(cl.to_string());
+            }
+            if let Some(ml) = memory_limit {
+                cfg.memory_limit_mb = Some(ml);
             }
         }
         Ok(configs)
@@ -95,6 +117,9 @@ fn build_configs(target: &str, name: Option<&str>) -> Result<Vec<ProcessConfig>,
             command,
             args,
             cwd: caller_cwd.map(|p| p.to_string_lossy().to_string()),
+            tags: tags.to_vec(),
+            cpu_limit: cpu_limit.map(String::from),
+            memory_limit_mb: memory_limit,
             ..Default::default()
         }])
     }

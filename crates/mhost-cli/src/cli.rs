@@ -492,6 +492,127 @@ pub enum NotifyAction {
     Start,
 }
 
+// ---------------------------------------------------------------------------
+// Log alert subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum LogAlertAction {
+    /// Add a new log alert for a process.
+    Add {
+        /// Process name to monitor.
+        process: String,
+        /// Regex pattern to match in log output.
+        #[arg(long)]
+        pattern: String,
+        /// Notification channel (e.g. telegram, slack, webhook).
+        #[arg(long)]
+        notify: String,
+        /// Minimum seconds between repeated alerts (default: 60).
+        #[arg(long, default_value = "60")]
+        cooldown: u64,
+    },
+    /// List all configured log alerts.
+    List,
+    /// Remove a log alert by ID.
+    Remove {
+        /// Alert ID to remove.
+        id: String,
+    },
+}
+
+// ---------------------------------------------------------------------------
+// Plugin subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum PluginAction {
+    /// List all installed plugins.
+    List,
+    /// Install a plugin from a local directory.
+    Install {
+        /// Path to the plugin directory (must contain plugin.json).
+        path: String,
+    },
+    /// Remove an installed plugin.
+    Remove {
+        /// Plugin name.
+        name: String,
+    },
+    /// Show detailed information about a plugin.
+    Info {
+        /// Plugin name.
+        name: String,
+    },
+}
+
+// ---------------------------------------------------------------------------
+// Docker subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum DockerAction {
+    /// Run a new Docker container managed by mhost.
+    Run {
+        /// Docker image to run.
+        image: String,
+        /// Container name.
+        #[arg(long)]
+        name: String,
+        /// Port to expose (maps host:container with same port).
+        #[arg(long)]
+        port: Option<u16>,
+        /// Environment variable in KEY=VAL format (repeatable).
+        #[arg(long = "env", value_name = "KEY=VAL")]
+        envs: Vec<String>,
+    },
+    /// List mhost-managed containers.
+    List,
+    /// Stop a container.
+    Stop {
+        /// Container name.
+        name: String,
+    },
+    /// Restart a container.
+    Restart {
+        /// Container name.
+        name: String,
+    },
+    /// Show container logs.
+    Logs {
+        /// Container name.
+        name: String,
+        /// Number of log lines to show.
+        #[arg(short = 'n', long, default_value = "50")]
+        lines: usize,
+    },
+    /// Remove a container.
+    Rm {
+        /// Container name.
+        name: String,
+    },
+    /// Pull a Docker image.
+    Pull {
+        /// Image to pull.
+        image: String,
+    },
+}
+
+// ---------------------------------------------------------------------------
+// Template subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum TemplateAction {
+    /// List all available templates.
+    List,
+    /// Generate an mhost.toml in the current directory from a template.
+    Init {
+        /// Template name (e.g. nextjs, express, fastapi).
+        name: String,
+    },
+}
+
 #[derive(Parser)]
 #[command(
     name = "mhost",
@@ -520,6 +641,15 @@ pub enum Commands {
         /// Start all processes belonging to this group.
         #[arg(long)]
         group: Option<String>,
+        /// Tag to attach to the process (repeatable).
+        #[arg(long = "tag", value_name = "TAG")]
+        tags: Vec<String>,
+        /// CPU limit (e.g. "50%" or "1.0" for cores).
+        #[arg(long)]
+        cpu_limit: Option<String>,
+        /// Memory hard limit in MB.
+        #[arg(long)]
+        memory_limit: Option<u64>,
     },
 
     /// Stop a running process (use "all" to stop everything).
@@ -545,7 +675,11 @@ pub enum Commands {
 
     /// List all managed processes.
     #[command(alias = "ls")]
-    List,
+    List {
+        /// Filter processes by tag.
+        #[arg(long = "tag", value_name = "TAG")]
+        tag: Option<String>,
+    },
 
     /// Tail log output for a process (or all processes if no name given).
     Logs {
@@ -842,5 +976,73 @@ pub enum Commands {
     Api {
         #[command(subcommand)]
         action: crate::commands::api::ApiCommands,
+    },
+
+    /// Scan current directory and generate mhost.toml.
+    Init,
+
+    /// Manage log-based alerts (add, list, remove).
+    #[command(name = "log-alert")]
+    LogAlert {
+        #[command(subcommand)]
+        action: LogAlertAction,
+    },
+
+    /// Show processes with cron_restart schedules and next fire times.
+    Cron,
+
+    /// Show resource limits and current usage for a process.
+    Limits {
+        /// Process name.
+        process: String,
+    },
+
+    /// Docker container management — run, list, stop, restart, logs, rm, pull.
+    Docker {
+        #[command(subcommand)]
+        action: DockerAction,
+    },
+
+    /// Process templates — list available templates or generate an mhost.toml.
+    Template {
+        #[command(subcommand)]
+        action: TemplateAction,
+    },
+
+    /// Manage mhost plugins (list, install, remove, info).
+    Plugin {
+        #[command(subcommand)]
+        action: PluginAction,
+    },
+
+    /// Show the audit trail of CLI actions.
+    Audit {
+        /// Filter by process name.
+        #[arg(long)]
+        process: Option<String>,
+        /// Filter by time window (e.g. "24h", "7d").
+        #[arg(long)]
+        since: Option<String>,
+        /// Number of entries to show.
+        #[arg(short = 'n', long, default_value = "50")]
+        limit: usize,
+    },
+
+    /// Watch a config file for changes and auto-reload.
+    Watch {
+        /// Path to the config file (defaults to mhost.toml / mhost.yaml / mhost.json).
+        config: Option<String>,
+    },
+
+    /// Show rollback information for a process config (stub — requires daemon).
+    RollbackProcess {
+        /// Process name.
+        process: String,
+    },
+
+    /// Show config version history for a process.
+    ConfigHistory {
+        /// Process name.
+        process: String,
     },
 }
