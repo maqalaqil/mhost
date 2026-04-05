@@ -14,8 +14,8 @@ mhost is an **AI-powered process manager** written in Rust — a PM2 replacement
 |---|---|
 | Language | Rust |
 | Crates | 15 |
-| Tests | 850+ |
-| CLI Commands | 77+ (with subcommands: 120+) |
+| Tests | 950+ |
+| CLI Commands | 93+ (with subcommands: 160+) |
 | Source files | 160 .rs files |
 | Website | `website/index.html` (single-file landing page) |
 | Repo | `github.com/maqalaqil/mhost` |
@@ -199,6 +199,21 @@ cargo fmt --all --check                    # Format check
 
 ### API
 `api start [--port]`, `api stop`, `api status`, `api token create|list|revoke`, `api webhook add|list|remove|test|failures`
+
+### Docker
+`docker run`, `docker list`, `docker stop`, `docker restart`, `docker logs`, `docker rm`, `docker pull`
+
+### Plugins
+`plugin install`, `plugin list`, `plugin remove`, `plugin info`
+
+### Templates
+`template list`, `template init <name>`, `init`
+
+### Workspaces
+`workspace create`, `workspace switch`, `workspace list`, `workspace current`, `workspace delete`
+
+### Operations
+`audit`, `watch [config]`, `cron`, `limits <process>`, `log-alert add|list|remove`, `hooks create|list|remove|test`, `status-page [--port]`, `rollback-process <name>`
 
 ### Other
 `proxy`, `deploy <env>`, `rollback <env>`, `self-update`, `completion <shell>`

@@ -681,6 +681,166 @@ const TOOLS = [
       },
     },
   },
+
+  // ── Docker Tools ───────────────��───────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "docker_list",
+      description: "List Docker containers managed by mhost.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "docker_run",
+      description: "Run a Docker container.",
+      parameters: {
+        type: "object",
+        properties: {
+          image: { type: "string", description: "Docker image to run" },
+          name: { type: "string", description: "Container name" },
+          port: { type: "number", description: "Port to expose" },
+        },
+        required: ["image", "name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "docker_stop",
+      description: "Stop a Docker container.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Container name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "docker_logs",
+      description: "Get Docker container logs.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Container name" },
+          lines: {
+            type: "number",
+            description: "Number of lines to return (default 20)",
+          },
+        },
+        required: ["name"],
+      },
+    },
+  },
+
+  // ── Plugin Tools ────────────────────────────────────────��──────────────────
+  {
+    type: "function",
+    function: {
+      name: "plugin_list",
+      description: "List installed plugins.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+
+  // ── Workspace Tools ──────────���─────────────────────────────────���───────────
+  {
+    type: "function",
+    function: {
+      name: "workspace_list",
+      description: "List workspaces.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "workspace_current",
+      description: "Show current workspace.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "workspace_switch",
+      description: "Switch to a workspace.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Workspace name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+
+  // ── Audit Tool ──────────────────────────────────────���──────────────────────
+  {
+    type: "function",
+    function: {
+      name: "get_audit",
+      description: "Show recent audit trail entries.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+
+  // ── Cron Tool ───────────────────────────────────────────���──────────────────
+  {
+    type: "function",
+    function: {
+      name: "get_cron",
+      description: "Show cron schedules and next run times.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+
+  // ���─ Hooks Tool ─────────────────────────────────────���───────────────────────
+  {
+    type: "function",
+    function: {
+      name: "hooks_list",
+      description: "List incoming webhooks.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+
+  // ��─ Status Page Tool ────────���───────────────────────────────────���──────────
+  {
+    type: "function",
+    function: {
+      name: "generate_status_page",
+      description: "Generate public status page HTML.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+
+  // ── Template Tool ───────��──────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "template_list",
+      description: "List available process templates.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+
+  // ── Init Tool ──────────���───────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "auto_detect",
+      description: "Auto-detect project type and suggest config.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
 ];
 
 // ─── System Prompt ───────────────────────────────────────────────────────────
@@ -788,6 +948,8 @@ function executeTool(name, args) {
     "cloud_destroy",
     "save_state",
     "resurrect",
+    "docker_run",
+    "workspace_switch",
   ]);
   if (stateChangingTools.has(name) && isRateLimited()) {
     return JSON.stringify({
@@ -1206,6 +1368,128 @@ function executeTool(name, args) {
           `${MHOST_BIN} certs ${shellEscape(args.urls)} 2>&1`,
           { encoding: "utf-8", timeout: 15_000 }
         );
+        break;
+
+      // ── Docker Tools ──────────────────────────────────────────────────────
+      case "docker_list":
+        output = execSync(`${MHOST_BIN} docker list 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "docker_run":
+        output = execSync(
+          `${MHOST_BIN} docker run ${shellEscape(args.image)} --name ${shellEscape(args.name)}${args.port ? ` --port ${Number(args.port)}` : ""} 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `docker run ${args.image} --name ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      case "docker_stop":
+        output = execSync(
+          `${MHOST_BIN} docker stop ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 15_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `docker stop ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      case "docker_logs":
+        output = execSync(
+          `${MHOST_BIN} docker logs ${shellEscape(args.name)} -n ${Number(args.lines) || 20} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      // ── Plugin Tools ──────────────────────────────────────────────────────
+      case "plugin_list":
+        output = execSync(`${MHOST_BIN} plugin list 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      // ── Workspace Tools ───────────────────────────────────────────────────
+      case "workspace_list":
+        output = execSync(`${MHOST_BIN} workspace list 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "workspace_current":
+        output = execSync(`${MHOST_BIN} workspace current 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "workspace_switch":
+        output = execSync(
+          `${MHOST_BIN} workspace switch ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `workspace switch ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      // ── Audit Tool ────────────────────────────────────────────────────────
+      case "get_audit":
+        output = execSync(`${MHOST_BIN} audit 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      // ── Cron Tool ─────────────────────────────────────────────────────────
+      case "get_cron":
+        output = execSync(`${MHOST_BIN} cron 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      // ── Hooks Tool ────────────────────────────────────────────────────────
+      case "hooks_list":
+        output = execSync(`${MHOST_BIN} hooks list 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      // ── Status Page Tool ──────────────────────────────────────────────────
+      case "generate_status_page":
+        output = execSync(`${MHOST_BIN} status-page generate 2>&1`, {
+          encoding: "utf-8",
+          timeout: 15_000,
+        });
+        break;
+
+      // ── Template Tool ─────────────────────────────────────────────────────
+      case "template_list":
+        output = execSync(`${MHOST_BIN} template list 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      // ── Init Tool ─────────────────────────────────────────────────────────
+      case "auto_detect":
+        output = execSync(`${MHOST_BIN} init 2>&1`, {
+          encoding: "utf-8",
+          timeout: 15_000,
+        });
         break;
 
       default:

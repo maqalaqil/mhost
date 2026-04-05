@@ -218,6 +218,11 @@ pub fn run_info(name: &str) -> Result<(), String> {
 // Utility: recursive directory copy
 // ---------------------------------------------------------------------------
 
+#[cfg(test)]
+fn plugins_dir_from(home: &Path) -> PathBuf {
+    home.join(".mhost").join("plugins")
+}
+
 fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
     fs::create_dir_all(dst)?;
 
@@ -234,4 +239,73 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
     }
 
     Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_plugin_dir_path() {
+        let home = PathBuf::from("/home/testuser");
+        let dir = plugins_dir_from(&home);
+        assert_eq!(dir, PathBuf::from("/home/testuser/.mhost/plugins"));
+    }
+
+    #[test]
+    fn test_plugin_manifest_parse() {
+        let json = r#"{
+            "name": "my-plugin",
+            "version": "1.0.0",
+            "description": "A test plugin",
+            "hooks": {
+                "on_start": "echo starting",
+                "on_stop": null,
+                "on_crash": "echo crashed"
+            }
+        }"#;
+        let manifest: PluginManifest = serde_json::from_str(json).unwrap();
+        assert_eq!(manifest.name, "my-plugin");
+        assert_eq!(manifest.version, "1.0.0");
+        assert!(manifest.hooks.on_start.is_some());
+        assert!(manifest.hooks.on_stop.is_none());
+        assert!(manifest.hooks.on_crash.is_some());
+    }
+
+    #[test]
+    fn test_plugin_manifest_parse_no_hooks() {
+        let json = r#"{
+            "name": "simple-plugin",
+            "version": "0.1.0",
+            "description": "No hooks"
+        }"#;
+        let manifest: PluginManifest = serde_json::from_str(json).unwrap();
+        assert_eq!(manifest.name, "simple-plugin");
+        assert!(manifest.hooks.on_start.is_none());
+        assert!(manifest.hooks.on_stop.is_none());
+        assert!(manifest.hooks.on_crash.is_none());
+    }
+
+    #[test]
+    fn test_format_hooks_all() {
+        let hooks = PluginHooks {
+            on_start: Some("start.sh".to_string()),
+            on_stop: Some("stop.sh".to_string()),
+            on_crash: Some("crash.sh".to_string()),
+        };
+        let result = format_hooks(&hooks);
+        assert!(result.contains("on_start"));
+        assert!(result.contains("on_stop"));
+        assert!(result.contains("on_crash"));
+    }
+
+    #[test]
+    fn test_format_hooks_none() {
+        let hooks = PluginHooks::default();
+        assert_eq!(format_hooks(&hooks), "none");
+    }
 }

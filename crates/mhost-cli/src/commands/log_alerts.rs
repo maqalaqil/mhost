@@ -203,6 +203,23 @@ mod tests {
     }
 
     #[test]
+    fn test_alert_id_format() {
+        let id = generate_id();
+        assert!(
+            id.starts_with("la_"),
+            "Alert ID should start with 'la_', got: {id}"
+        );
+        assert!(id.len() > 3, "Alert ID should have content after prefix");
+    }
+
+    #[test]
+    fn test_alert_id_uniqueness() {
+        let id1 = generate_id();
+        let id2 = generate_id();
+        assert_ne!(id1, id2, "Two generated IDs should be unique");
+    }
+
+    #[test]
     fn test_serialization_roundtrip() {
         let alert = LogAlert {
             id: "la_test123".to_string(),

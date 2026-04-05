@@ -370,6 +370,41 @@ mod tests {
     }
 
     #[test]
+    fn test_detect_node_project() {
+        let dir = std::env::temp_dir().join("mhost_test_node");
+        let _ = std::fs::create_dir_all(&dir);
+        std::fs::write(
+            dir.join("package.json"),
+            r#"{"scripts":{"start":"node server.js"}}"#,
+        )
+        .unwrap();
+        let stacks = detect_stacks(&dir);
+        assert!(!stacks.is_empty());
+        assert!(stacks.iter().any(|s| s.description.contains("Node")));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_detect_python_project() {
+        let dir = std::env::temp_dir().join("mhost_test_python");
+        let _ = std::fs::create_dir_all(&dir);
+        std::fs::write(dir.join("requirements.txt"), "flask\n").unwrap();
+        let stacks = detect_stacks(&dir);
+        assert!(!stacks.is_empty());
+        assert!(stacks.iter().any(|s| s.description.contains("Python")));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn test_detect_empty_dir() {
+        let dir = std::env::temp_dir().join("mhost_test_empty");
+        let _ = std::fs::create_dir_all(&dir);
+        let stacks = detect_stacks(&dir);
+        assert!(stacks.is_empty());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
     fn test_generate_toml_no_port_no_health() {
         let stacks = vec![DetectedStack {
             name: "worker".to_string(),

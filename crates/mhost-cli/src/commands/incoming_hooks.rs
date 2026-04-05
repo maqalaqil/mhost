@@ -248,3 +248,56 @@ pub fn run_test(id: &str) -> Result<(), String> {
 
     Ok(())
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hook_id_format() {
+        let id = generate_id();
+        assert!(
+            id.starts_with("hook_"),
+            "Hook ID should start with 'hook_', got: {id}"
+        );
+    }
+
+    #[test]
+    fn test_hook_token_length() {
+        let token = generate_token();
+        assert!(!token.is_empty(), "Token should be non-empty");
+        // 24 random bytes => 48 hex chars
+        assert_eq!(token.len(), 48, "Token should be 48 hex chars");
+    }
+
+    #[test]
+    fn test_webhook_url_format() {
+        let url = webhook_url("hook_abc123", "tokenvalue");
+        assert!(url.contains("hook_abc123"));
+        assert!(url.contains("tokenvalue"));
+        assert!(url.starts_with("http://localhost:"));
+        assert!(url.contains("/hooks/"));
+    }
+
+    #[test]
+    fn test_hook_serialization_roundtrip() {
+        let hook = Hook {
+            id: "hook_test".to_string(),
+            token: "abc123".to_string(),
+            action: "restart".to_string(),
+            process: "api".to_string(),
+            created_at: "2026-01-01T00:00:00Z".to_string(),
+            last_triggered: None,
+        };
+        let file = HooksFile { hooks: vec![hook] };
+        let json = serde_json::to_string(&file).unwrap();
+        let parsed: HooksFile = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.hooks.len(), 1);
+        assert_eq!(parsed.hooks[0].id, "hook_test");
+        assert_eq!(parsed.hooks[0].action, "restart");
+    }
+}

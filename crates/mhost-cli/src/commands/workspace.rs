@@ -174,6 +174,16 @@ pub fn run_current() -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(test)]
+fn default_workspace_name() -> &'static str {
+    DEFAULT_WORKSPACE
+}
+
+#[cfg(test)]
+fn workspaces_dir_from(root: &std::path::Path) -> std::path::PathBuf {
+    root.join(WORKSPACES_DIR)
+}
+
 pub fn run_delete(name: &str) -> Result<(), String> {
     if name == DEFAULT_WORKSPACE {
         return Err("Cannot delete the default workspace".to_string());
@@ -201,4 +211,34 @@ pub fn run_delete(name: &str) -> Result<(), String> {
 
     print_success(&format!("Workspace '{name}' deleted"));
     Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_workspace_dir_path() {
+        let root = PathBuf::from("/home/user/.mhost");
+        let dir = workspaces_dir_from(&root);
+        assert_eq!(dir, PathBuf::from("/home/user/.mhost/workspaces"));
+    }
+
+    #[test]
+    fn test_default_workspace() {
+        assert_eq!(default_workspace_name(), "default");
+    }
+
+    #[test]
+    fn test_workspaces_dir_construction() {
+        let result = workspaces_dir();
+        assert!(result.is_ok());
+        let path = result.unwrap();
+        assert!(path.to_string_lossy().contains(".mhost"));
+        assert!(path.to_string_lossy().contains("workspaces"));
+    }
 }

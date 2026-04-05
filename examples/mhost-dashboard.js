@@ -304,6 +304,14 @@ function handleNotifySave(res, config) {
   }
 }
 
+function handleDockerList(res) { const r = runMhost('docker list'); jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output }); }
+function handleTemplateList(res) { const r = runMhost('template list'); jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output }); }
+function handleAudit(res) { const r = runMhost('audit'); jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output }); }
+function handlePluginList(res) { const r = runMhost('plugin list'); jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output }); }
+function handleCron(res) { const r = runMhost('cron'); jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output }); }
+function handleWorkspaceList(res) { const r = runMhost('workspace list'); jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output }); }
+function handleHooksList(res) { const r = runMhost('hooks list'); jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output }); }
+
 function handleCloudProvision(res, body) {
   const args = ['cloud', 'provision',
     '--provider', body.provider || 'railway',
@@ -419,6 +427,21 @@ async function handleRequest(req, res) {
   // Save & Resurrect
   if (method === 'POST'   && p[1] === 'save')                                           return handleSave(res);
   if (method === 'POST'   && p[1] === 'resurrect')                                      return handleResurrect(res);
+
+  // Docker
+  if (method === 'GET' && p[1] === 'docker' && p[2] === 'list')                         return handleDockerList(res);
+  // Templates
+  if (method === 'GET' && p[1] === 'templates')                                         return handleTemplateList(res);
+  // Audit
+  if (method === 'GET' && p[1] === 'audit')                                             return handleAudit(res);
+  // Plugins
+  if (method === 'GET' && p[1] === 'plugins')                                           return handlePluginList(res);
+  // Cron
+  if (method === 'GET' && p[1] === 'cron')                                              return handleCron(res);
+  // Workspaces
+  if (method === 'GET' && p[1] === 'workspaces')                                        return handleWorkspaceList(res);
+  // Hooks
+  if (method === 'GET' && p[1] === 'hooks')                                             return handleHooksList(res);
 
   errRes(res, 404, 'Not found');
 }
@@ -929,6 +952,36 @@ footer span{color:var(--text2)}
         <div id="export-actions" style="display:none;margin-top:8px">
           <button class="hbtn primary" onclick="copyExport()">Copy to Clipboard</button>
         </div>
+      </div>
+      <div class="panel-card">
+        <h3>Docker Containers</h3>
+        <button class="hbtn" onclick="loadDocker()" style="margin-bottom:10px">Refresh</button>
+        <div id="docker-output"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+      </div>
+      <div class="panel-card">
+        <h3>Plugins</h3>
+        <button class="hbtn" onclick="loadPlugins()" style="margin-bottom:10px">Refresh</button>
+        <div id="plugins-output"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+      </div>
+      <div class="panel-card">
+        <h3>Cron Schedules</h3>
+        <button class="hbtn" onclick="loadCronDash()" style="margin-bottom:10px">Refresh</button>
+        <div id="cron-output"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+      </div>
+      <div class="panel-card">
+        <h3>Audit Trail</h3>
+        <button class="hbtn" onclick="loadAuditDash()" style="margin-bottom:10px">Refresh</button>
+        <div id="audit-output"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+      </div>
+      <div class="panel-card">
+        <h3>Workspaces</h3>
+        <button class="hbtn" onclick="loadWorkspaces()" style="margin-bottom:10px">Refresh</button>
+        <div id="workspace-output"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+      </div>
+      <div class="panel-card">
+        <h3>Incoming Webhooks</h3>
+        <button class="hbtn" onclick="loadHooks()" style="margin-bottom:10px">Refresh</button>
+        <div id="hooks-output"><div class="loading"><div class="spinner"></div> Loading...</div></div>
       </div>
     </div>
   </div>
@@ -1677,6 +1730,15 @@ function copyExport() {
   const text = document.getElementById('export-output').textContent;
   navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard', 'ok'));
 }
+
+// ── New feature panels ──
+
+async function loadDocker() { const el = document.getElementById('docker-output'); el.innerHTML = loadingHtml('Loading...'); try { const r = await api('/api/docker/list'); el.innerHTML = r.ok ? outputBlock(r.output) : '<span style="color:var(--text3)">No Docker containers</span>'; } catch(e) { el.innerHTML = '<span style="color:var(--text3)">No Docker containers</span>'; } }
+async function loadPlugins() { const el = document.getElementById('plugins-output'); el.innerHTML = loadingHtml('Loading...'); try { const r = await api('/api/plugins'); el.innerHTML = r.ok ? outputBlock(r.output) : '<span style="color:var(--text3)">No plugins installed</span>'; } catch(e) { el.innerHTML = '<span style="color:var(--text3)">No plugins installed</span>'; } }
+async function loadCronDash() { const el = document.getElementById('cron-output'); el.innerHTML = loadingHtml('Loading...'); try { const r = await api('/api/cron'); el.innerHTML = r.ok ? outputBlock(r.output) : '<span style="color:var(--text3)">No cron schedules</span>'; } catch(e) { el.innerHTML = '<span style="color:var(--text3)">No cron schedules</span>'; } }
+async function loadAuditDash() { const el = document.getElementById('audit-output'); el.innerHTML = loadingHtml('Loading...'); try { const r = await api('/api/audit'); el.innerHTML = r.ok ? outputBlock(r.output) : '<span style="color:var(--text3)">No audit entries</span>'; } catch(e) { el.innerHTML = '<span style="color:var(--text3)">No audit entries</span>'; } }
+async function loadWorkspaces() { const el = document.getElementById('workspace-output'); el.innerHTML = loadingHtml('Loading...'); try { const r = await api('/api/workspaces'); el.innerHTML = r.ok ? outputBlock(r.output) : '<span style="color:var(--text3)">No workspaces</span>'; } catch(e) { el.innerHTML = '<span style="color:var(--text3)">No workspaces</span>'; } }
+async function loadHooks() { const el = document.getElementById('hooks-output'); el.innerHTML = loadingHtml('Loading...'); try { const r = await api('/api/hooks'); el.innerHTML = r.ok ? outputBlock(r.output) : '<span style="color:var(--text3)">No webhooks</span>'; } catch(e) { el.innerHTML = '<span style="color:var(--text3)">No webhooks</span>'; } }
 
 // ── Init ──
 

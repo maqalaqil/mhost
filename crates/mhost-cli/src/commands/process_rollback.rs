@@ -174,3 +174,45 @@ fn show_saved_config(paths: &MhostPaths, process: &str) -> Result<(), String> {
 
     Ok(())
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_find_process_in_dump_array() {
+        let dump: serde_json::Value = serde_json::from_str(
+            r#"[{"name":"api","command":"node server.js"},{"name":"worker","command":"python worker.py"}]"#,
+        )
+        .unwrap();
+
+        let processes = dump.as_array().unwrap();
+        let found = processes.iter().find(|p| {
+            p.get("name")
+                .and_then(|n| n.as_str())
+                .map(|n| n == "api")
+                .unwrap_or(false)
+        });
+        assert!(found.is_some());
+        assert_eq!(
+            found.unwrap().get("command").unwrap().as_str().unwrap(),
+            "node server.js"
+        );
+    }
+
+    #[test]
+    fn test_find_process_not_in_dump() {
+        let dump: serde_json::Value =
+            serde_json::from_str(r#"[{"name":"api","command":"node server.js"}]"#).unwrap();
+        let processes = dump.as_array().unwrap();
+        let found = processes.iter().find(|p| {
+            p.get("name")
+                .and_then(|n| n.as_str())
+                .map(|n| n == "nonexistent")
+                .unwrap_or(false)
+        });
+        assert!(found.is_none());
+    }
+}

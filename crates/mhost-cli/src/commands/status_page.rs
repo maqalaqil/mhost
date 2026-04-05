@@ -141,3 +141,43 @@ pub fn run_serve(port: u16) -> Result<(), String> {
 
     Ok(())
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_status_html_contains_mhost() {
+        let html = generate_html();
+        assert!(html.contains("mhost"), "HTML should contain 'mhost'");
+        assert!(html.contains("mhost Status"), "HTML should contain title");
+    }
+
+    #[test]
+    fn test_status_html_has_styles() {
+        let html = generate_html();
+        assert!(html.contains("<style>"), "HTML should have a style tag");
+        assert!(html.contains("</style>"), "HTML should close the style tag");
+    }
+
+    #[test]
+    fn test_status_html_is_valid_structure() {
+        let html = generate_html();
+        assert!(html.contains("<!DOCTYPE html>"));
+        assert!(html.contains("<html"));
+        assert!(html.contains("</html>"));
+        assert!(html.contains("<body>"));
+        assert!(html.contains("</body>"));
+    }
+
+    #[test]
+    fn test_status_html_has_fleet_health() {
+        let html = generate_html();
+        assert!(html.contains("Fleet Health"));
+        assert!(html.contains("100%"));
+    }
+}

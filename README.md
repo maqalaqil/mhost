@@ -1261,6 +1261,19 @@ HMAC-SHA256 signed payloads with retry logic and dead letter logging.
 
 ---
 
+## Docker Integration
+
+Manage Docker containers alongside native processes — one tool for everything.
+
+```bash
+mhost docker run nginx:latest --name web --port 8080
+mhost docker list
+mhost docker logs web
+mhost docker stop web
+```
+
+---
+
 ## All Commands
 
 ### Process Management
@@ -1457,6 +1470,48 @@ HMAC-SHA256 signed payloads with retry logic and dead letter logging.
 | `mhost api webhook remove <id>` | Remove a webhook |
 | `mhost api webhook test <id>` | Test a webhook |
 | `mhost api webhook failures` | Show failed deliveries |
+
+### Docker
+
+| Command | Description |
+|---|---|
+| `mhost docker run <image>` | Run a container |
+| `mhost docker list` | List mhost containers |
+| `mhost docker stop/restart/logs/rm` | Container operations |
+| `mhost docker pull <image>` | Pull image |
+
+### Plugins
+
+| Command | Description |
+|---|---|
+| `mhost plugin install/list/remove/info` | Manage plugins |
+
+### Templates
+
+| Command | Description |
+|---|---|
+| `mhost template list` | Show available templates |
+| `mhost template init <name>` | Generate mhost.toml |
+| `mhost init` | Auto-detect and generate config |
+
+### Workspaces
+
+| Command | Description |
+|---|---|
+| `mhost workspace create/switch/list/current/delete` | Manage workspaces |
+
+### Operations
+
+| Command | Description |
+|---|---|
+| `mhost audit` | Show audit trail |
+| `mhost watch [config]` | Hot config reload |
+| `mhost cron` | Cron schedule dashboard |
+| `mhost limits <process>` | Resource limits |
+| `mhost log-alert add/list/remove` | Log pattern alerts |
+| `mhost hooks create/list/remove/test` | Incoming webhooks |
+| `mhost status-page [--port]` | Public status page |
+| `mhost rollback-process <name>` | Rollback config |
 
 ### Infrastructure
 

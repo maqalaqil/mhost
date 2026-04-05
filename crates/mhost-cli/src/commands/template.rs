@@ -173,6 +173,16 @@ pub fn run_init(name: &str) -> Result<(), String> {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
+#[cfg(test)]
+fn find_template(name: &str) -> Option<&'static Template> {
+    TEMPLATES.iter().find(|t| t.name == name)
+}
+
+#[cfg(test)]
+fn template_count() -> usize {
+    TEMPLATES.len()
+}
+
 fn generate_toml(tmpl: &Template) -> String {
     let mut lines = Vec::new();
 
@@ -230,4 +240,57 @@ fn generate_toml(tmpl: &Template) -> String {
     lines.push(String::new());
 
     lines.join("\n")
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_template_count() {
+        assert_eq!(template_count(), 10);
+    }
+
+    #[test]
+    fn test_template_get_valid() {
+        assert!(find_template("nextjs").is_some());
+        assert!(find_template("django").is_some());
+        assert!(find_template("go").is_some());
+    }
+
+    #[test]
+    fn test_template_get_invalid() {
+        assert!(find_template("nonexistent-stack").is_none());
+        assert!(find_template("").is_none());
+    }
+
+    #[test]
+    fn test_template_toml_generation() {
+        let tmpl = find_template("nextjs").unwrap();
+        let toml = generate_toml(tmpl);
+        assert!(toml.contains("[[apps]]"));
+        assert!(toml.contains("command = \"npm run start\""));
+        assert!(toml.contains("port = 3000"));
+        assert!(toml.contains("name = \"my-nextjs\""));
+        assert!(toml.contains("[apps.health]"));
+        assert!(toml.contains("/api/health"));
+    }
+
+    #[test]
+    fn test_template_toml_no_health() {
+        let tmpl = find_template("react").unwrap();
+        let toml = generate_toml(tmpl);
+        assert!(!toml.contains("[apps.health]"));
+    }
+
+    #[test]
+    fn test_template_toml_cron() {
+        let tmpl = find_template("python-worker").unwrap();
+        let toml = generate_toml(tmpl);
+        assert!(toml.contains("cron_restart"));
+    }
 }

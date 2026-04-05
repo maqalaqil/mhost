@@ -142,3 +142,67 @@ pub fn run(process_filter: Option<&str>, since: Option<&str>, limit: usize) -> R
     println!();
     Ok(())
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_audit_entry() {
+        let line = r#"{"timestamp":"2026-01-01T00:00:00Z","action":"start","process":"api","source":"cli","details":"started"}"#;
+        let entry: AuditEntry = serde_json::from_str(line).unwrap();
+        assert_eq!(entry.action, "start");
+        assert_eq!(entry.process, "api");
+        assert_eq!(entry.source, "cli");
+    }
+
+    #[test]
+    fn test_parse_duration_seconds() {
+        let d = parse_duration("60s").unwrap();
+        assert_eq!(d.num_seconds(), 60);
+    }
+
+    #[test]
+    fn test_parse_duration_minutes() {
+        let d = parse_duration("30m").unwrap();
+        assert_eq!(d.num_minutes(), 30);
+    }
+
+    #[test]
+    fn test_parse_duration_hours() {
+        let d = parse_duration("24h").unwrap();
+        assert_eq!(d.num_hours(), 24);
+    }
+
+    #[test]
+    fn test_parse_duration_days() {
+        let d = parse_duration("7d").unwrap();
+        assert_eq!(d.num_days(), 7);
+    }
+
+    #[test]
+    fn test_parse_duration_invalid_unit() {
+        assert!(parse_duration("10x").is_err());
+    }
+
+    #[test]
+    fn test_parse_duration_empty() {
+        assert!(parse_duration("").is_err());
+    }
+
+    #[test]
+    fn test_parse_timestamp_valid() {
+        let ts = parse_timestamp("2026-01-01T00:00:00Z");
+        assert!(ts.is_some());
+    }
+
+    #[test]
+    fn test_parse_timestamp_invalid() {
+        let ts = parse_timestamp("not-a-timestamp");
+        assert!(ts.is_none());
+    }
+}

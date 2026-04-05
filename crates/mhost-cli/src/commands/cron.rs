@@ -129,4 +129,29 @@ mod tests {
         let result = compute_next_run("not a cron", &now);
         assert_eq!(result, "invalid cron");
     }
+
+    #[test]
+    fn test_cron_parse_5field() {
+        // 5-field should be normalised to 6-field and parse successfully
+        let normalized = normalize_cron_expr("*/5 * * * *");
+        assert_eq!(normalized, "0 */5 * * * *");
+        let schedule = Schedule::from_str(&normalized);
+        assert!(
+            schedule.is_ok(),
+            "5-field cron should parse after normalisation"
+        );
+    }
+
+    #[test]
+    fn test_cron_parse_invalid() {
+        let normalized = normalize_cron_expr("bad cron expr");
+        let schedule = Schedule::from_str(&normalized);
+        assert!(schedule.is_err(), "Invalid cron should fail to parse");
+    }
+
+    #[test]
+    fn test_normalize_preserves_7_field() {
+        let expr = "0 30 9 * * MON *";
+        assert_eq!(normalize_cron_expr(expr), expr);
+    }
 }

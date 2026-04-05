@@ -937,3 +937,119 @@ fn test_cloud_help_shows_new_commands() {
         "cloud --help should list destroy"
     );
 }
+
+// ── New Feature Tests ─────────────────────────────────────
+
+#[test]
+fn test_docker_help() {
+    let (stdout, _, ok) = run(&["docker", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("run") || stdout.contains("Run"));
+    assert!(stdout.contains("list") || stdout.contains("List"));
+}
+
+#[test]
+fn test_template_list() {
+    let (stdout, _, ok) = run(&["template", "list"]);
+    assert!(ok);
+    assert!(stdout.contains("nextjs") || stdout.contains("Next"));
+    assert!(stdout.contains("django") || stdout.contains("Django"));
+}
+
+#[test]
+fn test_template_init_unknown() {
+    let (stdout, stderr, _) = run(&["template", "init", "nonexistent-stack"]);
+    let output = format!("{stdout}{stderr}");
+    assert!(
+        output.contains("not found") || output.contains("Unknown") || output.contains("unknown")
+    );
+}
+
+#[test]
+fn test_plugin_list_empty() {
+    let (stdout, _, _) = run(&["plugin", "list"]);
+    assert!(
+        stdout.contains("No plugins") || stdout.contains("plugin") || stdout.contains("Plugin")
+    );
+}
+
+#[test]
+fn test_audit_empty() {
+    let (stdout, _, _) = run(&["audit"]);
+    assert!(
+        stdout.contains("No audit")
+            || stdout.contains("audit")
+            || stdout.contains("Audit")
+            || stdout.contains("entries")
+    );
+}
+
+#[test]
+fn test_init_help() {
+    let (stdout, _, ok) = run(&["init", "--help"]);
+    assert!(ok);
+    assert!(
+        stdout.contains("init")
+            || stdout.contains("Init")
+            || stdout.contains("detect")
+            || stdout.contains("generate")
+    );
+}
+
+#[test]
+fn test_log_alert_list_empty() {
+    let (stdout, _, _) = run(&["log-alert", "list"]);
+    assert!(stdout.contains("No") || stdout.contains("alert") || stdout.contains("Alert"));
+}
+
+#[test]
+fn test_cron_help() {
+    let (stdout, _, ok) = run(&["cron", "--help"]);
+    assert!(ok || stdout.contains("cron") || stdout.contains("schedule"));
+}
+
+#[test]
+fn test_workspace_list() {
+    let (stdout, _, _) = run(&["workspace", "list"]);
+    assert!(
+        stdout.contains("default") || stdout.contains("Workspace") || stdout.contains("workspace")
+    );
+}
+
+#[test]
+fn test_workspace_current() {
+    let (stdout, _, _) = run(&["workspace", "current"]);
+    assert!(
+        stdout.contains("default") || stdout.contains("workspace") || stdout.contains("Workspace")
+    );
+}
+
+#[test]
+fn test_hooks_list_empty() {
+    let (stdout, _, _) = run(&["hooks", "list"]);
+    assert!(
+        stdout.contains("No")
+            || stdout.contains("hook")
+            || stdout.contains("Hook")
+            || stdout.contains("webhook")
+    );
+}
+
+#[test]
+fn test_limits_help() {
+    let (stdout, _, ok) = run(&["limits", "--help"]);
+    assert!(ok);
+    assert!(
+        stdout.contains("limit")
+            || stdout.contains("Limit")
+            || stdout.contains("resource")
+            || stdout.contains("process")
+    );
+}
+
+#[test]
+fn test_status_page_help() {
+    let (stdout, _, ok) = run(&["status-page", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("status") || stdout.contains("page") || stdout.contains("port"));
+}
