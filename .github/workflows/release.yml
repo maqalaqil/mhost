@@ -401,6 +401,11 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "DISCORD_WEBHOOK secret is not set, skipping notification"
+            exit 0
+          fi
+
           TAG="${{ needs.version.outputs.tag }}"
           PREV_TAG=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
@@ -409,15 +414,27 @@ jobs:
             CHANGES=$(git log --pretty=format:"• %s" --no-merges -15)
           fi
 
-          DESCRIPTION=$(printf "A new version of mhost is available!\n\n**What's New:**\n%s\n\n**Install / Update:**\n\`\`\`bash\nnpm install -g @maqalaqil93/mhost\ncargo install mhost\nbrew upgrade mhost\n\`\`\`" "$CHANGES")
+          INSTALL_BLOCK='```bash
+          npm install -g @maqalaqil93/mhost
+          cargo install mhost
+          brew upgrade mhost
+          ```'
 
-          PAYLOAD=$(jq -n \
+          jq -n \
             --arg title "🚀 mhost ${TAG} Released!" \
             --arg url "https://github.com/maqalaqil/mhost/releases/tag/${TAG}" \
-            --arg desc "$DESCRIPTION" \
+            --arg changes "$CHANGES" \
+            --arg install "$INSTALL_BLOCK" \
             --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            '{embeds: [{title: $title, url: $url, description: $desc, color: 9132790, footer: {text: "mhost — AI-powered process manager"}, timestamp: $ts}]}')
+            '{embeds: [{
+              title: $title,
+              url: $url,
+              description: ("A new version of mhost is available!\n\n**What'\''s New:**\n" + $changes + "\n\n**Install / Update:**\n" + $install),
+              color: 9132790,
+              footer: {text: "mhost — AI-powered process manager"},
+              timestamp: $ts
+            }]}' > /tmp/discord-payload.json
 
-          curl -sf -X POST "$DISCORD_WEBHOOK" \
+          curl -sS -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+            -d @/tmp/discord-payload.json
