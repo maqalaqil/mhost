@@ -278,6 +278,52 @@ function handleResurrect(res) {
   jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output });
 }
 
+function handleNotifySave(res, config) {
+  // Write channel config to notify.json via mhost notify setup is interactive,
+  // so we write directly to the config file
+  const os = require('os');
+  const path = require('path');
+  const notifyPath = path.join(os.homedir(), '.mhost', 'notify.json');
+  try {
+    let existing = {};
+    if (fs.existsSync(notifyPath)) {
+      existing = JSON.parse(fs.readFileSync(notifyPath, 'utf8'));
+    }
+    if (!existing.channels) existing.channels = {};
+    existing.channels[config.name || config.type] = {
+      type: config.type,
+      token: config.token,
+      chat_id: config.chat_id || undefined,
+      events: config.events || ['crash', 'restart', 'errored'],
+      enabled: true,
+    };
+    fs.writeFileSync(notifyPath, JSON.stringify(existing, null, 2));
+    jsonRes(res, 200, { ok: true, output: 'Channel saved' });
+  } catch (e) {
+    jsonRes(res, 500, { ok: false, output: e.message });
+  }
+}
+
+function handleCloudProvision(res, body) {
+  const args = ['cloud', 'provision',
+    '--provider', body.provider || 'railway',
+    '--name', body.name || 'app',
+    '--type', 'container',
+  ];
+  if (body.image) args.push('--image', body.image);
+  if (body.port) args.push('--port', String(body.port));
+  if (body.region) args.push('--region', body.region);
+  if (body.instances) args.push('--instances', String(body.instances));
+  const r = runMhost(args.join(' '));
+  jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output });
+}
+
+function handleCloudExport(res, format) {
+  if (!format) format = 'terraform';
+  const r = runMhost('cloud export ' + format);
+  jsonRes(res, r.ok ? 200 : 500, { ok: r.ok, output: r.output });
+}
+
 // ── Body parser helper ───────────────────────────────────────────────────
 
 function readBody(req) {
@@ -360,10 +406,15 @@ async function handleRequest(req, res) {
   // Dependencies
   if (method === 'GET'    && p[1] === 'link' && !p[2])                                  return handleLink(res);
 
+  // Notify save (from dashboard setup wizard)
+  if (method === 'POST'   && p[1] === 'notify' && p[2] === 'save')                     { const b = await readBody(req); return handleNotifySave(res, b); }
+
   // Cloud Native
   if (method === 'GET'    && p[1] === 'cloud' && p[2] === 'services')                   return handleCloudServices(res);
   if (method === 'GET'    && p[1] === 'cloud' && p[2] === 'cost')                       return handleCloudCost(res);
   if (method === 'GET'    && p[1] === 'cloud' && p[2] === 'drift')                      return handleCloudDrift(res);
+  if (method === 'POST'   && p[1] === 'cloud' && p[2] === 'provision')                 { const b = await readBody(req); return handleCloudProvision(res, b); }
+  if (method === 'GET'    && p[1] === 'cloud' && p[2] === 'export')                     { const u = new URL(req.url, 'http://x'); return handleCloudExport(res, u.searchParams.get('format')); }
 
   // Save & Resurrect
   if (method === 'POST'   && p[1] === 'save')                                           return handleSave(res);
@@ -705,7 +756,49 @@ footer span{color:var(--text2)}
 
   <!-- ═══ CLOUD TAB ═══ -->
   <div class="tab-panel" id="panel-cloud">
-    <div class="sec-hdr"><span class="sec-title">Cloud Native</span></div>
+    <div class="sec-hdr">
+      <span class="sec-title">Cloud Native</span>
+      <button class="hbtn primary" onclick="toggleCloudProvision()">+ Provision Service</button>
+    </div>
+    <div id="cloud-provision-form" style="display:none;margin-bottom:20px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius)">
+      <div style="font-weight:600;margin-bottom:12px">Provision New Cloud Service</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:600px">
+        <div>
+          <label style="font-size:.72rem;color:var(--text3)">Provider</label>
+          <select id="cp-provider" style="width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.8rem">
+            <option value="railway">Railway</option><option value="fly">Fly.io</option>
+            <option value="aws">AWS</option><option value="gcp">GCP</option><option value="azure">Azure</option>
+            <option value="vercel">Vercel</option><option value="digitalocean">DigitalOcean</option>
+            <option value="cloudflare">Cloudflare</option><option value="netlify">Netlify</option><option value="supabase">Supabase</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.72rem;color:var(--text3)">Service Name</label>
+          <input id="cp-name" class="ai-input" type="text" placeholder="my-api" style="width:100%;padding:6px 10px;font-size:.8rem">
+        </div>
+        <div>
+          <label style="font-size:.72rem;color:var(--text3)">Image</label>
+          <input id="cp-image" class="ai-input" type="text" placeholder="node:20" style="width:100%;padding:6px 10px;font-size:.8rem">
+        </div>
+        <div>
+          <label style="font-size:.72rem;color:var(--text3)">Port</label>
+          <input id="cp-port" class="ai-input" type="number" placeholder="3000" style="width:100%;padding:6px 10px;font-size:.8rem">
+        </div>
+        <div>
+          <label style="font-size:.72rem;color:var(--text3)">Region</label>
+          <input id="cp-region" class="ai-input" type="text" placeholder="us-east-1" style="width:100%;padding:6px 10px;font-size:.8rem">
+        </div>
+        <div>
+          <label style="font-size:.72rem;color:var(--text3)">Instances</label>
+          <input id="cp-instances" class="ai-input" type="number" value="1" style="width:100%;padding:6px 10px;font-size:.8rem">
+        </div>
+      </div>
+      <div class="sys-actions" style="margin-top:12px">
+        <button class="hbtn primary" onclick="doCloudProvision()">Provision</button>
+        <button class="hbtn" onclick="toggleCloudProvision()">Cancel</button>
+      </div>
+      <div id="cp-result" style="margin-top:8px"></div>
+    </div>
     <div class="sys-grid">
       <div class="panel-card">
         <h3>Cloud Services</h3>
@@ -749,7 +842,46 @@ footer span{color:var(--text2)}
       </div>
       <div class="panel-card">
         <h3>Notifications</h3>
-        <button class="hbtn" onclick="loadNotifications()" style="margin-bottom:10px">Refresh</button>
+        <div class="sys-actions" style="margin-bottom:10px">
+          <button class="hbtn" onclick="loadNotifications()">Refresh</button>
+          <button class="hbtn primary" onclick="toggleNotifySetup()">+ Add Channel</button>
+        </div>
+        <div id="notify-setup" style="display:none;margin-bottom:14px;padding:14px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border)">
+          <div style="font-weight:600;margin-bottom:10px">Add Notification Channel</div>
+          <label style="font-size:.78rem;color:var(--text3)">Type:</label>
+          <select id="notify-type" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.8rem;margin-left:8px;margin-bottom:8px">
+            <option value="telegram">Telegram</option>
+            <option value="slack">Slack</option>
+            <option value="discord">Discord</option>
+            <option value="webhook">Webhook</option>
+            <option value="email">Email</option>
+            <option value="pagerduty">PagerDuty</option>
+            <option value="teams">Microsoft Teams</option>
+            <option value="ntfy">Ntfy</option>
+          </select><br>
+          <label style="font-size:.78rem;color:var(--text3)">Channel name:</label>
+          <input id="notify-name" class="ai-input" type="text" placeholder="e.g. my-telegram" style="max-width:200px;padding:6px 10px;font-size:.8rem;margin-bottom:8px"><br>
+          <label style="font-size:.78rem;color:var(--text3)">Token/Webhook URL:</label>
+          <input id="notify-token" class="ai-input" type="text" placeholder="Bot token or webhook URL" style="max-width:360px;padding:6px 10px;font-size:.8rem;margin-bottom:8px"><br>
+          <label style="font-size:.78rem;color:var(--text3)">Chat ID (Telegram only):</label>
+          <input id="notify-chatid" class="ai-input" type="text" placeholder="e.g. 987654321" style="max-width:200px;padding:6px 10px;font-size:.8rem;margin-bottom:12px"><br>
+          <label style="font-size:.78rem;color:var(--text3)">Events:</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px">
+            <label style="font-size:.72rem"><input type="checkbox" class="notify-event" value="crash" checked> crash</label>
+            <label style="font-size:.72rem"><input type="checkbox" class="notify-event" value="restart" checked> restart</label>
+            <label style="font-size:.72rem"><input type="checkbox" class="notify-event" value="errored" checked> errored</label>
+            <label style="font-size:.72rem"><input type="checkbox" class="notify-event" value="stopped"> stopped</label>
+            <label style="font-size:.72rem"><input type="checkbox" class="notify-event" value="recovered"> recovered</label>
+            <label style="font-size:.72rem"><input type="checkbox" class="notify-event" value="health_fail" checked> health_fail</label>
+            <label style="font-size:.72rem"><input type="checkbox" class="notify-event" value="deploy_success"> deploy</label>
+            <label style="font-size:.72rem"><input type="checkbox" class="notify-event" value="oom_kill"> oom</label>
+          </div>
+          <div class="sys-actions">
+            <button class="hbtn primary" onclick="addNotifyChannel()">Save Channel</button>
+            <button class="hbtn" onclick="toggleNotifySetup()">Cancel</button>
+          </div>
+          <div id="notify-setup-result" style="margin-top:8px"></div>
+        </div>
         <div id="notify-list">
           <div class="loading"><div class="spinner"></div> Loading notifications...</div>
         </div>
@@ -783,6 +915,19 @@ footer span{color:var(--text2)}
         <button class="hbtn" onclick="loadLink()" style="margin-bottom:10px">Refresh</button>
         <div id="link-output">
           <div class="loading"><div class="spinner"></div> Loading dependencies...</div>
+        </div>
+      </div>
+      <div class="panel-card">
+        <h3>Export Infrastructure as Code</h3>
+        <p style="font-size:.78rem;color:var(--text3);margin-bottom:12px">Generate IaC files from your current cloud services configuration.</p>
+        <div class="sys-actions">
+          <button class="hbtn" onclick="exportIaC('terraform')">Terraform</button>
+          <button class="hbtn" onclick="exportIaC('docker-compose')">Docker Compose</button>
+          <button class="hbtn" onclick="exportIaC('kubernetes')">Kubernetes</button>
+        </div>
+        <pre id="export-output" style="display:none;margin-top:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:.75rem;font-family:var(--mono);color:var(--text2);max-height:300px;overflow:auto;white-space:pre-wrap"></pre>
+        <div id="export-actions" style="display:none;margin-top:8px">
+          <button class="hbtn primary" onclick="copyExport()">Copy to Clipboard</button>
         </div>
       </div>
     </div>
@@ -1431,6 +1576,106 @@ async function loadLink() {
     const d = await api('/api/link');
     el.innerHTML = outputBlock(d.output);
   } catch (e) { el.innerHTML = '<p style="color:var(--red);font-size:.82rem">' + san(e.message) + '</p>'; }
+}
+
+// ── Notify Setup ──
+
+function toggleNotifySetup() {
+  const el = document.getElementById('notify-setup');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function addNotifyChannel() {
+  const type = document.getElementById('notify-type').value;
+  const name = document.getElementById('notify-name').value || type;
+  const token = document.getElementById('notify-token').value;
+  const chatId = document.getElementById('notify-chatid').value;
+  const events = [...document.querySelectorAll('.notify-event:checked')].map(c => c.value);
+
+  if (!token) { toast('Token/URL is required', 'err'); return; }
+
+  // Save via CLI — build notify config
+  const config = { type, name, token, events };
+  if (chatId) config.chat_id = chatId;
+
+  const resultEl = document.getElementById('notify-setup-result');
+  resultEl.innerHTML = '<span style="color:var(--yellow)">Saving channel...</span>';
+
+  // Use mhost notify setup is interactive, so we write directly to notify.json
+  try {
+    const r = await api('/api/notify/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    if (r.ok) {
+      toast('Channel "' + name + '" added', 'ok');
+      toggleNotifySetup();
+      loadNotifications();
+    } else {
+      resultEl.innerHTML = '<span style="color:var(--red)">' + (r.output || 'Failed to save') + '</span>';
+    }
+  } catch(e) {
+    resultEl.innerHTML = '<span style="color:var(--red)">' + e.message + '</span>';
+  }
+}
+
+// ── Cloud Provision ──
+
+function toggleCloudProvision() {
+  const el = document.getElementById('cloud-provision-form');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function doCloudProvision() {
+  const provider = document.getElementById('cp-provider').value;
+  const name = document.getElementById('cp-name').value;
+  const image = document.getElementById('cp-image').value;
+  const port = document.getElementById('cp-port').value;
+  const region = document.getElementById('cp-region').value || 'us-east-1';
+  const instances = document.getElementById('cp-instances').value || '1';
+
+  if (!name) { toast('Service name required', 'err'); return; }
+
+  const resultEl = document.getElementById('cp-result');
+  resultEl.innerHTML = '<span style="color:var(--yellow)">Provisioning on ' + provider + '...</span>';
+
+  const r = await api('/api/cloud/provision', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, name, image, port: port ? parseInt(port) : null, region, instances: parseInt(instances) }),
+  });
+
+  if (r.ok) {
+    toast('Service "' + name + '" provisioned on ' + provider, 'ok');
+    toggleCloudProvision();
+    loadCloudServices();
+  } else {
+    resultEl.innerHTML = '<span style="color:var(--red)">' + (r.output || 'Provision failed') + '</span>';
+  }
+}
+
+// ── IaC Export ──
+
+async function exportIaC(format) {
+  const outputEl = document.getElementById('export-output');
+  const actionsEl = document.getElementById('export-actions');
+  outputEl.style.display = 'block';
+  outputEl.textContent = 'Generating ' + format + '...';
+
+  const r = await api('/api/cloud/export?format=' + format);
+  if (r.ok && r.output) {
+    outputEl.textContent = r.output;
+    actionsEl.style.display = 'block';
+  } else {
+    outputEl.textContent = r.output || 'Export requires cloud services data. Configure cloud providers first.';
+    actionsEl.style.display = 'none';
+  }
+}
+
+function copyExport() {
+  const text = document.getElementById('export-output').textContent;
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard', 'ok'));
 }
 
 // ── Init ──
