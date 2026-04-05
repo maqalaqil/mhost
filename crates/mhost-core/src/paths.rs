@@ -76,6 +76,22 @@ impl MhostPaths {
         self.root.join("webhook_failures.json")
     }
 
+    pub fn cloud_credentials(&self) -> PathBuf {
+        self.root.join("cloud-credentials.json")
+    }
+
+    pub fn cloud_state(&self) -> PathBuf {
+        self.root.join("cloud-state.toml")
+    }
+
+    pub fn cloud_backups(&self) -> PathBuf {
+        self.root.join("cloud-backups")
+    }
+
+    pub fn cloud_cost_cache(&self) -> PathBuf {
+        self.root.join("cloud-cost-cache.json")
+    }
+
     pub fn ensure_dirs(&self) -> std::io::Result<()> {
         std::fs::create_dir_all(&self.root)?;
         std::fs::create_dir_all(self.logs_dir())?;
@@ -222,6 +238,42 @@ mod tests {
         assert_eq!(
             paths.webhook_failures(),
             PathBuf::from("/tmp/mhost-test/webhook_failures.json")
+        );
+    }
+
+    #[test]
+    fn test_cloud_credentials_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(
+            paths.cloud_credentials(),
+            PathBuf::from("/tmp/mhost-test/cloud-credentials.json")
+        );
+    }
+
+    #[test]
+    fn test_cloud_state_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(
+            paths.cloud_state(),
+            PathBuf::from("/tmp/mhost-test/cloud-state.toml")
+        );
+    }
+
+    #[test]
+    fn test_cloud_backups_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(
+            paths.cloud_backups(),
+            PathBuf::from("/tmp/mhost-test/cloud-backups")
+        );
+    }
+
+    #[test]
+    fn test_cloud_cost_cache_path() {
+        let paths = MhostPaths::with_root(PathBuf::from("/tmp/mhost-test"));
+        assert_eq!(
+            paths.cloud_cost_cache(),
+            PathBuf::from("/tmp/mhost-test/cloud-cost-cache.json")
         );
     }
 

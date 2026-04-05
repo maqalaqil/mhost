@@ -16,6 +16,10 @@ thiserror = { workspace = true }
 async-trait = "0.1"
 dirs = { workspace = true }
 
+[features]
+default = []
+cloud-native = []
+
 [dev-dependencies]
 tokio = { workspace = true }
 tempfile = "3"

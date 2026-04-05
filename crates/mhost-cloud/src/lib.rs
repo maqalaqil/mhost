@@ -1,3 +1,8 @@
+#[cfg(feature = "cloud-native")]
+pub mod adapter;
+#[cfg(feature = "cloud-native")]
+pub mod credentials;
+
 pub mod ai_cloud;
 pub mod config;
 pub mod fleet;
