@@ -401,7 +401,10 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          if [ -z "$DISCORD_WEBHOOK" ]; then
+          # Clean the webhook URL (strip whitespace/newlines)
+          WEBHOOK_URL=$(echo "$DISCORD_WEBHOOK" | tr -d '[:space:]')
+
+          if [ -z "$WEBHOOK_URL" ]; then
             echo "DISCORD_WEBHOOK secret is not set, skipping notification"
             exit 0
           fi
@@ -414,27 +417,26 @@ jobs:
             CHANGES=$(git log --pretty=format:"• %s" --no-merges -15)
           fi
 
-          INSTALL_BLOCK='```bash
-          npm install -g @maqalaqil93/mhost
-          cargo install mhost
-          brew upgrade mhost
-          ```'
+          # Build payload with Python to avoid all shell escaping issues
+          python3 -c "
+          import json, sys
+          changes = sys.stdin.read().strip()
+          payload = {
+              'embeds': [{
+                  'title': '🚀 mhost ${TAG} Released!',
+                  'url': 'https://github.com/maqalaqil/mhost/releases/tag/${TAG}',
+                  'description': 'A new version of mhost is available!\n\n**What'\''s New:**\n' + changes + '\n\n**Install / Update:**\n\`\`\`bash\nnpm install -g @maqalaqil93/mhost\ncargo install mhost\nbrew upgrade mhost\n\`\`\`',
+                  'color': 9132790,
+                  'footer': {'text': 'mhost — AI-powered process manager'}
+              }]
+          }
+          json.dump(payload, open('/tmp/discord-payload.json', 'w'))
+          " <<< "$CHANGES"
 
-          jq -n \
-            --arg title "🚀 mhost ${TAG} Released!" \
-            --arg url "https://github.com/maqalaqil/mhost/releases/tag/${TAG}" \
-            --arg changes "$CHANGES" \
-            --arg install "$INSTALL_BLOCK" \
-            --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            '{embeds: [{
-              title: $title,
-              url: $url,
-              description: ("A new version of mhost is available!\n\n**What'\''s New:**\n" + $changes + "\n\n**Install / Update:**\n" + $install),
-              color: 9132790,
-              footer: {text: "mhost — AI-powered process manager"},
-              timestamp: $ts
-            }]}' > /tmp/discord-payload.json
-
-          curl -sS -X POST "$DISCORD_WEBHOOK" \
+          curl -sS -o /tmp/discord-response.txt -w "%{http_code}" \
+            -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d @/tmp/discord-payload.json
+
+          echo ""
+          echo "Discord response: $(cat /tmp/discord-response.txt)"
