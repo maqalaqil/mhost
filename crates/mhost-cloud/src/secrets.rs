@@ -11,15 +11,13 @@ impl SecretStore {
     pub fn load(path: &Path) -> Result<Self, String> {
         let data = std::fs::read_to_string(path)
             .map_err(|e| format!("failed to read secrets file: {e}"))?;
-        serde_json::from_str(&data)
-            .map_err(|e| format!("failed to parse secrets file: {e}"))
+        serde_json::from_str(&data).map_err(|e| format!("failed to parse secrets file: {e}"))
     }
 
     pub fn save(&self, path: &Path) -> Result<(), String> {
         let data = serde_json::to_string_pretty(self)
             .map_err(|e| format!("failed to serialize secrets: {e}"))?;
-        std::fs::write(path, data)
-            .map_err(|e| format!("failed to write secrets file: {e}"))
+        std::fs::write(path, data).map_err(|e| format!("failed to write secrets file: {e}"))
     }
 
     pub fn set(&self, service: &str, key: &str, value: &str) -> Self {
@@ -57,10 +55,7 @@ impl SecretStore {
     }
 
     pub fn all_for_service(&self, service: &str) -> HashMap<String, String> {
-        self.services
-            .get(service)
-            .cloned()
-            .unwrap_or_default()
+        self.services.get(service).cloned().unwrap_or_default()
     }
 }
 
@@ -74,7 +69,10 @@ mod tests {
         let store = store.set("my-app", "DB_URL", "postgres://localhost/db");
         let store = store.set("my-app", "API_KEY", "secret-123");
 
-        assert_eq!(store.get("my-app", "DB_URL"), Some("postgres://localhost/db"));
+        assert_eq!(
+            store.get("my-app", "DB_URL"),
+            Some("postgres://localhost/db")
+        );
         assert_eq!(store.get("my-app", "API_KEY"), Some("secret-123"));
         assert_eq!(store.get("my-app", "MISSING"), None);
         assert_eq!(store.get("other", "DB_URL"), None);

@@ -840,9 +840,7 @@ fn test_cloud_services_no_creds() {
 fn test_cloud_cost_no_creds() {
     let (stdout, _, _) = run(&["cloud", "cost"]);
     assert!(
-        stdout.contains("No cloud providers")
-            || stdout.contains("cost")
-            || stdout.contains("Cost")
+        stdout.contains("No cloud providers") || stdout.contains("cost") || stdout.contains("Cost")
     );
 }
 
@@ -890,9 +888,7 @@ fn test_cloud_export_unknown_format() {
 fn test_cloud_backup_list() {
     let (stdout, _, _) = run(&["cloud", "backup-list"]);
     assert!(
-        stdout.contains("No backups")
-            || stdout.contains("backup")
-            || stdout.contains("Backup")
+        stdout.contains("No backups") || stdout.contains("backup") || stdout.contains("Backup")
     );
 }
 
@@ -908,9 +904,7 @@ fn test_cloud_drift_no_creds() {
 
 #[test]
 fn test_cloud_destroy_no_confirm() {
-    let (_, stderr, ok) = run(&[
-        "cloud", "destroy", "myservice", "--provider", "railway",
-    ]);
+    let (_, stderr, ok) = run(&["cloud", "destroy", "myservice", "--provider", "railway"]);
     // Should fail because --confirm is not passed
     assert!(!ok || stderr.contains("confirm"));
 }
@@ -919,12 +913,27 @@ fn test_cloud_destroy_no_confirm() {
 fn test_cloud_help_shows_new_commands() {
     let (stdout, _, ok) = run(&["cloud", "--help"]);
     assert!(ok);
-    assert!(stdout.contains("provision"), "cloud --help should list provision");
-    assert!(stdout.contains("services"), "cloud --help should list services");
+    assert!(
+        stdout.contains("provision"),
+        "cloud --help should list provision"
+    );
+    assert!(
+        stdout.contains("services"),
+        "cloud --help should list services"
+    );
     assert!(stdout.contains("cost"), "cloud --help should list cost");
     assert!(stdout.contains("drift"), "cloud --help should list drift");
-    assert!(stdout.contains("secrets"), "cloud --help should list secrets");
+    assert!(
+        stdout.contains("secrets"),
+        "cloud --help should list secrets"
+    );
     assert!(stdout.contains("export"), "cloud --help should list export");
-    assert!(stdout.contains("backup-list"), "cloud --help should list backup-list");
-    assert!(stdout.contains("destroy"), "cloud --help should list destroy");
+    assert!(
+        stdout.contains("backup-list"),
+        "cloud --help should list backup-list"
+    );
+    assert!(
+        stdout.contains("destroy"),
+        "cloud --help should list destroy"
+    );
 }

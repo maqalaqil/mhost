@@ -43,9 +43,7 @@ impl CloudflareAdapter {
 
         let status = resp.status().as_u16();
         if status == 401 || status == 403 {
-            return Err(CloudError::AuthError(
-                "Invalid Cloudflare API token".into(),
-            ));
+            return Err(CloudError::AuthError("Invalid Cloudflare API token".into()));
         }
 
         let body: serde_json::Value = resp
@@ -57,7 +55,9 @@ impl CloudflareAdapter {
             let msg = body["errors"][0]["message"]
                 .as_str()
                 .unwrap_or("Unknown Cloudflare error");
-            return Err(CloudError::ApiError(format!("cloudflare ({status}): {msg}")));
+            return Err(CloudError::ApiError(format!(
+                "cloudflare ({status}): {msg}"
+            )));
         }
 
         Ok(body["result"].clone())
@@ -86,9 +86,7 @@ impl CloudflareAdapter {
 
         let status = resp.status().as_u16();
         if status == 401 || status == 403 {
-            return Err(CloudError::AuthError(
-                "Invalid Cloudflare API token".into(),
-            ));
+            return Err(CloudError::AuthError("Invalid Cloudflare API token".into()));
         }
 
         let data: serde_json::Value = resp
@@ -100,7 +98,9 @@ impl CloudflareAdapter {
             let msg = data["errors"][0]["message"]
                 .as_str()
                 .unwrap_or("Unknown Cloudflare error");
-            return Err(CloudError::ApiError(format!("cloudflare ({status}): {msg}")));
+            return Err(CloudError::ApiError(format!(
+                "cloudflare ({status}): {msg}"
+            )));
         }
 
         Ok(data["result"].clone())
@@ -170,9 +170,7 @@ impl CloudAdapter for CloudflareAdapter {
 
         let status = resp.status().as_u16();
         if status == 401 || status == 403 {
-            return Err(CloudError::AuthError(
-                "Invalid Cloudflare API token".into(),
-            ));
+            return Err(CloudError::AuthError("Invalid Cloudflare API token".into()));
         }
 
         let data: serde_json::Value = resp
@@ -184,7 +182,9 @@ impl CloudAdapter for CloudflareAdapter {
             let msg = data["errors"][0]["message"]
                 .as_str()
                 .unwrap_or("Failed to create worker");
-            return Err(CloudError::ApiError(format!("cloudflare ({status}): {msg}")));
+            return Err(CloudError::ApiError(format!(
+                "cloudflare ({status}): {msg}"
+            )));
         }
 
         info!(provider = "cloudflare", service = %spec.name, "Worker provisioned");
@@ -219,11 +219,7 @@ impl CloudAdapter for CloudflareAdapter {
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        _config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, _config: &DeployConfig) -> Result<CloudService, CloudError> {
         // Re-upload worker script to deploy update
         let url = format!("{}/{name}", self.scripts_url());
         let script =
@@ -241,9 +237,7 @@ impl CloudAdapter for CloudflareAdapter {
 
         let status = resp.status().as_u16();
         if status == 401 || status == 403 {
-            return Err(CloudError::AuthError(
-                "Invalid Cloudflare API token".into(),
-            ));
+            return Err(CloudError::AuthError("Invalid Cloudflare API token".into()));
         }
 
         info!(provider = "cloudflare", service = %name, "Worker deployed");

@@ -57,9 +57,7 @@ impl GcpAdapter {
             .env("GOOGLE_APPLICATION_CREDENTIALS", &self.credentials_file)
             .output()
             .await
-            .map_err(|e| {
-                CloudError::NetworkError(format!("gcloud CLI not available: {e}"))
-            })?;
+            .map_err(|e| CloudError::NetworkError(format!("gcloud CLI not available: {e}")))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -80,10 +78,7 @@ impl GcpAdapter {
     }
 
     /// Execute a gcloud CLI command and return parsed JSON output.
-    async fn gcloud_cli(
-        &self,
-        args: &[&str],
-    ) -> Result<serde_json::Value, CloudError> {
+    async fn gcloud_cli(&self, args: &[&str]) -> Result<serde_json::Value, CloudError> {
         let mut cmd_args = args.to_vec();
         cmd_args.extend_from_slice(&["--format=json", "--project", &self.project_id]);
 
@@ -150,9 +145,7 @@ impl GcpAdapter {
             .map_err(|e| CloudError::NetworkError(e.to_string()))?;
 
         if status >= 400 {
-            let msg = data["error"]["message"]
-                .as_str()
-                .unwrap_or("Unknown error");
+            let msg = data["error"]["message"].as_str().unwrap_or("Unknown error");
             return Err(CloudError::ApiError(format!("GCP ({status}): {msg}")));
         }
 
@@ -167,16 +160,14 @@ impl GcpAdapter {
             .to_string();
 
         // Strip the full resource name to just the service name
-        let short_name = name
-            .rsplit('/')
-            .next()
-            .unwrap_or(&name)
-            .to_string();
+        let short_name = name.rsplit('/').next().unwrap_or(&name).to_string();
 
         let status_conditions = svc["status"]["conditions"].as_array();
         let is_ready = status_conditions
             .and_then(|conditions| {
-                conditions.iter().find(|c| c["type"].as_str() == Some("Ready"))
+                conditions
+                    .iter()
+                    .find(|c| c["type"].as_str() == Some("Ready"))
             })
             .and_then(|c| c["status"].as_str())
             == Some("True");
@@ -288,13 +279,7 @@ impl CloudAdapter for GcpAdapter {
         // List Compute Engine instances
         let zone = format!("{}-a", self.region);
         let compute_data = self
-            .gcloud_cli(&[
-                "compute",
-                "instances",
-                "list",
-                "--zones",
-                &zone,
-            ])
+            .gcloud_cli(&["compute", "instances", "list", "--zones", &zone])
             .await?;
 
         if let Some(instances) = compute_data.as_array() {
@@ -326,14 +311,7 @@ impl CloudAdapter for GcpAdapter {
         // Try Compute Engine
         let zone = format!("{}-a", self.region);
         let compute_result = self
-            .gcloud_cli(&[
-                "compute",
-                "instances",
-                "describe",
-                name,
-                "--zone",
-                &zone,
-            ])
+            .gcloud_cli(&["compute", "instances", "describe", name, "--zone", &zone])
             .await;
 
         if let Ok(data) = compute_result {
@@ -407,10 +385,7 @@ impl CloudAdapter for GcpAdapter {
                     .and_then(|r| r.cpu.as_deref())
                     .unwrap_or("e2-micro");
                 let zone = format!("{}-a", spec.region);
-                let image_family = spec
-                    .image
-                    .as_deref()
-                    .unwrap_or("debian-11");
+                let image_family = spec.image.as_deref().unwrap_or("debian-11");
 
                 let result = self
                     .gcloud_cli(&[
@@ -496,11 +471,7 @@ impl CloudAdapter for GcpAdapter {
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, config: &DeployConfig) -> Result<CloudService, CloudError> {
         let mut args = vec![
             "run",
             "deploy",

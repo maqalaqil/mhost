@@ -32,9 +32,7 @@ impl SupabaseAdapter {
 
     fn require_project_ref(&self) -> Result<&str, CloudError> {
         self.project_ref.as_deref().ok_or_else(|| {
-            CloudError::InvalidConfig(
-                "Supabase project_ref is required; use with_project()".into(),
-            )
+            CloudError::InvalidConfig("Supabase project_ref is required; use with_project()".into())
         })
     }
 
@@ -70,9 +68,7 @@ impl SupabaseAdapter {
 
         if let Some(msg) = body.get("message").and_then(|m| m.as_str()) {
             if status >= 400 {
-                return Err(CloudError::ApiError(format!(
-                    "supabase ({status}): {msg}"
-                )));
+                return Err(CloudError::ApiError(format!("supabase ({status}): {msg}")));
             }
         }
 
@@ -119,20 +115,14 @@ impl SupabaseAdapter {
 
         if let Some(msg) = data.get("message").and_then(|m| m.as_str()) {
             if status >= 400 {
-                return Err(CloudError::ApiError(format!(
-                    "supabase ({status}): {msg}"
-                )));
+                return Err(CloudError::ApiError(format!("supabase ({status}): {msg}")));
             }
         }
 
         Ok(data)
     }
 
-    fn parse_function(
-        &self,
-        func: &serde_json::Value,
-        project_ref: &str,
-    ) -> CloudService {
+    fn parse_function(&self, func: &serde_json::Value, project_ref: &str) -> CloudService {
         let name = func["name"].as_str().unwrap_or("unknown").to_string();
         let slug = func["slug"].as_str().unwrap_or(&name);
         let id = func["id"].as_str().unwrap_or("").to_string();
@@ -152,10 +142,7 @@ impl SupabaseAdapter {
             name,
             provider: "supabase".into(),
             service_type: ServiceType::EdgeFunction,
-            region: func["region"]
-                .as_str()
-                .unwrap_or("us-east-1")
-                .to_string(),
+            region: func["region"].as_str().unwrap_or("us-east-1").to_string(),
             status,
             instances: 1,
             url,
@@ -251,11 +238,7 @@ impl CloudAdapter for SupabaseAdapter {
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        _config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, _config: &DeployConfig) -> Result<CloudService, CloudError> {
         let project_ref = self.require_project_ref()?;
         let url = format!("{}/{name}", self.functions_url(project_ref));
 

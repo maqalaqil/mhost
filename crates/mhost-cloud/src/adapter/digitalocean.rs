@@ -34,9 +34,7 @@ impl DigitaloceanAdapter {
 
         let status = resp.status().as_u16();
         if status == 401 {
-            return Err(CloudError::AuthError(
-                "Invalid DigitalOcean token".into(),
-            ));
+            return Err(CloudError::AuthError("Invalid DigitalOcean token".into()));
         }
         if status == 404 {
             return Err(CloudError::NotFound(
@@ -83,9 +81,7 @@ impl DigitaloceanAdapter {
 
         let status = resp.status().as_u16();
         if status == 401 {
-            return Err(CloudError::AuthError(
-                "Invalid DigitalOcean token".into(),
-            ));
+            return Err(CloudError::AuthError("Invalid DigitalOcean token".into()));
         }
 
         // DELETE may return 204 No Content
@@ -272,11 +268,7 @@ impl CloudAdapter for DigitaloceanAdapter {
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, config: &DeployConfig) -> Result<CloudService, CloudError> {
         let service = self.get_service(name).await?;
         let provider_id = service.provider_id.as_deref().unwrap_or_default();
 

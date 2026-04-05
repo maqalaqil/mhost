@@ -97,9 +97,7 @@ impl AzureAdapter {
         body: Option<serde_json::Value>,
     ) -> Result<serde_json::Value, CloudError> {
         let token = self.get_access_token().await?;
-        let url = format!(
-            "{AZURE_MANAGEMENT_API}{path}?api-version={api_version}"
-        );
+        let url = format!("{AZURE_MANAGEMENT_API}{path}?api-version={api_version}");
 
         let mut req = self
             .client
@@ -137,9 +135,7 @@ impl AzureAdapter {
             .map_err(|e| CloudError::NetworkError(e.to_string()))?;
 
         if status >= 400 {
-            let msg = data["error"]["message"]
-                .as_str()
-                .unwrap_or("Unknown error");
+            let msg = data["error"]["message"].as_str().unwrap_or("Unknown error");
             return Err(CloudError::ApiError(format!("Azure ({status}): {msg}")));
         }
 
@@ -223,12 +219,10 @@ impl AzureAdapter {
             .unwrap_or("unknown");
 
         let image_ref = &vm["properties"]["storageProfile"]["imageReference"];
-        let image = image_ref["offer"]
-            .as_str()
-            .map(|offer| {
-                let sku = image_ref["sku"].as_str().unwrap_or("");
-                format!("{offer}/{sku}")
-            });
+        let image = image_ref["offer"].as_str().map(|offer| {
+            let sku = image_ref["sku"].as_str().unwrap_or("");
+            format!("{offer}/{sku}")
+        });
 
         CloudService {
             name,
@@ -433,12 +427,7 @@ impl CloudAdapter for AzureAdapter {
                 );
 
                 let result = self
-                    .api_request(
-                        reqwest::Method::PUT,
-                        &path,
-                        API_VERSION_COMPUTE,
-                        Some(body),
-                    )
+                    .api_request(reqwest::Method::PUT, &path, API_VERSION_COMPUTE, Some(body))
                     .await?;
 
                 info!(provider = "azure", service = %spec.name, "VM created");
@@ -485,23 +474,14 @@ impl CloudAdapter for AzureAdapter {
             }
         };
 
-        self.api_request(
-            reqwest::Method::DELETE,
-            &resource_id,
-            api_version,
-            None,
-        )
-        .await?;
+        self.api_request(reqwest::Method::DELETE, &resource_id, api_version, None)
+            .await?;
 
         info!(provider = "azure", service = %name, "Resource destroyed");
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, config: &DeployConfig) -> Result<CloudService, CloudError> {
         let service = self.get_service(name).await?;
         let resource_id = service
             .provider_id
@@ -569,13 +549,8 @@ impl CloudAdapter for AzureAdapter {
             .ok_or_else(|| CloudError::NotFound("No resource ID for service".into()))?;
 
         let restart_path = format!("{resource_id}/restart");
-        self.api_request(
-            reqwest::Method::POST,
-            &restart_path,
-            API_VERSION_ACI,
-            None,
-        )
-        .await?;
+        self.api_request(reqwest::Method::POST, &restart_path, API_VERSION_ACI, None)
+            .await?;
 
         info!(provider = "azure", service = %name, "Container group restarted");
         Ok(())

@@ -556,20 +556,14 @@ pub fn run_cloud_services(paths: &MhostPaths, provider: Option<&str>) {
         return;
     }
     if let Some(prov) = provider {
-        println!(
-            "  Listing services on {}...",
-            prov.cyan()
-        );
+        println!("  Listing services on {}...", prov.cyan());
         println!(
             "  {} This requires a running connection to the {} API",
             "i".cyan(),
             prov
         );
     } else {
-        println!(
-            "  Listing services across {} providers...",
-            creds.len()
-        );
+        println!("  Listing services across {} providers...", creds.len());
         for name in creds.keys() {
             println!("    {} {name}", "●".green());
         }
@@ -600,12 +594,7 @@ pub fn run_cloud_service(paths: &MhostPaths, name: &str, provider: Option<&str>)
 // Cloud Deploy (image)
 // ---------------------------------------------------------------------------
 
-pub fn run_cloud_deploy_image(
-    paths: &MhostPaths,
-    name: &str,
-    image: &str,
-    provider: Option<&str>,
-) {
+pub fn run_cloud_deploy_image(paths: &MhostPaths, name: &str, image: &str, provider: Option<&str>) {
     let creds = get_providers(paths);
     if creds.is_empty() {
         print_no_providers();
@@ -637,11 +626,7 @@ pub fn run_cloud_scale_native(
         print_no_providers();
         return;
     }
-    println!(
-        "  Scaling '{}' to {} instances...",
-        name.cyan(),
-        instances
-    );
+    println!("  Scaling '{}' to {} instances...", name.cyan(), instances);
     if let Some(prov) = provider {
         println!("  Provider: {prov}");
     }
@@ -670,12 +655,7 @@ pub fn run_cloud_destroy(
         println!("  Run: mhost cloud auth {provider}");
         return Ok(());
     }
-    println!(
-        "  {} Destroying '{}' on {}...",
-        "!".red(),
-        name,
-        provider
-    );
+    println!("  {} Destroying '{}' on {}...", "!".red(), name, provider);
     println!(
         "  {} Destruction requires a running connection to the {} API",
         "i".cyan(),
@@ -846,15 +826,15 @@ pub fn run_cloud_export(format: &str) {
             println!("  Requires cloud services data (run `mhost cloud services` first).");
         }
         "kubernetes" | "k8s" => {
-            println!("\n  {} Generating Kubernetes manifests...\n", "mhost".bold());
+            println!(
+                "\n  {} Generating Kubernetes manifests...\n",
+                "mhost".bold()
+            );
             println!("  Kubernetes export generates Deployment + Service YAML manifests.");
             println!("  Requires cloud services data (run `mhost cloud services` first).");
         }
         _ => {
-            println!(
-                "  Unknown format: '{}'. Supported formats:",
-                format.red()
-            );
+            println!("  Unknown format: '{}'. Supported formats:", format.red());
             println!("    terraform (tf)");
             println!("    docker-compose (compose)");
             println!("    kubernetes (k8s)");

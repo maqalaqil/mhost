@@ -145,13 +145,11 @@ impl VercelAdapter {
                 memory: None,
                 disk: None,
             }),
-            created_at: project["createdAt"]
-                .as_u64()
-                .map(|ts| {
-                    chrono::DateTime::from_timestamp_millis(ts as i64)
-                        .map(|dt| dt.to_rfc3339())
-                        .unwrap_or_default()
-                }),
+            created_at: project["createdAt"].as_u64().map(|ts| {
+                chrono::DateTime::from_timestamp_millis(ts as i64)
+                    .map(|dt| dt.to_rfc3339())
+                    .unwrap_or_default()
+            }),
             provider_id: Some(id),
         }
     }
@@ -232,11 +230,7 @@ impl CloudAdapter for VercelAdapter {
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, config: &DeployConfig) -> Result<CloudService, CloudError> {
         let url = self.build_url("/v13/deployments");
         let body = serde_json::json!({
             "name": name,
@@ -287,9 +281,9 @@ impl CloudAdapter for VercelAdapter {
 
     async fn logs(&self, name: &str, _lines: u32) -> Result<Vec<String>, CloudError> {
         // Vercel has a log drains API but real-time logs require SSE
-        Err(CloudError::NotSupported(
-            format!("Vercel logs for '{name}' require Log Drains or the dashboard"),
-        ))
+        Err(CloudError::NotSupported(format!(
+            "Vercel logs for '{name}' require Log Drains or the dashboard"
+        )))
     }
 
     async fn status(&self, name: &str) -> Result<ServiceStatus, CloudError> {

@@ -127,7 +127,8 @@ impl AdapterRegistry {
                 let account_id = cred.default_region().unwrap_or("").to_string();
                 if account_id.is_empty() {
                     return Err(CloudError::InvalidConfig(
-                        "Cloudflare requires an account_id (set via default_region in credentials)".into(),
+                        "Cloudflare requires an account_id (set via default_region in credentials)"
+                            .into(),
                     ));
                 }
                 Ok(Arc::new(CloudflareAdapter::new(&token, &account_id)))
@@ -254,10 +255,7 @@ mod tests {
     #[test]
     fn test_create_digitalocean_with_token() {
         let mut creds = CloudCredentials::default();
-        creds.set(
-            "digitalocean",
-            ProviderCredential::token("test-do-tok"),
-        );
+        creds.set("digitalocean", ProviderCredential::token("test-do-tok"));
         let adapter = AdapterRegistry::create("digitalocean", &creds).unwrap();
         assert_eq!(adapter.provider_name(), "digitalocean");
     }

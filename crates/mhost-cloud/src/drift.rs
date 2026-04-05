@@ -93,7 +93,12 @@ impl DriftResult {
         let diffs: Vec<String> = self
             .differences
             .iter()
-            .map(|d| format!("  {} : expected '{}', actual '{}'", d.field, d.expected, d.actual))
+            .map(|d| {
+                format!(
+                    "  {} : expected '{}', actual '{}'",
+                    d.field, d.expected, d.actual
+                )
+            })
             .collect();
 
         format!(
@@ -167,7 +172,11 @@ mod tests {
         assert!(result.drifted);
         assert_eq!(result.differences.len(), 3);
 
-        let fields: Vec<&str> = result.differences.iter().map(|d| d.field.as_str()).collect();
+        let fields: Vec<&str> = result
+            .differences
+            .iter()
+            .map(|d| d.field.as_str())
+            .collect();
         assert!(fields.contains(&"instances"));
         assert!(fields.contains(&"image"));
         assert!(fields.contains(&"status"));

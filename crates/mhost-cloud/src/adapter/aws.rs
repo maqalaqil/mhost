@@ -30,11 +30,7 @@ impl AwsAdapter {
     }
 
     /// Execute an AWS CLI command and return parsed JSON output.
-    async fn aws_cli(
-        &self,
-        service: &str,
-        args: &[&str],
-    ) -> Result<serde_json::Value, CloudError> {
+    async fn aws_cli(&self, service: &str, args: &[&str]) -> Result<serde_json::Value, CloudError> {
         let output = tokio::process::Command::new("aws")
             .arg(service)
             .args(args)
@@ -67,10 +63,7 @@ impl AwsAdapter {
     }
 
     fn parse_ecs_service(&self, svc: &serde_json::Value) -> CloudService {
-        let name = svc["serviceName"]
-            .as_str()
-            .unwrap_or("unknown")
-            .to_string();
+        let name = svc["serviceName"].as_str().unwrap_or("unknown").to_string();
 
         let status = match svc["status"].as_str() {
             Some("ACTIVE") => ServiceStatus::Running,
@@ -102,10 +95,7 @@ impl AwsAdapter {
     }
 
     fn parse_ec2_instance(&self, inst: &serde_json::Value) -> CloudService {
-        let instance_id = inst["InstanceId"]
-            .as_str()
-            .unwrap_or("unknown")
-            .to_string();
+        let instance_id = inst["InstanceId"].as_str().unwrap_or("unknown").to_string();
 
         let name = inst["Tags"]
             .as_array()
@@ -161,9 +151,7 @@ impl CloudAdapter for AwsAdapter {
         let mut services = Vec::new();
 
         // List ECS services across clusters
-        let clusters_data = self
-            .aws_cli("ecs", &["list-clusters"])
-            .await?;
+        let clusters_data = self.aws_cli("ecs", &["list-clusters"]).await?;
 
         let cluster_arns = clusters_data["clusterArns"]
             .as_array()
@@ -173,10 +161,7 @@ impl CloudAdapter for AwsAdapter {
         for cluster_arn in &cluster_arns {
             let cluster = cluster_arn.as_str().unwrap_or("");
             let svc_data = self
-                .aws_cli(
-                    "ecs",
-                    &["list-services", "--cluster", cluster],
-                )
+                .aws_cli("ecs", &["list-services", "--cluster", cluster])
                 .await?;
 
             let svc_arns = svc_data["serviceArns"]
@@ -188,10 +173,7 @@ impl CloudAdapter for AwsAdapter {
                 continue;
             }
 
-            let arn_strings: Vec<&str> = svc_arns
-                .iter()
-                .filter_map(|a| a.as_str())
-                .collect();
+            let arn_strings: Vec<&str> = svc_arns.iter().filter_map(|a| a.as_str()).collect();
 
             let mut describe_args = vec!["describe-services", "--cluster", cluster, "--services"];
             describe_args.extend(arn_strings.iter());
@@ -205,9 +187,7 @@ impl CloudAdapter for AwsAdapter {
         }
 
         // List EC2 instances
-        let ec2_data = self
-            .aws_cli("ec2", &["describe-instances"])
-            .await?;
+        let ec2_data = self.aws_cli("ec2", &["describe-instances"]).await?;
 
         if let Some(reservations) = ec2_data["Reservations"].as_array() {
             for reservation in reservations {
@@ -294,10 +274,7 @@ impl CloudAdapter for AwsAdapter {
                 );
 
                 let result = self
-                    .aws_cli(
-                        "ecs",
-                        &["create-service", "--cli-input-json", &svc_def],
-                    )
+                    .aws_cli("ecs", &["create-service", "--cli-input-json", &svc_def])
                     .await?;
 
                 info!(provider = "aws", service = %spec.name, "ECS service provisioned");
@@ -317,16 +294,11 @@ impl CloudAdapter for AwsAdapter {
                         disk: None,
                     }),
                     created_at: Some(Utc::now().to_rfc3339()),
-                    provider_id: result["service"]["serviceArn"]
-                        .as_str()
-                        .map(String::from),
+                    provider_id: result["service"]["serviceArn"].as_str().map(String::from),
                 })
             }
             ServiceType::VM => {
-                let image_id = spec
-                    .image
-                    .as_deref()
-                    .unwrap_or("ami-0c02fb55956c7d316"); // Amazon Linux 2
+                let image_id = spec.image.as_deref().unwrap_or("ami-0c02fb55956c7d316"); // Amazon Linux 2
                 let instance_type = spec
                     .resources
                     .as_ref()
@@ -423,11 +395,7 @@ impl CloudAdapter for AwsAdapter {
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, config: &DeployConfig) -> Result<CloudService, CloudError> {
         // Update the ECS service with a new image via a fresh task definition
         let cpu = "256";
         let memory = "512";
@@ -613,7 +581,7 @@ mod tests {
             name: "api".into(),
             instances: 2,
             resources: Some(Resources {
-                cpu: Some("1024".into()),  // 1 vCPU
+                cpu: Some("1024".into()),    // 1 vCPU
                 memory: Some("2048".into()), // 2 GB
                 disk: None,
             }),

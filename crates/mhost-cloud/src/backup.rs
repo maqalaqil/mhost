@@ -33,8 +33,7 @@ impl ServiceBackup {
     }
 
     pub fn save(&self, dir: &Path) -> Result<String, String> {
-        std::fs::create_dir_all(dir)
-            .map_err(|e| format!("failed to create backup dir: {e}"))?;
+        std::fs::create_dir_all(dir).map_err(|e| format!("failed to create backup dir: {e}"))?;
 
         let ts = self.created_at.format("%Y%m%dT%H%M%S");
         let filename = format!("{}-{}.json", self.name, ts);
@@ -42,17 +41,15 @@ impl ServiceBackup {
 
         let data = serde_json::to_string_pretty(self)
             .map_err(|e| format!("failed to serialize backup: {e}"))?;
-        std::fs::write(&path, data)
-            .map_err(|e| format!("failed to write backup: {e}"))?;
+        std::fs::write(&path, data).map_err(|e| format!("failed to write backup: {e}"))?;
 
         Ok(filename)
     }
 
     pub fn load(path: &Path) -> Result<Self, String> {
-        let data = std::fs::read_to_string(path)
-            .map_err(|e| format!("failed to read backup: {e}"))?;
-        serde_json::from_str(&data)
-            .map_err(|e| format!("failed to parse backup: {e}"))
+        let data =
+            std::fs::read_to_string(path).map_err(|e| format!("failed to read backup: {e}"))?;
+        serde_json::from_str(&data).map_err(|e| format!("failed to parse backup: {e}"))
     }
 
     pub fn to_provision_spec(&self) -> ProvisionSpec {

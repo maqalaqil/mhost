@@ -159,9 +159,10 @@ impl CloudAdapter for NetlifyAdapter {
     async fn get_service(&self, name: &str) -> Result<CloudService, CloudError> {
         // Netlify supports lookup by site name via subdomain
         let url = format!("{NETLIFY_API}/sites/{name}.netlify.app");
-        let data = self.api_get(&url).await.map_err(|_| {
-            CloudError::NotFound(format!("Site '{name}' not found on Netlify"))
-        })?;
+        let data = self
+            .api_get(&url)
+            .await
+            .map_err(|_| CloudError::NotFound(format!("Site '{name}' not found on Netlify")))?;
         Ok(self.parse_site(&data))
     }
 
@@ -227,11 +228,7 @@ impl CloudAdapter for NetlifyAdapter {
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        _config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, _config: &DeployConfig) -> Result<CloudService, CloudError> {
         let service = self.get_service(name).await?;
         let site_id = service.provider_id.as_deref().unwrap_or_default();
 

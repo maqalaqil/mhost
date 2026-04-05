@@ -10,13 +10,13 @@ pub mod aws;
 #[cfg(feature = "cloud-native")]
 pub mod azure;
 #[cfg(feature = "cloud-native")]
-pub mod fly;
-#[cfg(feature = "cloud-native")]
-pub mod gcp;
-#[cfg(feature = "cloud-native")]
 pub mod cloudflare;
 #[cfg(feature = "cloud-native")]
 pub mod digitalocean;
+#[cfg(feature = "cloud-native")]
+pub mod fly;
+#[cfg(feature = "cloud-native")]
+pub mod gcp;
 #[cfg(feature = "cloud-native")]
 pub mod netlify;
 #[cfg(feature = "cloud-native")]

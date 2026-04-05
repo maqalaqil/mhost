@@ -28,10 +28,7 @@ pub struct BudgetConfig {
 }
 
 impl CostReport {
-    pub fn from_services(
-        services: &[CloudService],
-        estimates: &[(String, CostEstimate)],
-    ) -> Self {
+    pub fn from_services(services: &[CloudService], estimates: &[(String, CostEstimate)]) -> Self {
         let estimate_map: HashMap<&str, &CostEstimate> = estimates
             .iter()
             .map(|(name, est)| (name.as_str(), est))
@@ -69,15 +66,13 @@ impl CostReport {
     pub fn save_cache(&self, path: &Path) -> Result<(), String> {
         let data = serde_json::to_string_pretty(self)
             .map_err(|e| format!("failed to serialize cost report: {e}"))?;
-        std::fs::write(path, data)
-            .map_err(|e| format!("failed to write cost cache: {e}"))
+        std::fs::write(path, data).map_err(|e| format!("failed to write cost cache: {e}"))
     }
 
     pub fn load_cache(path: &Path) -> Result<Self, String> {
-        let data = std::fs::read_to_string(path)
-            .map_err(|e| format!("failed to read cost cache: {e}"))?;
-        serde_json::from_str(&data)
-            .map_err(|e| format!("failed to parse cost cache: {e}"))
+        let data =
+            std::fs::read_to_string(path).map_err(|e| format!("failed to read cost cache: {e}"))?;
+        serde_json::from_str(&data).map_err(|e| format!("failed to parse cost cache: {e}"))
     }
 
     pub fn total_by_provider(&self) -> HashMap<String, f64> {
@@ -151,10 +146,7 @@ mod tests {
 
     #[test]
     fn test_from_services() {
-        let services = vec![
-            make_service("api", "aws"),
-            make_service("worker", "gcp"),
-        ];
+        let services = vec![make_service("api", "aws"), make_service("worker", "gcp")];
         let estimates = vec![
             ("api".to_string(), make_estimate(50.0)),
             ("worker".to_string(), make_estimate(30.0)),
