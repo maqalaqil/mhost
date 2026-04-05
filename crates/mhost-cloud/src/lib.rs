@@ -1,7 +1,17 @@
 #[cfg(feature = "cloud-native")]
 pub mod adapter;
 #[cfg(feature = "cloud-native")]
+pub mod backup;
+#[cfg(feature = "cloud-native")]
+pub mod cost;
+#[cfg(feature = "cloud-native")]
 pub mod credentials;
+#[cfg(feature = "cloud-native")]
+pub mod drift;
+#[cfg(feature = "cloud-native")]
+pub mod export;
+#[cfg(feature = "cloud-native")]
+pub mod secrets;
 
 pub mod ai_cloud;
 pub mod config;
@@ -26,4 +36,12 @@ pub use adapter::{
     ServiceMetrics, ServiceStatus, ServiceType,
 };
 #[cfg(feature = "cloud-native")]
+pub use backup::ServiceBackup;
+#[cfg(feature = "cloud-native")]
+pub use cost::{BudgetConfig, CostReport, ServiceCost};
+#[cfg(feature = "cloud-native")]
 pub use credentials::{CloudCredentials, ProviderCredential};
+#[cfg(feature = "cloud-native")]
+pub use drift::{detect_drift, DriftResult};
+#[cfg(feature = "cloud-native")]
+pub use secrets::SecretStore;
