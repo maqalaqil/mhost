@@ -4,8 +4,8 @@ use reqwest::Client;
 use tracing::info;
 
 use super::{
-    CloudAdapter, CloudError, CloudService, CostEstimate, CostLine, DeployConfig,
-    ProvisionSpec, Resources, ServiceMetrics, ServiceStatus, ServiceType,
+    CloudAdapter, CloudError, CloudService, CostEstimate, CostLine, DeployConfig, ProvisionSpec,
+    Resources, ServiceMetrics, ServiceStatus, ServiceType,
 };
 
 const RAILWAY_API: &str = "https://backboard.railway.app/graphql/v2";
@@ -61,12 +61,8 @@ impl RailwayAdapter {
             .map_err(|e| CloudError::NetworkError(e.to_string()))?;
 
         if let Some(errors) = data.get("errors") {
-            let msg = errors[0]["message"]
-                .as_str()
-                .unwrap_or("Unknown error");
-            return Err(CloudError::ApiError(format!(
-                "railway ({status}): {msg}"
-            )));
+            let msg = errors[0]["message"].as_str().unwrap_or("Unknown error");
+            return Err(CloudError::ApiError(format!("railway ({status}): {msg}")));
         }
 
         Ok(data["data"].clone())
@@ -87,9 +83,7 @@ impl RailwayAdapter {
         let url = svc["serviceInstances"]["edges"]
             .as_array()
             .and_then(|edges| edges.first())
-            .and_then(|edge| {
-                edge["node"]["domains"]["serviceDomains"].as_array()
-            })
+            .and_then(|edge| edge["node"]["domains"]["serviceDomains"].as_array())
             .and_then(|domains| domains.first())
             .and_then(|d| d["domain"].as_str())
             .map(|d| format!("https://{d}"));
@@ -98,10 +92,7 @@ impl RailwayAdapter {
             name,
             provider: "railway".into(),
             service_type: ServiceType::Container,
-            region: svc["region"]
-                .as_str()
-                .unwrap_or("us-east-1")
-                .to_string(),
+            region: svc["region"].as_str().unwrap_or("us-east-1").to_string(),
             status,
             instances: 1,
             url,
@@ -141,20 +132,15 @@ impl CloudAdapter for RailwayAdapter {
 
         if let Some(projects) = data["me"]["projects"]["edges"].as_array() {
             for project in projects {
-                let project_id =
-                    project["node"]["id"].as_str().unwrap_or("");
+                let project_id = project["node"]["id"].as_str().unwrap_or("");
                 if let Some(filter_id) = &self.project_id {
                     if project_id != filter_id {
                         continue;
                     }
                 }
-                if let Some(svcs) =
-                    project["node"]["services"]["edges"].as_array()
-                {
+                if let Some(svcs) = project["node"]["services"]["edges"].as_array() {
                     for svc in svcs {
-                        services.push(
-                            self.parse_service(&svc["node"], project_id),
-                        );
+                        services.push(self.parse_service(&svc["node"], project_id));
                     }
                 }
             }
@@ -168,17 +154,10 @@ impl CloudAdapter for RailwayAdapter {
         services
             .into_iter()
             .find(|s| s.name == name)
-            .ok_or_else(|| {
-                CloudError::NotFound(format!(
-                    "Service '{name}' not found on Railway"
-                ))
-            })
+            .ok_or_else(|| CloudError::NotFound(format!("Service '{name}' not found on Railway")))
     }
 
-    async fn provision(
-        &self,
-        spec: &ProvisionSpec,
-    ) -> Result<CloudService, CloudError> {
+    async fn provision(&self, spec: &ProvisionSpec) -> Result<CloudService, CloudError> {
         // Step 1: Create project if needed
         let project_id = if let Some(id) = &self.project_id {
             id.clone()
@@ -196,11 +175,7 @@ impl CloudAdapter for RailwayAdapter {
                 .await?;
             data["projectCreate"]["id"]
                 .as_str()
-                .ok_or_else(|| {
-                    CloudError::ApiError(
-                        "Failed to create project".into(),
-                    )
-                })?
+                .ok_or_else(|| CloudError::ApiError("Failed to create project".into()))?
                 .to_string()
         };
 
@@ -245,14 +220,8 @@ impl CloudAdapter for RailwayAdapter {
                 .await;
         }
 
-        let cpu = spec
-            .resources
-            .as_ref()
-            .and_then(|r| r.cpu.clone());
-        let memory = spec
-            .resources
-            .as_ref()
-            .and_then(|r| r.memory.clone());
+        let cpu = spec.resources.as_ref().and_then(|r| r.cpu.clone());
+        let memory = spec.resources.as_ref().and_then(|r| r.memory.clone());
 
         Ok(CloudService {
             name: spec.name.clone(),
@@ -282,26 +251,19 @@ impl CloudAdapter for RailwayAdapter {
                 "Invalid provider_id format".into(),
             ));
         }
-        let query =
-            r#"mutation($id: String!) { serviceDelete(id: $id) }"#;
+        let query = r#"mutation($id: String!) { serviceDelete(id: $id) }"#;
         self.graphql(query, serde_json::json!({ "id": parts[1] }))
             .await?;
         info!(provider = "railway", service = %name, "Service destroyed");
         Ok(())
     }
 
-    async fn deploy(
-        &self,
-        name: &str,
-        config: &DeployConfig,
-    ) -> Result<CloudService, CloudError> {
+    async fn deploy(&self, name: &str, config: &DeployConfig) -> Result<CloudService, CloudError> {
         let service = self.get_service(name).await?;
         let provider_id = service.provider_id.unwrap_or_default();
         let parts: Vec<&str> = provider_id.split('/').collect();
         if parts.len() != 2 {
-            return Err(CloudError::InvalidConfig(
-                "Invalid provider_id".into(),
-            ));
+            return Err(CloudError::InvalidConfig("Invalid provider_id".into()));
         }
 
         let query = r#"mutation($input: ServiceUpdateInput!) {
@@ -341,21 +303,12 @@ impl CloudAdapter for RailwayAdapter {
         self.get_service(name).await
     }
 
-    async fn scale(
-        &self,
-        name: &str,
-        instances: u32,
-    ) -> Result<CloudService, CloudError> {
+    async fn scale(&self, name: &str, instances: u32) -> Result<CloudService, CloudError> {
         let service = self.get_service(name).await?;
-        let provider_id = service
-            .provider_id
-            .as_deref()
-            .unwrap_or_default();
+        let provider_id = service.provider_id.as_deref().unwrap_or_default();
         let parts: Vec<&str> = provider_id.split('/').collect();
         if parts.len() != 2 {
-            return Err(CloudError::InvalidConfig(
-                "Invalid provider_id".into(),
-            ));
+            return Err(CloudError::InvalidConfig("Invalid provider_id".into()));
         }
         let query = r#"mutation($input: ServiceUpdateInput!) {
             serviceUpdate(input: $input) { id }
@@ -382,30 +335,21 @@ impl CloudAdapter for RailwayAdapter {
         let provider_id = service.provider_id.unwrap_or_default();
         let parts: Vec<&str> = provider_id.split('/').collect();
         if parts.len() != 2 {
-            return Err(CloudError::InvalidConfig(
-                "Invalid provider_id".into(),
-            ));
+            return Err(CloudError::InvalidConfig("Invalid provider_id".into()));
         }
-        let query =
-            r#"mutation($id: String!) { serviceRestart(id: $id) }"#;
+        let query = r#"mutation($id: String!) { serviceRestart(id: $id) }"#;
         self.graphql(query, serde_json::json!({ "id": parts[1] }))
             .await?;
         info!(provider = "railway", service = %name, "Restarted");
         Ok(())
     }
 
-    async fn logs(
-        &self,
-        name: &str,
-        lines: u32,
-    ) -> Result<Vec<String>, CloudError> {
+    async fn logs(&self, name: &str, lines: u32) -> Result<Vec<String>, CloudError> {
         let service = self.get_service(name).await?;
         let provider_id = service.provider_id.unwrap_or_default();
         let parts: Vec<&str> = provider_id.split('/').collect();
         if parts.len() != 2 {
-            return Err(CloudError::InvalidConfig(
-                "Invalid provider_id".into(),
-            ));
+            return Err(CloudError::InvalidConfig("Invalid provider_id".into()));
         }
         let query = r#"query($input: DeploymentLogsInput!) {
             deploymentLogs(input: $input) { message timestamp }
@@ -433,27 +377,18 @@ impl CloudAdapter for RailwayAdapter {
         Ok(logs)
     }
 
-    async fn status(
-        &self,
-        name: &str,
-    ) -> Result<ServiceStatus, CloudError> {
+    async fn status(&self, name: &str) -> Result<ServiceStatus, CloudError> {
         let service = self.get_service(name).await?;
         Ok(service.status)
     }
 
-    async fn metrics(
-        &self,
-        _name: &str,
-    ) -> Result<ServiceMetrics, CloudError> {
+    async fn metrics(&self, _name: &str) -> Result<ServiceMetrics, CloudError> {
         Err(CloudError::NotSupported(
             "Railway does not expose metrics via API".into(),
         ))
     }
 
-    async fn estimate_cost(
-        &self,
-        spec: &ProvisionSpec,
-    ) -> Result<CostEstimate, CloudError> {
+    async fn estimate_cost(&self, spec: &ProvisionSpec) -> Result<CostEstimate, CloudError> {
         // Railway pricing: ~$5/month per 0.5 vCPU + 512MB
         let cpu_str = spec
             .resources
@@ -467,10 +402,7 @@ impl CloudAdapter for RailwayAdapter {
             monthly,
             currency: "USD".into(),
             breakdown: vec![CostLine {
-                item: format!(
-                    "{}x container ({} vCPU)",
-                    spec.instances, cpu_factor
-                ),
+                item: format!("{}x container ({} vCPU)", spec.instances, cpu_factor),
                 amount: monthly,
             }],
         })

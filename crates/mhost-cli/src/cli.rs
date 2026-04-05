@@ -222,6 +222,18 @@ pub enum CloudAction {
         #[arg(long)]
         tag: Option<String>,
     },
+    /// Authenticate with a cloud provider (interactive token setup).
+    Auth {
+        /// Cloud provider name (railway, fly, vercel, digitalocean, cloudflare, netlify, supabase).
+        provider: String,
+    },
+    /// List all configured cloud provider credentials.
+    AuthList,
+    /// Remove stored credentials for a cloud provider.
+    AuthRemove {
+        /// Cloud provider name to remove.
+        provider: String,
+    },
     /// AI: Plan infrastructure from a plain-English description.
     AiSetup {
         /// Description of the infrastructure you need.

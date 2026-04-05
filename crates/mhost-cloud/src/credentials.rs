@@ -54,7 +54,9 @@ impl ProviderCredential {
         match self {
             ProviderCredential::Token { default_region, .. } => default_region.as_deref(),
             ProviderCredential::AwsKeys { default_region, .. } => default_region.as_deref(),
-            ProviderCredential::GcpServiceAccount { default_region, .. } => default_region.as_deref(),
+            ProviderCredential::GcpServiceAccount { default_region, .. } => {
+                default_region.as_deref()
+            }
             ProviderCredential::AzureServicePrincipal { .. } => None,
         }
     }
@@ -67,8 +69,7 @@ impl CloudCredentials {
         }
         let data = std::fs::read_to_string(path)
             .map_err(|e| format!("Failed to read credentials: {e}"))?;
-        serde_json::from_str(&data)
-            .map_err(|e| format!("Failed to parse credentials: {e}"))
+        serde_json::from_str(&data).map_err(|e| format!("Failed to parse credentials: {e}"))
     }
 
     pub fn save(&self, path: &Path) -> Result<(), String> {
@@ -78,8 +79,7 @@ impl CloudCredentials {
         }
         let data = serde_json::to_string_pretty(self)
             .map_err(|e| format!("Failed to serialize credentials: {e}"))?;
-        std::fs::write(path, data)
-            .map_err(|e| format!("Failed to write credentials: {e}"))?;
+        std::fs::write(path, data).map_err(|e| format!("Failed to write credentials: {e}"))?;
         // Restrict permissions on Unix
         #[cfg(unix)]
         {
@@ -114,19 +114,26 @@ impl CloudCredentials {
         }
         // Fall back to environment variables
         match provider {
-            "railway" => std::env::var("RAILWAY_TOKEN").ok()
+            "railway" => std::env::var("RAILWAY_TOKEN")
+                .ok()
                 .map(|t| ProviderCredential::token(&t)),
-            "fly" => std::env::var("FLY_API_TOKEN").ok()
+            "fly" => std::env::var("FLY_API_TOKEN")
+                .ok()
                 .map(|t| ProviderCredential::token(&t)),
-            "vercel" => std::env::var("VERCEL_TOKEN").ok()
+            "vercel" => std::env::var("VERCEL_TOKEN")
+                .ok()
                 .map(|t| ProviderCredential::token(&t)),
-            "digitalocean" | "do" => std::env::var("DIGITALOCEAN_TOKEN").ok()
+            "digitalocean" | "do" => std::env::var("DIGITALOCEAN_TOKEN")
+                .ok()
                 .map(|t| ProviderCredential::token(&t)),
-            "cloudflare" => std::env::var("CLOUDFLARE_API_TOKEN").ok()
+            "cloudflare" => std::env::var("CLOUDFLARE_API_TOKEN")
+                .ok()
                 .map(|t| ProviderCredential::token(&t)),
-            "netlify" => std::env::var("NETLIFY_TOKEN").ok()
+            "netlify" => std::env::var("NETLIFY_TOKEN")
+                .ok()
                 .map(|t| ProviderCredential::token(&t)),
-            "supabase" => std::env::var("SUPABASE_ACCESS_TOKEN").ok()
+            "supabase" => std::env::var("SUPABASE_ACCESS_TOKEN")
+                .ok()
                 .map(|t| ProviderCredential::token(&t)),
             "aws" => {
                 let key = std::env::var("AWS_ACCESS_KEY_ID").ok()?;
@@ -137,7 +144,8 @@ impl CloudCredentials {
                     default_region: std::env::var("AWS_DEFAULT_REGION").ok(),
                 })
             }
-            "gcp" | "google" => std::env::var("GOOGLE_APPLICATION_CREDENTIALS").ok()
+            "gcp" | "google" => std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                .ok()
                 .map(|f| ProviderCredential::GcpServiceAccount {
                     credentials_file: f,
                     default_region: std::env::var("GCP_DEFAULT_REGION").ok(),
@@ -219,11 +227,14 @@ mod tests {
     fn test_serde_roundtrip() {
         let mut creds = CloudCredentials::default();
         creds.set("railway", ProviderCredential::token("r-tok"));
-        creds.set("aws", ProviderCredential::AwsKeys {
-            access_key_id: "AKIA".into(),
-            secret_access_key: "secret".into(),
-            default_region: Some("us-east-1".into()),
-        });
+        creds.set(
+            "aws",
+            ProviderCredential::AwsKeys {
+                access_key_id: "AKIA".into(),
+                secret_access_key: "secret".into(),
+                default_region: Some("us-east-1".into()),
+            },
+        );
         let json = serde_json::to_string(&creds).unwrap();
         let loaded: CloudCredentials = serde_json::from_str(&json).unwrap();
         assert_eq!(loaded.list_providers().len(), 2);

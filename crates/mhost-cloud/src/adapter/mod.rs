@@ -6,11 +6,11 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "cloud-native")]
-pub mod registry;
+pub mod fly;
 #[cfg(feature = "cloud-native")]
 pub mod railway;
 #[cfg(feature = "cloud-native")]
-pub mod fly;
+pub mod registry;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -227,12 +227,30 @@ mod tests {
 
     #[test]
     fn test_service_type_from_str() {
-        assert_eq!("container".parse::<ServiceType>().unwrap(), ServiceType::Container);
-        assert_eq!("k8s".parse::<ServiceType>().unwrap(), ServiceType::Kubernetes);
-        assert_eq!("kubernetes".parse::<ServiceType>().unwrap(), ServiceType::Kubernetes);
-        assert_eq!("lambda".parse::<ServiceType>().unwrap(), ServiceType::Serverless);
-        assert_eq!("edge".parse::<ServiceType>().unwrap(), ServiceType::EdgeFunction);
-        assert_eq!("worker".parse::<ServiceType>().unwrap(), ServiceType::EdgeFunction);
+        assert_eq!(
+            "container".parse::<ServiceType>().unwrap(),
+            ServiceType::Container
+        );
+        assert_eq!(
+            "k8s".parse::<ServiceType>().unwrap(),
+            ServiceType::Kubernetes
+        );
+        assert_eq!(
+            "kubernetes".parse::<ServiceType>().unwrap(),
+            ServiceType::Kubernetes
+        );
+        assert_eq!(
+            "lambda".parse::<ServiceType>().unwrap(),
+            ServiceType::Serverless
+        );
+        assert_eq!(
+            "edge".parse::<ServiceType>().unwrap(),
+            ServiceType::EdgeFunction
+        );
+        assert_eq!(
+            "worker".parse::<ServiceType>().unwrap(),
+            ServiceType::EdgeFunction
+        );
         assert_eq!("vm".parse::<ServiceType>().unwrap(), ServiceType::VM);
         assert!("nonsense".parse::<ServiceType>().is_err());
     }
@@ -323,7 +341,10 @@ mod tests {
         assert_eq!(back.url.as_deref(), Some("https://my-app.up.railway.app"));
         assert_eq!(back.image.as_deref(), Some("my-app:latest"));
         assert_eq!(back.resources.as_ref().unwrap().cpu.as_deref(), Some("0.5"));
-        assert_eq!(back.resources.as_ref().unwrap().memory.as_deref(), Some("512Mi"));
+        assert_eq!(
+            back.resources.as_ref().unwrap().memory.as_deref(),
+            Some("512Mi")
+        );
         assert!(back.resources.as_ref().unwrap().disk.is_none());
         assert_eq!(back.created_at.as_deref(), Some("2026-01-01T00:00:00Z"));
         assert_eq!(back.provider_id.as_deref(), Some("proj-123"));

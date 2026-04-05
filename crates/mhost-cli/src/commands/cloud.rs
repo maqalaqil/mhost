@@ -1,3 +1,7 @@
+use std::collections::BTreeMap;
+use std::io::Write;
+
+use colored::Colorize;
 use mhost_cloud::{Fleet, FleetConfig, RemoteHost, ServerConfig, SshExecutor};
 use mhost_core::paths::MhostPaths;
 
@@ -337,6 +341,145 @@ pub async fn run_import(
         instances.len(),
         provider_name
     ));
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Auth: Interactive token setup
+// ---------------------------------------------------------------------------
+
+const SUPPORTED_PROVIDERS: &[&str] = &[
+    "railway",
+    "fly",
+    "vercel",
+    "digitalocean",
+    "cloudflare",
+    "netlify",
+    "supabase",
+];
+
+fn provider_instructions(provider: &str) -> &'static str {
+    match provider {
+        "railway" => "Get your token at: https://railway.app/account/tokens",
+        "fly" => "Get your token at: https://fly.io/user/personal_access_tokens",
+        "vercel" => "Get your token at: https://vercel.com/account/tokens",
+        "digitalocean" => "Get your token at: https://cloud.digitalocean.com/account/api/tokens",
+        "cloudflare" => "Get your token at: https://dash.cloudflare.com/profile/api-tokens",
+        "netlify" => {
+            "Get your token at: https://app.netlify.com/user/applications#personal-access-tokens"
+        }
+        "supabase" => "Get your token at: https://supabase.com/dashboard/account/tokens",
+        _ => "Refer to the provider's documentation for API token creation.",
+    }
+}
+
+fn load_credentials(paths: &MhostPaths) -> Result<BTreeMap<String, serde_json::Value>, String> {
+    let cred_path = paths.cloud_credentials();
+    if !cred_path.exists() {
+        return Ok(BTreeMap::new());
+    }
+    let data = std::fs::read_to_string(&cred_path)
+        .map_err(|e| format!("Failed to read credentials file: {e}"))?;
+    serde_json::from_str(&data).map_err(|e| format!("Failed to parse credentials file: {e}"))
+}
+
+fn save_credentials(
+    paths: &MhostPaths,
+    creds: &BTreeMap<String, serde_json::Value>,
+) -> Result<(), String> {
+    let cred_path = paths.cloud_credentials();
+    if let Some(parent) = cred_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create config directory: {e}"))?;
+    }
+    let json = serde_json::to_string_pretty(creds)
+        .map_err(|e| format!("Failed to serialize credentials: {e}"))?;
+    std::fs::write(&cred_path, json)
+        .map_err(|e| format!("Failed to write credentials file: {e}"))?;
+    Ok(())
+}
+
+pub fn run_auth(paths: &MhostPaths, provider: &str) -> Result<(), String> {
+    let provider = provider.to_lowercase();
+    if !SUPPORTED_PROVIDERS.contains(&provider.as_str()) {
+        print_error(&format!(
+            "Unsupported provider '{}'. Supported: {}",
+            provider,
+            SUPPORTED_PROVIDERS.join(", ")
+        ));
+        return Err(format!("Unsupported provider '{provider}'"));
+    }
+
+    println!("\n  {} Cloud Auth Setup", "mhost".bold());
+    println!("  Provider: {}\n", provider.cyan());
+    println!("  {}\n", provider_instructions(&provider));
+
+    print!("  Enter API token: ");
+    std::io::stdout()
+        .flush()
+        .map_err(|e| format!("IO error: {e}"))?;
+
+    let mut token = String::new();
+    std::io::stdin()
+        .read_line(&mut token)
+        .map_err(|e| format!("Failed to read input: {e}"))?;
+    let token = token.trim().to_string();
+
+    if token.is_empty() {
+        print_error("Token cannot be empty");
+        return Err("Token cannot be empty".into());
+    }
+
+    let mut creds = load_credentials(paths)?;
+    let entry = serde_json::json!({ "token": token });
+    creds.insert(provider.clone(), entry);
+    save_credentials(paths, &creds)?;
+
+    print_success(&format!("Credentials saved for '{provider}'"));
+    Ok(())
+}
+
+pub fn run_auth_list(paths: &MhostPaths) -> Result<(), String> {
+    let creds = load_credentials(paths)?;
+
+    if creds.is_empty() {
+        println!(
+            "\n  {}  {}",
+            "○".dimmed(),
+            "No cloud providers configured.".dimmed()
+        );
+        println!("     Run: {}\n", "mhost cloud auth <provider>".cyan());
+        return Ok(());
+    }
+
+    println!("\n  {} Configured cloud providers:\n", "mhost".bold());
+    for (name, value) in &creds {
+        let has_token = value
+            .get("token")
+            .and_then(|t| t.as_str())
+            .map(|t| !t.is_empty())
+            .unwrap_or(false);
+        let status = if has_token {
+            "configured".green().to_string()
+        } else {
+            "invalid".red().to_string()
+        };
+        println!("  {name:<15} {status}");
+    }
+    println!();
+    Ok(())
+}
+
+pub fn run_auth_remove(paths: &MhostPaths, provider: &str) -> Result<(), String> {
+    let provider = provider.to_lowercase();
+    let mut creds = load_credentials(paths)?;
+
+    if creds.remove(&provider).is_some() {
+        save_credentials(paths, &creds)?;
+        print_success(&format!("Credentials removed for '{provider}'"));
+    } else {
+        print_error(&format!("No credentials found for '{provider}'"));
+    }
     Ok(())
 }
 

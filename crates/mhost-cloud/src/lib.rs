@@ -19,11 +19,11 @@ pub use remote::{RemoteHost, ServerStatus};
 pub use ssh::{SshExecutor, SshOutput};
 
 #[cfg(feature = "cloud-native")]
-pub use adapter::{
-    CloudAdapter, CloudError, CloudService, CostEstimate, DeployConfig,
-    ProvisionSpec, Resources, ServiceMetrics, ServiceStatus, ServiceType,
-};
-#[cfg(feature = "cloud-native")]
 pub use adapter::registry::AdapterRegistry;
+#[cfg(feature = "cloud-native")]
+pub use adapter::{
+    CloudAdapter, CloudError, CloudService, CostEstimate, DeployConfig, ProvisionSpec, Resources,
+    ServiceMetrics, ServiceStatus, ServiceType,
+};
 #[cfg(feature = "cloud-native")]
 pub use credentials::{CloudCredentials, ProviderCredential};

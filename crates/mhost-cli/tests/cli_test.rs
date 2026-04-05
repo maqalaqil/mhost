@@ -799,3 +799,27 @@ fn test_api_webhook_failures_empty() {
             || stdout.contains("failure")
     );
 }
+
+// ── Cloud Auth Commands ──────────────────────────────────────
+
+#[test]
+fn test_cloud_auth_list() {
+    let (stdout, _, _) = run(&["cloud", "auth-list"]);
+    assert!(stdout.contains("No cloud providers") || stdout.contains("Configured"));
+}
+
+#[test]
+fn test_cloud_auth_help() {
+    let (stdout, _, ok) = run(&["cloud", "--help"]);
+    assert!(ok);
+    assert!(
+        stdout.contains("auth") || stdout.contains("Auth"),
+        "cloud --help should list auth commands"
+    );
+}
+
+#[test]
+fn test_cloud_auth_remove_nonexistent() {
+    let (stdout, _, _) = run(&["cloud", "auth-remove", "nonexistent"]);
+    assert!(stdout.contains("No credentials") || stdout.contains("not found") || stdout.is_empty());
+}

@@ -36,9 +36,7 @@ impl AdapterRegistry {
         }
 
         let cred = credentials.resolve(provider).ok_or_else(|| {
-            CloudError::AuthError(format!(
-                "No credentials found for provider '{provider}'"
-            ))
+            CloudError::AuthError(format!("No credentials found for provider '{provider}'"))
         })?;
 
         match provider {
@@ -68,9 +66,7 @@ impl AdapterRegistry {
 
     /// Create adapters for every provider that has credentials configured.
     /// Providers without credentials are silently skipped.
-    pub fn create_all(
-        credentials: &CloudCredentials,
-    ) -> Vec<Arc<dyn CloudAdapter>> {
+    pub fn create_all(credentials: &CloudCredentials) -> Vec<Arc<dyn CloudAdapter>> {
         IMPLEMENTED_PROVIDERS
             .iter()
             .filter_map(|provider| Self::create(provider, credentials).ok())
@@ -79,13 +75,9 @@ impl AdapterRegistry {
 }
 
 fn extract_token(cred: &ProviderCredential, provider: &str) -> Result<String, CloudError> {
-    cred.get_token()
-        .map(String::from)
-        .ok_or_else(|| {
-            CloudError::AuthError(format!(
-                "Provider '{provider}' requires a token credential"
-            ))
-        })
+    cred.get_token().map(String::from).ok_or_else(|| {
+        CloudError::AuthError(format!("Provider '{provider}' requires a token credential"))
+    })
 }
 
 #[cfg(test)]
