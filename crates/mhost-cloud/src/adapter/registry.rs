@@ -2,9 +2,14 @@ use std::sync::Arc;
 
 use super::aws::AwsAdapter;
 use super::azure::AzureAdapter;
+use super::cloudflare::CloudflareAdapter;
+use super::digitalocean::DigitaloceanAdapter;
 use super::fly::FlyAdapter;
 use super::gcp::GcpAdapter;
+use super::netlify::NetlifyAdapter;
 use super::railway::RailwayAdapter;
+use super::supabase::SupabaseAdapter;
+use super::vercel::VercelAdapter;
 use super::{CloudAdapter, CloudError};
 use crate::credentials::{CloudCredentials, ProviderCredential};
 
@@ -21,7 +26,18 @@ const SUPPORTED_PROVIDERS: &[&str] = &[
     "supabase",
 ];
 
-const IMPLEMENTED_PROVIDERS: &[&str] = &["railway", "fly", "aws", "gcp", "azure"];
+const IMPLEMENTED_PROVIDERS: &[&str] = &[
+    "railway",
+    "fly",
+    "aws",
+    "gcp",
+    "azure",
+    "cloudflare",
+    "vercel",
+    "netlify",
+    "digitalocean",
+    "supabase",
+];
 
 pub struct AdapterRegistry;
 
@@ -105,6 +121,33 @@ impl AdapterRegistry {
                     "Provider 'azure' requires AzureServicePrincipal credentials".into(),
                 )),
             },
+            "cloudflare" => {
+                let token = extract_token(&cred, "cloudflare")?;
+                // Account ID can be passed via default_region field or extracted from token metadata
+                let account_id = cred.default_region().unwrap_or("").to_string();
+                if account_id.is_empty() {
+                    return Err(CloudError::InvalidConfig(
+                        "Cloudflare requires an account_id (set via default_region in credentials)".into(),
+                    ));
+                }
+                Ok(Arc::new(CloudflareAdapter::new(&token, &account_id)))
+            }
+            "vercel" => {
+                let token = extract_token(&cred, "vercel")?;
+                Ok(Arc::new(VercelAdapter::new(&token)))
+            }
+            "netlify" => {
+                let token = extract_token(&cred, "netlify")?;
+                Ok(Arc::new(NetlifyAdapter::new(&token)))
+            }
+            "digitalocean" => {
+                let token = extract_token(&cred, "digitalocean")?;
+                Ok(Arc::new(DigitaloceanAdapter::new(&token)))
+            }
+            "supabase" => {
+                let token = extract_token(&cred, "supabase")?;
+                Ok(Arc::new(SupabaseAdapter::new(&token)))
+            }
             other => Err(CloudError::NotSupported(format!(
                 "Provider '{other}' is not yet implemented"
             ))),
@@ -190,6 +233,80 @@ mod tests {
         assert!(providers.contains(&"fly"));
         assert!(providers.contains(&"aws"));
         assert_eq!(providers.len(), 10);
+    }
+
+    #[test]
+    fn test_create_vercel_with_token() {
+        let mut creds = CloudCredentials::default();
+        creds.set("vercel", ProviderCredential::token("test-vercel-tok"));
+        let adapter = AdapterRegistry::create("vercel", &creds).unwrap();
+        assert_eq!(adapter.provider_name(), "vercel");
+    }
+
+    #[test]
+    fn test_create_netlify_with_token() {
+        let mut creds = CloudCredentials::default();
+        creds.set("netlify", ProviderCredential::token("test-netlify-tok"));
+        let adapter = AdapterRegistry::create("netlify", &creds).unwrap();
+        assert_eq!(adapter.provider_name(), "netlify");
+    }
+
+    #[test]
+    fn test_create_digitalocean_with_token() {
+        let mut creds = CloudCredentials::default();
+        creds.set(
+            "digitalocean",
+            ProviderCredential::token("test-do-tok"),
+        );
+        let adapter = AdapterRegistry::create("digitalocean", &creds).unwrap();
+        assert_eq!(adapter.provider_name(), "digitalocean");
+    }
+
+    #[test]
+    fn test_create_supabase_with_token() {
+        let mut creds = CloudCredentials::default();
+        creds.set("supabase", ProviderCredential::token("test-sb-tok"));
+        let adapter = AdapterRegistry::create("supabase", &creds).unwrap();
+        assert_eq!(adapter.provider_name(), "supabase");
+    }
+
+    #[test]
+    fn test_create_cloudflare_requires_account_id() {
+        let mut creds = CloudCredentials::default();
+        creds.set("cloudflare", ProviderCredential::token("test-cf-tok"));
+        let result = AdapterRegistry::create("cloudflare", &creds);
+        match result {
+            Err(ref e) => assert!(
+                e.to_string().contains("account_id"),
+                "Expected account_id error, got: {e}"
+            ),
+            Ok(_) => panic!("Expected error for missing account_id"),
+        }
+    }
+
+    #[test]
+    fn test_create_cloudflare_with_account_id() {
+        let mut creds = CloudCredentials::default();
+        creds.set(
+            "cloudflare",
+            ProviderCredential::Token {
+                token: "test-cf-tok".into(),
+                default_region: Some("account-abc123".into()),
+            },
+        );
+        let adapter = AdapterRegistry::create("cloudflare", &creds).unwrap();
+        assert_eq!(adapter.provider_name(), "cloudflare");
+    }
+
+    #[test]
+    fn test_implemented_providers_count() {
+        let providers = AdapterRegistry::implemented_providers();
+        assert_eq!(providers.len(), 10);
+        assert!(providers.contains(&"cloudflare"));
+        assert!(providers.contains(&"vercel"));
+        assert!(providers.contains(&"netlify"));
+        assert!(providers.contains(&"digitalocean"));
+        assert!(providers.contains(&"supabase"));
     }
 
     #[test]

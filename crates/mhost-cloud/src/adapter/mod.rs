@@ -14,9 +14,19 @@ pub mod fly;
 #[cfg(feature = "cloud-native")]
 pub mod gcp;
 #[cfg(feature = "cloud-native")]
+pub mod cloudflare;
+#[cfg(feature = "cloud-native")]
+pub mod digitalocean;
+#[cfg(feature = "cloud-native")]
+pub mod netlify;
+#[cfg(feature = "cloud-native")]
 pub mod railway;
 #[cfg(feature = "cloud-native")]
 pub mod registry;
+#[cfg(feature = "cloud-native")]
+pub mod supabase;
+#[cfg(feature = "cloud-native")]
+pub mod vercel;
 
 // ---------------------------------------------------------------------------
 // Errors
