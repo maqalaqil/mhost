@@ -13,9 +13,11 @@ path = "src/main.rs"
 [features]
 default = []
 api = ["mhost-api"]
+cloud-native = ["mhost-cloud/cloud-native"]
 
 [dependencies]
 mhost-core = { path = "../mhost-core" }
+mhost-cloud = { path = "../mhost-cloud", optional = true }
 mhost-api = { path = "../mhost-api", optional = true }
 async-trait = "0.1"
 mhost-config = { path = "../mhost-config" }
