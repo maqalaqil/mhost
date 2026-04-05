@@ -483,6 +483,385 @@ pub fn run_auth_remove(paths: &MhostPaths, provider: &str) -> Result<(), String>
     Ok(())
 }
 
+// ===========================================================================
+// Cloud-Native commands (no SSH, direct provider API stubs)
+// ===========================================================================
+
+fn get_providers(paths: &MhostPaths) -> BTreeMap<String, serde_json::Value> {
+    load_credentials(paths).unwrap_or_default()
+}
+
+fn print_no_providers() {
+    println!("  No cloud providers configured.");
+    println!("  Run: {}", "mhost cloud auth <provider>".cyan());
+}
+
+// ---------------------------------------------------------------------------
+// Provision
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_provision(
+    paths: &MhostPaths,
+    provider: &str,
+    name: &str,
+    service_type: &str,
+    image: Option<&str>,
+    port: Option<u16>,
+    instances: u32,
+    region: Option<&str>,
+    cpu: Option<&str>,
+    memory: Option<&str>,
+) {
+    let creds = get_providers(paths);
+    if !creds.contains_key(provider) {
+        println!("  {} Provider '{}' not configured.", "!".red(), provider);
+        println!("  Run: mhost cloud auth {provider}");
+        return;
+    }
+    println!("\n  {} Provision Cloud Service\n", "mhost".bold());
+    println!("  Provider:  {}", provider.cyan());
+    println!("  Name:      {name}");
+    println!("  Type:      {service_type}");
+    if let Some(img) = image {
+        println!("  Image:     {img}");
+    }
+    if let Some(p) = port {
+        println!("  Port:      {p}");
+    }
+    println!("  Instances: {instances}");
+    if let Some(r) = region {
+        println!("  Region:    {r}");
+    }
+    if let Some(c) = cpu {
+        println!("  CPU:       {c}");
+    }
+    if let Some(m) = memory {
+        println!("  Memory:    {m}");
+    }
+    println!(
+        "\n  {} This requires a running connection to the {} API",
+        "i".cyan(),
+        provider
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Services
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_services(paths: &MhostPaths, provider: Option<&str>) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    if let Some(prov) = provider {
+        println!(
+            "  Listing services on {}...",
+            prov.cyan()
+        );
+        println!(
+            "  {} This requires a running connection to the {} API",
+            "i".cyan(),
+            prov
+        );
+    } else {
+        println!(
+            "  Listing services across {} providers...",
+            creds.len()
+        );
+        for name in creds.keys() {
+            println!("    {} {name}", "●".green());
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Service (single)
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_service(paths: &MhostPaths, name: &str, provider: Option<&str>) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!("  Service: {}", name.cyan());
+    if let Some(prov) = provider {
+        println!("  Provider: {prov}");
+    }
+    println!(
+        "  {} Fetching service details requires API credentials",
+        "i".cyan()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Cloud Deploy (image)
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_deploy_image(
+    paths: &MhostPaths,
+    name: &str,
+    image: &str,
+    provider: Option<&str>,
+) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!("  Deploying to '{}'...", name.cyan());
+    println!("  Image: {image}");
+    if let Some(prov) = provider {
+        println!("  Provider: {prov}");
+    }
+    println!(
+        "  {} Deployment requires a running connection to the provider API",
+        "i".cyan()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Cloud Scale (native)
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_scale_native(
+    paths: &MhostPaths,
+    name: &str,
+    instances: u32,
+    provider: Option<&str>,
+) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!(
+        "  Scaling '{}' to {} instances...",
+        name.cyan(),
+        instances
+    );
+    if let Some(prov) = provider {
+        println!("  Provider: {prov}");
+    }
+    println!(
+        "  {} Scaling requires a running connection to the provider API",
+        "i".cyan()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Destroy
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_destroy(
+    paths: &MhostPaths,
+    name: &str,
+    provider: &str,
+    confirm: bool,
+) -> Result<(), String> {
+    if !confirm {
+        return Err("Destruction requires --confirm flag".into());
+    }
+    let creds = get_providers(paths);
+    if !creds.contains_key(provider) {
+        println!("  {} Provider '{}' not configured.", "!".red(), provider);
+        println!("  Run: mhost cloud auth {provider}");
+        return Ok(());
+    }
+    println!(
+        "  {} Destroying '{}' on {}...",
+        "!".red(),
+        name,
+        provider
+    );
+    println!(
+        "  {} Destruction requires a running connection to the {} API",
+        "i".cyan(),
+        provider
+    );
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Cost
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_cost(paths: &MhostPaths, provider: Option<&str>) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!("\n  {} Cloud Cost Summary\n", "mhost".bold());
+    if let Some(prov) = provider {
+        println!("  Provider: {}", prov.cyan());
+    } else {
+        println!("  Providers: {}", creds.len());
+        for name in creds.keys() {
+            println!("    {} {name}", "●".green());
+        }
+    }
+    println!(
+        "\n  {} Cost data requires a running connection to provider billing APIs",
+        "i".cyan()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Drift
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_drift(paths: &MhostPaths, fix: bool) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!("\n  {} Drift Detection\n", "mhost".bold());
+    if fix {
+        println!("  Mode: auto-fix enabled");
+    } else {
+        println!("  Mode: detect only");
+    }
+    println!(
+        "  {} Drift detection compares local cloud-state.toml against live provider state",
+        "i".cyan()
+    );
+    let state_path = paths.cloud_state();
+    if state_path.exists() {
+        println!("  Local state: {}", state_path.display());
+    } else {
+        println!("  No local state file found at {}", state_path.display());
+        println!("  Run a provision or services command first to populate state.");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Secrets
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_secrets_set(paths: &MhostPaths, service: &str, key: &str, _value: &str) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!(
+        "  Setting secret '{}' on service '{}'...",
+        key.cyan(),
+        service
+    );
+    println!(
+        "  {} Secret management requires provider API access",
+        "i".cyan()
+    );
+}
+
+pub fn run_cloud_secrets_list(paths: &MhostPaths, service: &str) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!("  Listing secrets for '{}'...", service.cyan());
+    println!(
+        "  {} Secret listing requires provider API access",
+        "i".cyan()
+    );
+}
+
+pub fn run_cloud_secrets_remove(paths: &MhostPaths, service: &str, key: &str) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!(
+        "  Removing secret '{}' from service '{}'...",
+        key.cyan(),
+        service
+    );
+    println!(
+        "  {} Secret management requires provider API access",
+        "i".cyan()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Backup
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_backup(paths: &MhostPaths, service: &str) {
+    let creds = get_providers(paths);
+    if creds.is_empty() {
+        print_no_providers();
+        return;
+    }
+    println!("  Backing up service '{}'...", service.cyan());
+    let backup_dir = paths.cloud_backups();
+    println!("  Backup directory: {}", backup_dir.display());
+    println!(
+        "  {} Backup requires provider API access to snapshot service data",
+        "i".cyan()
+    );
+}
+
+pub fn run_cloud_backup_list(paths: &MhostPaths) {
+    let backup_dir = paths.cloud_backups();
+    if !backup_dir.exists() {
+        println!("  No backups found.");
+        println!("  Run: mhost cloud backup <service>");
+        return;
+    }
+    let entries: Vec<_> = std::fs::read_dir(&backup_dir)
+        .map(|rd| rd.filter_map(|e| e.ok()).collect())
+        .unwrap_or_default();
+    if entries.is_empty() {
+        println!("  No backups found.");
+        println!("  Run: mhost cloud backup <service>");
+        return;
+    }
+    println!("\n  {} Cloud Backups\n", "mhost".bold());
+    for entry in &entries {
+        println!("    {}", entry.file_name().to_string_lossy());
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Export
+// ---------------------------------------------------------------------------
+
+pub fn run_cloud_export(format: &str) {
+    match format {
+        "terraform" | "tf" => {
+            println!("\n  {} Generating Terraform...\n", "mhost".bold());
+            println!("  Terraform export generates .tf files from your cloud services.");
+            println!("  Requires cloud services data (run `mhost cloud services` first).");
+        }
+        "docker-compose" | "compose" => {
+            println!("\n  {} Generating Docker Compose...\n", "mhost".bold());
+            println!("  Docker Compose export generates docker-compose.yml from your services.");
+            println!("  Requires cloud services data (run `mhost cloud services` first).");
+        }
+        "kubernetes" | "k8s" => {
+            println!("\n  {} Generating Kubernetes manifests...\n", "mhost".bold());
+            println!("  Kubernetes export generates Deployment + Service YAML manifests.");
+            println!("  Requires cloud services data (run `mhost cloud services` first).");
+        }
+        _ => {
+            println!(
+                "  Unknown format: '{}'. Supported formats:",
+                format.red()
+            );
+            println!("    terraform (tf)");
+            println!("    docker-compose (compose)");
+            println!("    kubernetes (k8s)");
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // AI: Setup infra
 // ---------------------------------------------------------------------------

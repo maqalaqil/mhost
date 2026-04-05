@@ -14,8 +14,8 @@ mhost is an **AI-powered process manager** written in Rust — a PM2 replacement
 |---|---|
 | Language | Rust |
 | Crates | 15 |
-| Tests | 830+ |
-| CLI Commands | 63+ (with subcommands: 106+) |
+| Tests | 850+ |
+| CLI Commands | 77+ (with subcommands: 120+) |
 | Source files | 160 .rs files |
 | Website | `website/index.html` (single-file landing page) |
 | Repo | `github.com/maqalaqil/mhost` |
@@ -190,6 +190,9 @@ cargo fmt --all --check                    # Format check
 
 ### Cloud
 `cloud add|remove|list|status|deploy|exec|logs|restart|scale|sync|ssh|install|update|import|ai-setup|ai-diagnose|ai-migrate`
+
+### Cloud Native
+`cloud provision|services|service|cloud-deploy|cloud-scale|destroy|cost|drift|secrets set|secrets list|secrets remove|backup|backup-list|export`
 
 ### Production & Operations
 `reload <app>`, `dev <script>`, `dashboard [--port]`, `bench <url>`, `canary <app>`, `snapshot create|list|restore`, `replay <process>`, `link`, `cost`, `certs [--url]`, `sla <app>`, `diff <env_a> <env_b>`, `share <app>`, `run <file>`, `migrate --from <pm>`, `team`, `playground`

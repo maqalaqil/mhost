@@ -823,3 +823,108 @@ fn test_cloud_auth_remove_nonexistent() {
     let (stdout, _, _) = run(&["cloud", "auth-remove", "nonexistent"]);
     assert!(stdout.contains("No credentials") || stdout.contains("not found") || stdout.is_empty());
 }
+
+// ── Cloud-Native Commands ──────────────────────────────────
+
+#[test]
+fn test_cloud_services_no_creds() {
+    let (stdout, _, _) = run(&["cloud", "services"]);
+    assert!(
+        stdout.contains("No cloud providers")
+            || stdout.contains("services")
+            || stdout.contains("Listing")
+    );
+}
+
+#[test]
+fn test_cloud_cost_no_creds() {
+    let (stdout, _, _) = run(&["cloud", "cost"]);
+    assert!(
+        stdout.contains("No cloud providers")
+            || stdout.contains("cost")
+            || stdout.contains("Cost")
+    );
+}
+
+#[test]
+fn test_cloud_export_terraform() {
+    let (stdout, _, _) = run(&["cloud", "export", "terraform"]);
+    assert!(
+        stdout.contains("Terraform")
+            || stdout.contains("terraform")
+            || stdout.contains("Generating")
+    );
+}
+
+#[test]
+fn test_cloud_export_docker_compose() {
+    let (stdout, _, _) = run(&["cloud", "export", "docker-compose"]);
+    assert!(
+        stdout.contains("Docker Compose")
+            || stdout.contains("docker-compose")
+            || stdout.contains("Generating")
+    );
+}
+
+#[test]
+fn test_cloud_export_kubernetes() {
+    let (stdout, _, _) = run(&["cloud", "export", "kubernetes"]);
+    assert!(
+        stdout.contains("Kubernetes")
+            || stdout.contains("kubernetes")
+            || stdout.contains("Generating")
+    );
+}
+
+#[test]
+fn test_cloud_export_unknown_format() {
+    let (stdout, _, _) = run(&["cloud", "export", "pulumi"]);
+    assert!(
+        stdout.contains("Unknown format")
+            || stdout.contains("Supported")
+            || stdout.contains("pulumi")
+    );
+}
+
+#[test]
+fn test_cloud_backup_list() {
+    let (stdout, _, _) = run(&["cloud", "backup-list"]);
+    assert!(
+        stdout.contains("No backups")
+            || stdout.contains("backup")
+            || stdout.contains("Backup")
+    );
+}
+
+#[test]
+fn test_cloud_drift_no_creds() {
+    let (stdout, _, _) = run(&["cloud", "drift"]);
+    assert!(
+        stdout.contains("No cloud providers")
+            || stdout.contains("Drift")
+            || stdout.contains("drift")
+    );
+}
+
+#[test]
+fn test_cloud_destroy_no_confirm() {
+    let (_, stderr, ok) = run(&[
+        "cloud", "destroy", "myservice", "--provider", "railway",
+    ]);
+    // Should fail because --confirm is not passed
+    assert!(!ok || stderr.contains("confirm"));
+}
+
+#[test]
+fn test_cloud_help_shows_new_commands() {
+    let (stdout, _, ok) = run(&["cloud", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("provision"), "cloud --help should list provision");
+    assert!(stdout.contains("services"), "cloud --help should list services");
+    assert!(stdout.contains("cost"), "cloud --help should list cost");
+    assert!(stdout.contains("drift"), "cloud --help should list drift");
+    assert!(stdout.contains("secrets"), "cloud --help should list secrets");
+    assert!(stdout.contains("export"), "cloud --help should list export");
+    assert!(stdout.contains("backup-list"), "cloud --help should list backup-list");
+    assert!(stdout.contains("destroy"), "cloud --help should list destroy");
+}

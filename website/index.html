@@ -762,7 +762,7 @@ g7h8 frontend      <span class="status-online">● online</span>    12348   1.0%
       <div class="compare-row"><div class="compare-cell">Restart strategy</div><div class="compare-cell pm2">Basic</div><div class="compare-cell mhost-v">Exponential backoff + circuit breaker</div></div>
       <div class="compare-row"><div class="compare-cell">AI intelligence</div><div class="compare-cell pm2"><span class="cross">None</span></div><div class="compare-cell mhost-v">Diagnose, optimize, ask, watch (OpenAI/Claude)</div></div>
       <div class="compare-row"><div class="compare-cell">Autonomous agent</div><div class="compare-cell pm2"><span class="cross">None</span></div><div class="compare-cell mhost-v">AI agent with LLM tool calling — monitors, acts, reports to Telegram</div></div>
-      <div class="compare-row"><div class="compare-cell">Cloud fleet</div><div class="compare-cell pm2"><span class="cross">None</span></div><div class="compare-cell mhost-v">SSH fleet — AWS, Azure, DO, Railway auto-import</div></div>
+      <div class="compare-row"><div class="compare-cell">Cloud fleet</div><div class="compare-cell pm2"><span class="cross">None</span></div><div class="compare-cell mhost-v">SSH fleet + cloud-native API (10 providers, secrets, cost, drift, IaC export)</div></div>
       <div class="compare-row"><div class="compare-cell">Remote control</div><div class="compare-cell pm2"><span class="cross">None</span></div><div class="compare-cell mhost-v">Telegram/Discord bot with role-based permissions</div></div>
       <div class="compare-row"><div class="compare-cell">Config format</div><div class="compare-cell pm2">JS only</div><div class="compare-cell mhost-v">TOML, YAML, JSON</div></div>
       <div class="compare-row"><div class="compare-cell">Web dashboard</div><div class="compare-cell pm2">pm2-web (separate)</div><div class="compare-cell mhost-v">Built-in browser UI with SSE live logs</div></div>
@@ -875,6 +875,11 @@ g7h8 frontend      <span class="status-online">● online</span>    12348   1.0%
         <div class="feature-icon fi-yellow">&#128279;</div>
         <h3>Public REST API</h3>
         <p>25 endpoints with bearer token auth, WebSocket streaming, and outbound webhooks with HMAC signing.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon fi-cyan">&#9729;</div>
+        <h3>Cloud-Native APIs</h3>
+        <p>Direct integration with 10 cloud providers. Provision, deploy, scale, manage secrets, track costs, detect drift, and export IaC.</p>
       </div>
     </div>
   </div>

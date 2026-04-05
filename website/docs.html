@@ -372,6 +372,17 @@ code{font-family:var(--mono);font-size:.82em;color:var(--accent3);background:rgb
       </ul>
     </div>
 
+    <div class="sidebar-section" data-section="cloud-native">
+      <div class="sidebar-section-title" tabindex="0">Cloud Native <span class="chevron">&#9660;</span></div>
+      <ul>
+        <li><a href="#cloud-native-providers">Providers</a></li>
+        <li><a href="#cloud-native-secrets">Secrets</a></li>
+        <li><a href="#cloud-native-cost">Cost</a></li>
+        <li><a href="#cloud-native-drift">Drift</a></li>
+        <li><a href="#cloud-native-export">Export</a></li>
+      </ul>
+    </div>
+
     <div class="sidebar-section" data-section="chatbot">
       <div class="sidebar-section-title" tabindex="0">Chat Bot <span class="chevron">&#9660;</span></div>
       <ul>
@@ -1393,6 +1404,78 @@ tags       = [<span class="str">"production"</span>, <span class="str">"api"</sp
 <span class="prompt">$</span> mhost ai cloud plan-migration      <span class="comment"># plan migration between hosts</span>
 <span class="prompt">$</span> mhost ai cloud provision           <span class="comment"># AI-guided infrastructure setup</span></div>
     </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ══════════════════════════════════════════════ CLOUD NATIVE -->
+
+  <div class="doc-section" id="cloud-native-providers">
+    <div class="section-header">
+      <h2 class="doc-h2">Cloud-Native Providers</h2>
+    </div>
+    <p>Direct API integration with 10 cloud providers &mdash; no SSH required. Provision, deploy, scale, and manage services via provider APIs.</p>
+    <table class="doc-table">
+      <thead><tr><th>Provider</th><th>Services</th><th>Auth Command</th></tr></thead>
+      <tbody>
+        <tr><td>AWS</td><td>ECS, EKS, EC2, Lambda</td><td><code>mhost cloud auth aws</code></td></tr>
+        <tr><td>GCP</td><td>Cloud Run, GKE, GCE</td><td><code>mhost cloud auth gcp</code></td></tr>
+        <tr><td>Azure</td><td>AKS, ACI, VMs</td><td><code>mhost cloud auth azure</code></td></tr>
+        <tr><td>Railway</td><td>Web, Worker, Cron</td><td><code>mhost cloud auth railway</code></td></tr>
+        <tr><td>Fly.io</td><td>Machines, Apps</td><td><code>mhost cloud auth fly</code></td></tr>
+        <tr><td>Vercel</td><td>Serverless, Edge</td><td><code>mhost cloud auth vercel</code></td></tr>
+        <tr><td>DigitalOcean</td><td>App Platform, Droplets</td><td><code>mhost cloud auth digitalocean</code></td></tr>
+        <tr><td>Cloudflare</td><td>Workers, Pages</td><td><code>mhost cloud auth cloudflare</code></td></tr>
+        <tr><td>Netlify</td><td>Sites, Functions</td><td><code>mhost cloud auth netlify</code></td></tr>
+        <tr><td>Supabase</td><td>Database, Edge Functions</td><td><code>mhost cloud auth supabase</code></td></tr>
+      </tbody>
+    </table>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost cloud provision --provider railway --name api --type web --image node:20 --port 3000
+<span class="prompt">$</span> mhost cloud services                  <span class="comment"># list all services</span>
+<span class="prompt">$</span> mhost cloud service api               <span class="comment"># show service details</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="cloud-native-secrets">
+    <h2 class="doc-h2">Cloud Secrets Management</h2>
+    <p>Manage environment variables and secrets on cloud services without logging into provider dashboards.</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost cloud secrets set api DATABASE_URL "postgres://..."
+<span class="prompt">$</span> mhost cloud secrets list api
+<span class="prompt">$</span> mhost cloud secrets remove api OLD_KEY</div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="cloud-native-cost">
+    <h2 class="doc-h2">Cloud Cost Tracking</h2>
+    <p>Unified cost view across all configured cloud providers. See spending per service and per provider.</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost cloud cost                      <span class="comment"># all providers</span>
+<span class="prompt">$</span> mhost cloud cost --provider railway    <span class="comment"># single provider</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="cloud-native-drift">
+    <h2 class="doc-h2">Configuration Drift Detection</h2>
+    <p>Compare your local desired state against live cloud configuration. Optionally auto-fix detected drift.</p>
+    <div class="code-wrap">
+      <div class="code-block"><span class="prompt">$</span> mhost cloud drift                     <span class="comment"># detect only</span>
+<span class="prompt">$</span> mhost cloud drift --fix               <span class="comment"># detect and fix</span></div>
+    </div>
+  </div>
+
+  <div class="doc-section" id="cloud-native-export">
+    <h2 class="doc-h2">Infrastructure Export</h2>
+    <p>Export your cloud services as infrastructure-as-code for version control, migration, or disaster recovery.</p>
+    <table class="doc-table">
+      <thead><tr><th>Format</th><th>Command</th><th>Output</th></tr></thead>
+      <tbody>
+        <tr><td>Terraform</td><td><code>mhost cloud export terraform</code></td><td><code>.tf</code> files</td></tr>
+        <tr><td>Docker Compose</td><td><code>mhost cloud export docker-compose</code></td><td><code>docker-compose.yml</code></td></tr>
+        <tr><td>Kubernetes</td><td><code>mhost cloud export kubernetes</code></td><td>Deployment + Service YAML</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <hr class="doc-divider">

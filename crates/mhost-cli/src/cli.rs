@@ -251,6 +251,143 @@ pub enum CloudAction {
         /// Destination server name.
         to: String,
     },
+
+    // ── Cloud-Native commands (no SSH, direct provider API) ──
+
+    /// Provision a new cloud service on a provider.
+    Provision {
+        /// Cloud provider name (railway, fly, vercel, digitalocean, etc.).
+        #[arg(long)]
+        provider: String,
+        /// Service name.
+        #[arg(long)]
+        name: String,
+        /// Service type (web, worker, cron, static).
+        #[arg(long, rename_all = "kebab-case", value_name = "TYPE")]
+        r#type: String,
+        /// Container image to deploy.
+        #[arg(long)]
+        image: Option<String>,
+        /// Port to expose.
+        #[arg(long)]
+        port: Option<u16>,
+        /// Number of instances.
+        #[arg(long, default_value = "1")]
+        instances: u32,
+        /// Region / location.
+        #[arg(long)]
+        region: Option<String>,
+        /// CPU allocation (e.g. "0.5", "2").
+        #[arg(long)]
+        cpu: Option<String>,
+        /// Memory allocation (e.g. "512MB", "2GB").
+        #[arg(long)]
+        memory: Option<String>,
+    },
+    /// List all cloud-native services across providers.
+    Services {
+        /// Filter to a specific provider.
+        #[arg(long)]
+        provider: Option<String>,
+    },
+    /// Show details of a specific cloud-native service.
+    Service {
+        /// Service name.
+        name: String,
+        /// Filter to a specific provider.
+        #[arg(long)]
+        provider: Option<String>,
+    },
+    /// Deploy a new image to an existing cloud-native service.
+    CloudDeploy {
+        /// Service name.
+        name: String,
+        /// Container image to deploy.
+        #[arg(long)]
+        image: String,
+        /// Provider (optional if service name is unique).
+        #[arg(long)]
+        provider: Option<String>,
+    },
+    /// Scale a cloud-native service to N instances.
+    CloudScale {
+        /// Service name.
+        name: String,
+        /// Desired number of instances.
+        instances: u32,
+        /// Provider (optional if service name is unique).
+        #[arg(long)]
+        provider: Option<String>,
+    },
+    /// Destroy a cloud-native service permanently.
+    Destroy {
+        /// Service name.
+        name: String,
+        /// Cloud provider name.
+        #[arg(long)]
+        provider: String,
+        /// Confirm destruction (required).
+        #[arg(long)]
+        confirm: bool,
+    },
+    /// Show cost/spending across cloud providers.
+    Cost {
+        /// Filter to a specific provider.
+        #[arg(long)]
+        provider: Option<String>,
+    },
+    /// Detect configuration drift between local state and live cloud.
+    Drift {
+        /// Automatically fix detected drift.
+        #[arg(long)]
+        fix: bool,
+    },
+    /// Manage cloud service secrets.
+    Secrets {
+        #[command(subcommand)]
+        action: SecretsAction,
+    },
+    /// Backup a cloud service's data/config.
+    Backup {
+        /// Service name to back up.
+        service: String,
+    },
+    /// List all cloud backups.
+    BackupList,
+    /// Export infrastructure as code (terraform, docker-compose, kubernetes).
+    Export {
+        /// Output format: terraform, docker-compose, kubernetes.
+        format: String,
+    },
+}
+
+// ---------------------------------------------------------------------------
+// Secrets subcommands
+// ---------------------------------------------------------------------------
+
+#[derive(Subcommand)]
+pub enum SecretsAction {
+    /// Set a secret on a cloud service.
+    Set {
+        /// Service name.
+        service: String,
+        /// Secret key.
+        key: String,
+        /// Secret value.
+        value: String,
+    },
+    /// List secrets for a cloud service.
+    List {
+        /// Service name.
+        service: String,
+    },
+    /// Remove a secret from a cloud service.
+    Remove {
+        /// Service name.
+        service: String,
+        /// Secret key.
+        key: String,
+    },
 }
 
 // ---------------------------------------------------------------------------

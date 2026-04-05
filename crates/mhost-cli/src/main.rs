@@ -11,7 +11,7 @@ use mhost_ipc::IpcClient;
 
 use cli::{
     AgentAction, AiAction, BotAction, BrainAction, Cli, CloudAction, Commands, MetricsAction,
-    NotifyAction, SnapshotAction,
+    NotifyAction, SecretsAction, SnapshotAction,
 };
 
 // Bring new top-level commands into scope for the dispatch match
@@ -434,5 +434,99 @@ async fn dispatch_cloud(action: CloudAction, paths: &MhostPaths) -> Result<(), S
         CloudAction::AiSetup { description } => cloud::run_ai_setup(paths, &description).await,
         CloudAction::AiDiagnose { server } => cloud::run_ai_diagnose(paths, &server).await,
         CloudAction::AiMigrate { from, to } => cloud::run_ai_migrate(paths, &from, &to).await,
+
+        // ── Cloud-Native commands ──────────────────────────────────
+        CloudAction::Provision {
+            provider,
+            name,
+            r#type,
+            image,
+            port,
+            instances,
+            region,
+            cpu,
+            memory,
+        } => {
+            cloud::run_cloud_provision(
+                paths,
+                &provider,
+                &name,
+                &r#type,
+                image.as_deref(),
+                port,
+                instances,
+                region.as_deref(),
+                cpu.as_deref(),
+                memory.as_deref(),
+            );
+            Ok(())
+        }
+        CloudAction::Services { provider } => {
+            cloud::run_cloud_services(paths, provider.as_deref());
+            Ok(())
+        }
+        CloudAction::Service { name, provider } => {
+            cloud::run_cloud_service(paths, &name, provider.as_deref());
+            Ok(())
+        }
+        CloudAction::CloudDeploy {
+            name,
+            image,
+            provider,
+        } => {
+            cloud::run_cloud_deploy_image(paths, &name, &image, provider.as_deref());
+            Ok(())
+        }
+        CloudAction::CloudScale {
+            name,
+            instances,
+            provider,
+        } => {
+            cloud::run_cloud_scale_native(paths, &name, instances, provider.as_deref());
+            Ok(())
+        }
+        CloudAction::Destroy {
+            name,
+            provider,
+            confirm,
+        } => cloud::run_cloud_destroy(paths, &name, &provider, confirm),
+        CloudAction::Cost { provider } => {
+            cloud::run_cloud_cost(paths, provider.as_deref());
+            Ok(())
+        }
+        CloudAction::Drift { fix } => {
+            cloud::run_cloud_drift(paths, fix);
+            Ok(())
+        }
+        CloudAction::Secrets { action } => match action {
+            SecretsAction::Set {
+                service,
+                key,
+                value,
+            } => {
+                cloud::run_cloud_secrets_set(paths, &service, &key, &value);
+                Ok(())
+            }
+            SecretsAction::List { service } => {
+                cloud::run_cloud_secrets_list(paths, &service);
+                Ok(())
+            }
+            SecretsAction::Remove { service, key } => {
+                cloud::run_cloud_secrets_remove(paths, &service, &key);
+                Ok(())
+            }
+        },
+        CloudAction::Backup { service } => {
+            cloud::run_cloud_backup(paths, &service);
+            Ok(())
+        }
+        CloudAction::BackupList => {
+            cloud::run_cloud_backup_list(paths);
+            Ok(())
+        }
+        CloudAction::Export { format } => {
+            cloud::run_cloud_export(&format);
+            Ok(())
+        }
     }
 }

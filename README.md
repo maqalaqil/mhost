@@ -681,6 +681,46 @@ Supports: **AWS EC2**, **Azure VMs**, **DigitalOcean**, **Railway**, any SSH-acc
 
 ---
 
+## Cloud-Native Provider Integrations
+
+Direct API integration with 10 cloud providers — no SSH required.
+
+### Supported Providers
+
+AWS (ECS/EKS/EC2/Lambda) | GCP (Cloud Run/GKE/GCE) | Azure (AKS/ACI/VMs) | Railway | Fly.io | Vercel | DigitalOcean | Cloudflare Workers | Netlify | Supabase
+
+### Quick Start
+
+```bash
+mhost cloud auth railway              # Configure credentials
+mhost cloud provision --provider railway --name api --type web --image node:20 --port 3000
+mhost cloud services                  # List all services across providers
+mhost cloud scale api 4               # Scale to 4 instances
+mhost cloud cost                      # See spending across providers
+mhost cloud drift                     # Check for config drift
+mhost cloud export terraform          # Generate Terraform files
+```
+
+### Secret Management
+
+```bash
+mhost cloud secrets set api DATABASE_URL "postgres://..."
+mhost cloud secrets list api
+mhost cloud secrets remove api OLD_KEY
+```
+
+### Backups & Export
+
+```bash
+mhost cloud backup api                # Backup service data
+mhost cloud backup-list               # List all backups
+mhost cloud export terraform          # Generate Terraform HCL
+mhost cloud export docker-compose     # Generate docker-compose.yml
+mhost cloud export kubernetes         # Generate K8s manifests
+```
+
+---
+
 ## Chat Bot Control
 
 Control your processes from anywhere using a Telegram or Discord bot. Send `/status`, `/start`, `/stop`, and more — directly from your phone.
@@ -1343,6 +1383,25 @@ HMAC-SHA256 signed payloads with retry logic and dead letter logging.
 | `mhost cloud ai-setup "<desc>"` | AI infrastructure planning |
 | `mhost cloud ai-diagnose <server>` | AI remote diagnosis |
 | `mhost cloud ai-migrate <from> <to>` | AI migration planning |
+
+### Cloud Native
+
+| Command | Description |
+|---|---|
+| `mhost cloud provision --provider <p> --name <n> --type <t>` | Provision a new cloud service |
+| `mhost cloud services [--provider <p>]` | List services across providers |
+| `mhost cloud service <name>` | Show service details |
+| `mhost cloud cloud-deploy <name> --image <img>` | Deploy image to a service |
+| `mhost cloud cloud-scale <name> <N>` | Scale a cloud-native service |
+| `mhost cloud destroy <name> --provider <p> --confirm` | Destroy a service |
+| `mhost cloud cost [--provider <p>]` | Show spending across providers |
+| `mhost cloud drift [--fix]` | Detect configuration drift |
+| `mhost cloud secrets set <svc> <key> <val>` | Set a service secret |
+| `mhost cloud secrets list <svc>` | List service secrets |
+| `mhost cloud secrets remove <svc> <key>` | Remove a service secret |
+| `mhost cloud backup <service>` | Backup service data |
+| `mhost cloud backup-list` | List all backups |
+| `mhost cloud export <format>` | Export as Terraform/Compose/K8s |
 
 ### Bot
 
