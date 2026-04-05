@@ -241,6 +241,446 @@ const TOOLS = [
       },
     },
   },
+
+  // ── Process Tools (enhanced) ────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "reload_process",
+      description:
+        "Zero-downtime reload — starts new instances, health checks, kills old.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_process",
+      description: "Remove a process from the registry completely.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_health",
+      description: "Get health check status for a process.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_config",
+      description: "Get process configuration as JSON.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_env",
+      description: "Get environment variables for a process.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_history",
+      description: "Get event history for a process.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_metrics",
+      description: "Get CPU, memory, uptime metrics for a process.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+
+  // ── Brain Tools ─────────────────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "brain_status",
+      description: "Get health scores for all processes (0-100).",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "brain_history",
+      description: "Get incident history — what happened and what was done.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "brain_playbooks",
+      description: "List all healing playbooks — built-in and auto-learned.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "brain_explain",
+      description: "Explain why a process has its health score.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+
+  // ── AI Tools ────────────────────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "ai_diagnose",
+      description:
+        "AI-powered crash diagnosis with root cause, fix steps, prevention.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ai_optimize",
+      description: "Get AI performance optimization suggestions.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ai_ask",
+      description: "Ask any question about your processes.",
+      parameters: {
+        type: "object",
+        properties: {
+          question: { type: "string", description: "Question to ask" },
+        },
+        required: ["question"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ai_suggest",
+      description:
+        "Get proactive AI improvement suggestions for all processes.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+
+  // ── Snapshot Tools ──────────────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "snapshot_create",
+      description: "Create a snapshot of current process state.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Snapshot name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "snapshot_list",
+      description: "List all saved snapshots.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "snapshot_restore",
+      description: "Restore processes from a snapshot.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Snapshot name" },
+        },
+        required: ["name"],
+      },
+    },
+  },
+
+  // ── Notification Tools ──────────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "notify_list",
+      description: "List configured notification channels.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "notify_test",
+      description: "Send a test notification to a channel.",
+      parameters: {
+        type: "object",
+        properties: {
+          channel: { type: "string", description: "Channel name" },
+        },
+        required: ["channel"],
+      },
+    },
+  },
+
+  // ── Cloud Tools ─────────────────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "cloud_services",
+      description: "List all cloud services across all providers.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "cloud_cost",
+      description: "Get cost breakdown across all cloud providers.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "cloud_drift",
+      description: "Check for configuration drift in cloud services.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "cloud_provision",
+      description: "Provision a new cloud service.",
+      parameters: {
+        type: "object",
+        properties: {
+          provider: { type: "string", description: "Cloud provider" },
+          name: { type: "string", description: "Service name" },
+          image: { type: "string", description: "Container image" },
+          port: { type: "number", description: "Port number" },
+        },
+        required: ["provider", "name", "image", "port"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "cloud_scale",
+      description: "Scale a cloud service.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Service name" },
+          instances: {
+            type: "number",
+            description: "Target instance count",
+          },
+        },
+        required: ["name", "instances"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "cloud_deploy",
+      description: "Deploy new image to a cloud service.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Service name" },
+          image: { type: "string", description: "Container image" },
+        },
+        required: ["name", "image"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "cloud_destroy",
+      description:
+        "Destroy a cloud service — DANGEROUS, requires confirmation.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Service name" },
+          provider: { type: "string", description: "Cloud provider" },
+        },
+        required: ["name", "provider"],
+      },
+    },
+  },
+
+  // ── System Tools ────────────────────────────────────────────────────────────
+  {
+    type: "function",
+    function: {
+      name: "save_state",
+      description: "Save current process list for resurrection.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "resurrect",
+      description: "Restore all saved processes.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_cost",
+      description: "Estimate cloud costs from process memory usage.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_sla",
+      description: "Get SLA uptime report for a process.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Process name" },
+          target: {
+            type: "number",
+            description: "Target SLA percentage, default 99.9",
+          },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_dependencies",
+      description: "Show process dependency graph.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "run_benchmark",
+      description: "Run HTTP load test against a URL.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "Target URL" },
+          duration: {
+            type: "number",
+            description: "Duration in seconds",
+          },
+          concurrency: {
+            type: "number",
+            description: "Number of concurrent connections",
+          },
+        },
+        required: ["url"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "check_certs",
+      description: "Check SSL certificate expiry for URLs.",
+      parameters: {
+        type: "object",
+        properties: {
+          urls: {
+            type: "string",
+            description: "Comma-separated URLs",
+          },
+        },
+        required: ["urls"],
+      },
+    },
+  },
 ];
 
 // ─── System Prompt ───────────────────────────────────────────────────────────
@@ -266,6 +706,14 @@ You run inside the mhost process manager. Your responsibilities:
 2. THINK: Analyse what you see — high restart counts, OOM errors, degraded performance, anomalies.
 3. ACT: Take corrective action — restart crashed processes, scale under load, alert on anomalies.
 4. REPORT: Tell the user what you found and what you did via send_telegram.
+
+CAPABILITIES:
+- You can manage cloud services across 10 providers (provision, scale, deploy, destroy, cost analysis, drift detection).
+- You have access to brain health scores and incident history for intelligent self-healing.
+- You can create/restore snapshots for safe rollbacks before risky changes.
+- You can check SSL certificates, run HTTP benchmarks, get SLA uptime reports, and view dependency graphs.
+- You can run AI-powered diagnostics, optimization suggestions, and proactive improvement analysis.
+- You can manage notification channels and send test alerts.
 
 BRAIN: You have access to a Brain with persistent memory of past incidents, health scores, and
 auto-learned playbooks. Brain context for affected processes will be injected into observations.
@@ -330,6 +778,16 @@ function executeTool(name, args) {
     "start_process",
     "scale_process",
     "save_processes",
+    "reload_process",
+    "delete_process",
+    "snapshot_create",
+    "snapshot_restore",
+    "cloud_provision",
+    "cloud_scale",
+    "cloud_deploy",
+    "cloud_destroy",
+    "save_state",
+    "resurrect",
   ]);
   if (stateChangingTools.has(name) && isRateLimited()) {
     return JSON.stringify({
@@ -441,6 +899,313 @@ function executeTool(name, args) {
       case "send_telegram":
         sendTelegramMessage(String(args.message));
         output = "Message sent to Telegram";
+        break;
+
+      // ── Process Tools (enhanced) ──────────────────────────────────────────
+      case "reload_process":
+        output = execSync(
+          `${MHOST_BIN} reload ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `reload ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      case "delete_process":
+        if (config.autonomy === "autonomous") {
+          return JSON.stringify({
+            error:
+              "Refusing to auto-delete. This requires manual approval.",
+          });
+        }
+        output = execSync(
+          `${MHOST_BIN} delete ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 15_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `delete ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      case "get_health":
+        output = execSync(
+          `${MHOST_BIN} health ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      case "get_config":
+        output = execSync(
+          `${MHOST_BIN} config ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      case "get_env":
+        output = execSync(
+          `${MHOST_BIN} env ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      case "get_history":
+        output = execSync(
+          `${MHOST_BIN} history ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      case "get_metrics":
+        output = execSync(
+          `${MHOST_BIN} metrics ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      // ── Brain Tools ───────────────────────────────────────────────────────
+      case "brain_status":
+        output = execSync(`${MHOST_BIN} brain status 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "brain_history":
+        output = execSync(`${MHOST_BIN} brain history 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "brain_playbooks":
+        output = execSync(`${MHOST_BIN} brain playbooks 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "brain_explain":
+        output = execSync(
+          `${MHOST_BIN} brain explain ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      // ── AI Tools ──────────────────────────────────────────────────────────
+      case "ai_diagnose":
+        output = execSync(
+          `${MHOST_BIN} ai diagnose ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        break;
+
+      case "ai_optimize":
+        output = execSync(
+          `${MHOST_BIN} ai optimize ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        break;
+
+      case "ai_ask":
+        output = execSync(
+          `${MHOST_BIN} ai ask ${shellEscape(args.question)} 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        break;
+
+      case "ai_suggest":
+        output = execSync(`${MHOST_BIN} ai suggest 2>&1`, {
+          encoding: "utf-8",
+          timeout: 30_000,
+        });
+        break;
+
+      // ── Snapshot Tools ────────────────────────────────────────────────────
+      case "snapshot_create":
+        output = execSync(
+          `${MHOST_BIN} snapshot create ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 15_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `snapshot create ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      case "snapshot_list":
+        output = execSync(`${MHOST_BIN} snapshot list 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "snapshot_restore":
+        output = execSync(
+          `${MHOST_BIN} snapshot restore ${shellEscape(args.name)} 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `snapshot restore ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      // ── Notification Tools ────────────────────────────────────────────────
+      case "notify_list":
+        output = execSync(`${MHOST_BIN} notify list 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "notify_test":
+        output = execSync(
+          `${MHOST_BIN} notify test ${shellEscape(args.channel)} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      // ── Cloud Tools ───────────────────────────────────────────────────────
+      case "cloud_services":
+        output = execSync(`${MHOST_BIN} cloud services 2>&1`, {
+          encoding: "utf-8",
+          timeout: 15_000,
+        });
+        break;
+
+      case "cloud_cost":
+        output = execSync(`${MHOST_BIN} cloud cost 2>&1`, {
+          encoding: "utf-8",
+          timeout: 15_000,
+        });
+        break;
+
+      case "cloud_drift":
+        output = execSync(`${MHOST_BIN} cloud drift 2>&1`, {
+          encoding: "utf-8",
+          timeout: 15_000,
+        });
+        break;
+
+      case "cloud_provision":
+        output = execSync(
+          `${MHOST_BIN} cloud provision --provider ${shellEscape(args.provider)} --name ${shellEscape(args.name)} --image ${shellEscape(args.image)} --port ${Number(args.port)} 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `cloud provision ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      case "cloud_scale":
+        output = execSync(
+          `${MHOST_BIN} cloud scale ${shellEscape(args.name)} --instances ${Number(args.instances)} 2>&1`,
+          { encoding: "utf-8", timeout: 15_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `cloud scale ${args.name} ${args.instances}`,
+          result: output.trim(),
+        });
+        break;
+
+      case "cloud_deploy":
+        output = execSync(
+          `${MHOST_BIN} cloud deploy ${shellEscape(args.name)} --image ${shellEscape(args.image)} 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `cloud deploy ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      case "cloud_destroy":
+        if (config.autonomy === "autonomous") {
+          return JSON.stringify({
+            error:
+              "Refusing to auto-destroy. This requires manual approval.",
+          });
+        }
+        output = execSync(
+          `${MHOST_BIN} cloud destroy ${shellEscape(args.name)} --provider ${shellEscape(args.provider)} --confirm 2>&1`,
+          { encoding: "utf-8", timeout: 30_000 }
+        );
+        actionLog.push({
+          timestamp: Date.now(),
+          action: `cloud destroy ${args.name}`,
+          result: output.trim(),
+        });
+        break;
+
+      // ── System Tools ──────────────────────────────────────────────────────
+      case "save_state":
+        output = execSync(`${MHOST_BIN} save 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        actionLog.push({
+          timestamp: Date.now(),
+          action: "save state",
+          result: output.trim(),
+        });
+        break;
+
+      case "resurrect":
+        output = execSync(`${MHOST_BIN} resurrect 2>&1`, {
+          encoding: "utf-8",
+          timeout: 30_000,
+        });
+        actionLog.push({
+          timestamp: Date.now(),
+          action: "resurrect",
+          result: output.trim(),
+        });
+        break;
+
+      case "get_cost":
+        output = execSync(`${MHOST_BIN} cost 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "get_sla":
+        output = execSync(
+          `${MHOST_BIN} sla ${shellEscape(args.name)}${args.target ? ` --target ${Number(args.target)}` : ""} 2>&1`,
+          { encoding: "utf-8", timeout: 10_000 }
+        );
+        break;
+
+      case "get_dependencies":
+        output = execSync(`${MHOST_BIN} dependencies 2>&1`, {
+          encoding: "utf-8",
+          timeout: 10_000,
+        });
+        break;
+
+      case "run_benchmark":
+        output = execSync(
+          `${MHOST_BIN} benchmark ${shellEscape(args.url)}${args.duration ? ` --duration ${Number(args.duration)}` : ""}${args.concurrency ? ` --concurrency ${Number(args.concurrency)}` : ""} 2>&1`,
+          { encoding: "utf-8", timeout: 120_000 }
+        );
+        break;
+
+      case "check_certs":
+        output = execSync(
+          `${MHOST_BIN} certs ${shellEscape(args.urls)} 2>&1`,
+          { encoding: "utf-8", timeout: 15_000 }
+        );
         break;
 
       default:
