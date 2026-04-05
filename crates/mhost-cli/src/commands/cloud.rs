@@ -500,6 +500,7 @@ fn print_no_providers() {
 // Provision
 // ---------------------------------------------------------------------------
 
+#[allow(clippy::too_many_arguments)]
 pub fn run_cloud_provision(
     paths: &MhostPaths,
     provider: &str,
