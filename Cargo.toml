@@ -55,6 +55,6 @@ bytes = "1"
 argon2 = "0.5"
 tower-http = { version = "0.6", features = ["cors"] }
 openssl = { version = "0.10", features = ["vendored"] }
-git2 = "0.19"
+git2 = "0.20"
 ratatui = "0.29"
 crossterm = "0.28"
