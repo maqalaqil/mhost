@@ -1,11 +1,23 @@
 # mhost Cloud Platform — Full Implementation Plan
 
-> This is a NEW private repository: `mhost-cloud`
-> The open-source `mhost` CLI repo gets minimal additions (login/connect commands + daemon sync).
+## Two Repos, Network-Connected
+
+```
+maqalaqil/mhost          (public, MIT)    — CLI, daemon, local features
+maqalaqil/mhost-cloud    (private)        — cloud platform, paid features
+```
+
+No submodules. Cloud imports shared types via Git dependency:
+```toml
+# mhost-cloud/Cargo.toml
+mhost-core = { git = "https://github.com/maqalaqil/mhost", branch = "main" }
+```
+
+Connected at runtime via HTTP + WebSocket. The CLI sends metrics/events/logs to the cloud relay. The cloud sends commands back through the same WebSocket.
 
 **Goal:** Build the full mhost Cloud managed platform — auth, dashboard, fleet map, AI cost optimizer, smart autoscaling, deployment pipelines, incident war rooms, secrets vault, billing, plugin marketplace, compliance reports.
 
-**Architecture:** Rust backend (4 services) + SvelteKit frontend + MongoDB + Redis + ClickHouse + Cloudflare R2. Hosted on Railway. Deployed via mhost GitHub Action.
+**Architecture:** Rust backend (4 services) + SvelteKit frontend + MongoDB + Redis + ClickHouse + Cloudflare R2. Hosted on Railway.
 
 **Spec:** `docs/superpowers/specs/2026-04-05-mhost-cloud-platform-design.md`
 
@@ -687,3 +699,301 @@ Week 16: Launch
 ```
 
 Each week is one deployable milestone. Every week ends with a working, deployed system on Railway.
+
+---
+
+## CLI-Side Changes (mhost public repo)
+
+These changes go into the existing `maqalaqil/mhost` repository to enable cloud connectivity.
+
+### New Files
+
+```
+crates/mhost-cli/src/commands/login.rs      # mhost login / logout
+crates/mhost-cli/src/commands/connect.rs    # mhost connect / disconnect  
+crates/mhost-daemon/src/cloud_sync.rs       # Background sync to cloud
+```
+
+### `mhost login`
+
+```bash
+$ mhost login
+
+  mhost Cloud Login
+  ─────────────────────────────────
+  Opening browser: https://app.mhostai.com/link
+  
+  Or enter this code manually: MHOST-7X4K-9R2P
+  
+  Waiting for approval...
+  ✓ Logged in as maher@example.com (Pro plan)
+  
+  Next: run 'mhost connect' to link this server
+```
+
+Implementation:
+1. POST `api.mhostai.com/auth/device/code` → get `{ code, device_id }`
+2. Open browser to `app.mhostai.com/link`
+3. Poll `GET api.mhostai.com/auth/device/poll?device_id=xxx` every 2s
+4. User approves in browser → poll returns `{ api_token }`
+5. Save to `~/.mhost/cloud-auth.json`
+
+### `mhost connect`
+
+```bash
+$ mhost connect
+
+  mhost Cloud Connect
+  ─────────────────────────────────
+  Server:    prod-api-1
+  Region:    us-east-1 (auto-detected)
+  OS:        Ubuntu 22.04
+  CPU:       4 cores
+  Memory:    8 GB
+  mhost:     v0.22.0
+  
+  ✓ Registered as srv_a1b2c3
+  ✓ WebSocket connected to ws.mhostai.com
+  ✓ Metrics streaming started
+  
+  Dashboard: https://app.mhostai.com/servers/srv_a1b2c3
+```
+
+Implementation:
+1. Read `cloud-auth.json` for API token
+2. POST `api.mhostai.com/servers/register` with server metadata
+3. Get back `{ server_id, ws_token }`
+4. Save server_id + ws_token to `cloud-auth.json`
+5. Signal daemon to start cloud sync
+
+### `cloud_sync.rs` (daemon background task)
+
+On daemon startup, if `~/.mhost/cloud-auth.json` exists with ws_token:
+1. Connect WebSocket to `wss://ws.mhostai.com?token=wst_xxx`
+2. Every 10s: send metrics snapshot for all processes
+3. On process event (start/stop/crash/restart): send event immediately
+4. On log line: buffer and send every 1s (batch)
+5. Listen for incoming commands: { action: "restart", process: "api" } → execute via supervisor
+6. Auto-reconnect with exponential backoff on disconnect
+7. Graceful disconnect on daemon shutdown
+
+### New CLI Commands
+
+```bash
+mhost login                           # OAuth device flow
+mhost logout                          # Remove cloud credentials
+mhost connect [--name <server-name>]  # Register server + start sync
+mhost disconnect                      # Stop syncing, deregister
+mhost cloud open                      # Open dashboard in browser
+mhost cloud billing                   # Show plan + usage summary
+mhost cloud team invite <email>       # Invite team member
+mhost cloud team list                 # List team members
+mhost cloud team remove <email>       # Remove member
+```
+
+---
+
+## Complete Feature Matrix (All 30+ Features)
+
+### Free (open source CLI)
+
+| Feature | Description |
+|---|---|
+| Process management | start, stop, restart, delete, scale, reload, list |
+| Health probes | HTTP, TCP, script-based checks |
+| Auto-restart | Exponential backoff + circuit breaker |
+| Process groups | Dependency ordering with topological sort |
+| Log engine | FTS5 search, JSON auto-parse, 4 external sinks |
+| 8 notification channels | Telegram, Slack, Discord, Email, PagerDuty, Teams, Ntfy, Webhook |
+| Metrics + Prometheus | CPU, memory, uptime, restarts, /metrics export |
+| Reverse proxy | Host routing, load balancing, auto-TLS |
+| Deploy engine | Git pull + hooks + rollback |
+| AI intelligence | Diagnose, optimize, config gen, postmortem (own API key) |
+| Autonomous agent | LLM tool calling, observe/think/act loop |
+| Self-healing brain | Persistent memory, playbooks, health scores |
+| Cloud fleet (SSH) | SSH fleet management, 4 provider imports |
+| Cloud native (10 providers) | Direct API adapters, provision, deploy, scale |
+| Telegram/Discord bot | Role-based chat control |
+| TUI dashboard | ratatui terminal UI |
+| Web dashboard | Self-hosted browser UI |
+| Docker integration | Manage containers alongside processes |
+| Plugin system | Install/remove JS plugins with lifecycle hooks |
+| Process tags | Tag-based filtering and bulk operations |
+| Templates | 10 pre-built configs (Next.js, Django, etc.) |
+| Auto-detection | `mhost init` scans project, generates config |
+| Dev mode | File watcher + auto-restart |
+| Cron dashboard | Schedule visualization |
+| Resource limits | CPU/memory limits on processes |
+| Log alerts | Pattern matching → notifications |
+| Hot config reload | Watch config file, apply changes |
+| Snapshots | Create/restore process state |
+| Audit trail | Local audit log |
+| Workspaces | Multi-tenant process isolation |
+| Public API | 25 REST endpoints + WebSocket + webhooks |
+| Status page | Self-hosted process health page |
+| Incoming webhooks | Trigger actions via HTTP |
+| IaC export | Terraform, Docker Compose, Kubernetes |
+| PM2 migration | Auto-convert ecosystem.config.js |
+| SSL monitoring | Certificate expiry checks |
+| SLA reports | Uptime tracking with targets |
+| Canary deploys | Scale up, monitor, promote/rollback |
+| Load testing | Built-in HTTP benchmark |
+
+### Pro ($29/mo) — Everything Free +
+
+| Feature | Description |
+|---|---|
+| **Cloud Dashboard** | Hosted at app.mhostai.com, no self-hosting |
+| **Live Fleet Map** | World map with animated server dots, click to drill down |
+| **10 cloud-managed servers** | Metrics, logs, events synced to cloud |
+| **Centralized logs** | 14-day cloud retention, search across all servers |
+| **Cloud metrics** | 7-day retention, charts, time-series queries |
+| **100 AI calls/mo** | Use our API key, no setup needed |
+| **Smart autoscaling** | 2 processes, reactive rules |
+| **3 deployment pipelines** | Git push → build → test → canary → promote |
+| **50 cloud secrets** | Encrypted vault, versioned |
+| **Cost suggestions** | AI tells you how to save money |
+| **1 public status page** | Hosted uptime page |
+| **25 webhooks** | Incoming + outgoing |
+| **7-day audit logs** | Who did what, when |
+| **Email support** | 48h response |
+
+### Team ($99/mo) — Everything Pro +
+
+| Feature | Description |
+|---|---|
+| **20 team members** | Admin, developer, viewer roles |
+| **50 cloud-managed servers** | Full fleet management |
+| **30-day log retention** | Longer history |
+| **30-day metrics retention** | Longer charts |
+| **1000 AI calls/mo** | Team-wide budget |
+| **Smart autoscaling (all)** | All processes + predictive mode |
+| **Unlimited deploy pipelines** | Auto-deploy from GitHub |
+| **Incident war rooms** | Auto-timeline, AI diagnosis, shareable links |
+| **500 secrets + rotation** | Auto-rotate on schedule |
+| **Cost optimizer + one-click** | Migrate between providers in one click |
+| **3 edge CDN regions** | Geo-routing for user traffic |
+| **5 status pages + custom domain** | Branded uptime pages |
+| **100 webhooks** | Higher limit |
+| **90-day audit logs** | Compliance ready |
+| **Basic compliance reports** | Uptime certificates, access reports |
+| **Private plugins** | Team-only plugin registry |
+| **Priority support** | 4h response |
+
+### Enterprise ($499/mo) — Everything Team +
+
+| Feature | Description |
+|---|---|
+| **Unlimited members** | Full organization |
+| **Unlimited servers** | No limits |
+| **1-year log retention** | Long-term storage |
+| **1-year metrics retention** | Historical analysis |
+| **Unlimited AI calls** | No metering |
+| **Custom autoscale rules** | ML-based predictions |
+| **Approval gates** | Require manager approval before deploy |
+| **Rollback SLA** | Auto-rollback within 30s of failure detection |
+| **Database proxy** | Connection pooling, query tracking, read replicas |
+| **Global edge CDN** | 50+ PoPs worldwide |
+| **Unlimited secrets + HashiCorp Vault** | Enterprise secret management |
+| **SOC 2 + GDPR reports** | Auto-generated compliance |
+| **SSO/SAML** | Single sign-on via WorkOS |
+| **Custom plugins** | Dedicated plugin development support |
+| **Unlimited webhooks** | No limits |
+| **1-year audit logs + export** | Full compliance trail |
+| **Dedicated support + Slack** | Direct channel to engineering |
+| **99.99% SLA + credits** | Financial guarantee |
+| **Custom domain for dashboard** | dashboard.yourcompany.com |
+| **On-premise option** | Self-host the cloud platform |
+
+---
+
+## Revenue Model
+
+### Usage-Based Overages
+
+| Resource | Pro | Team | Enterprise |
+|---|---|---|---|
+| Extra AI calls | $0.02/call | $0.02/call | Included |
+| Extra log storage | $0.50/GB | $0.50/GB | $0.25/GB |
+| Extra bandwidth | $0.10/GB | $0.10/GB | $0.05/GB |
+| Extra build minutes | $0.01/min | $0.01/min | $0.005/min |
+| Extra servers | $3/server/mo | $2/server/mo | Custom |
+
+### Plugin Marketplace Revenue Share
+
+- Free plugins: no charge
+- Paid plugins: 70% to author, 30% to mhost
+- Stripe Connect for payouts
+
+### Annual Billing Discount
+
+- Pro: $29/mo or $290/year (save $58)
+- Team: $99/mo or $990/year (save $198)
+- Enterprise: $499/mo or $4990/year (save $998)
+
+---
+
+## Complete API Endpoint Count
+
+| Category | Endpoints | Auth |
+|---|---|---|
+| Auth | 10 | Public |
+| Users | 5 | User |
+| Teams | 8 | User + Team role |
+| Servers | 5 | Team |
+| Processes | 7 | Team (proxied via relay) |
+| Deployments | 6 | Team |
+| Incidents | 5 | Team |
+| Metrics | 3 | Team |
+| Logs | 3 | Team |
+| Alerts | 6 | Team |
+| Cost | 5 | Team |
+| Autoscale | 5 | Team |
+| Secrets | 5 | Team |
+| Plugins | 6 | Team/Public |
+| Billing | 6 | User |
+| Compliance | 4 | Team (Team+ plan) |
+| Status Pages | 5 | Team |
+| Webhooks | 4 | Team |
+| Fleet | 3 | Team |
+| **Total** | **~105 endpoints** | |
+
+---
+
+## Database Collections (MongoDB)
+
+| Collection | Documents at 10K users | Indexes |
+|---|---|---|
+| users | 10K | email (unique), oauth_providers.provider_id |
+| teams | 3K | slug (unique), owner_id |
+| servers | 50K | team_id, registration_token, status |
+| deployments | 500K | team_id, server_ids, created_at |
+| incidents | 100K | team_id, status, created_at |
+| autoscale_rules | 20K | team_id, server_id, process_name |
+| secrets_vault | 200K | team_id, name, scope |
+| plugins | 500 | slug (unique), categories |
+| billing | 3K | team_id, stripe_subscription_id |
+| audit_logs | 10M | team_id, timestamp, action |
+| alert_rules | 50K | team_id, enabled |
+| status_pages | 5K | team_id, subdomain (unique) |
+| webhooks | 30K | team_id, token |
+| incoming_hooks | 20K | team_id, token |
+
+## ClickHouse Tables
+
+| Table | Rows/day at 10K users | Retention |
+|---|---|---|
+| metrics | 50M (10s interval × 50K servers × 5 processes) | Plan-based |
+| log_index | 100M (log line metadata) | Plan-based |
+| events | 1M (process events) | 1 year |
+| analytics | 500K (page views, API calls) | Forever |
+
+## R2 Storage
+
+| Bucket | Size at 10K users | Content |
+|---|---|---|
+| logs/ | ~500GB/mo | Compressed JSONL log files |
+| backups/ | ~50GB | Server state snapshots |
+| artifacts/ | ~100GB | Build artifacts for deploys |
+| plugins/ | ~1GB | Plugin packages |
+| compliance/ | ~5GB | Generated reports (PDF/HTML) |
