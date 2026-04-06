@@ -1044,6 +1044,25 @@ pub enum Commands {
         action: crate::commands::api::ApiCommands,
     },
 
+    /// Login to mhost Cloud.
+    Login,
+
+    /// Logout from mhost Cloud.
+    Logout,
+
+    /// Connect this server to mhost Cloud.
+    Connect {
+        /// Friendly server name (defaults to hostname).
+        #[arg(long)]
+        name: Option<String>,
+    },
+
+    /// Disconnect this server from mhost Cloud.
+    Disconnect,
+
+    /// Open the mhost Cloud dashboard in your browser.
+    CloudOpen,
+
     /// Scan current directory and generate mhost.toml.
     Init,
 

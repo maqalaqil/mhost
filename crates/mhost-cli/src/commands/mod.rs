@@ -12,6 +12,7 @@ pub mod cloud;
 pub mod cluster;
 pub mod completion;
 pub mod config_cmd;
+pub mod connect;
 pub mod cost;
 #[allow(dead_code, clippy::print_literal)]
 pub mod cron;
@@ -36,6 +37,7 @@ pub mod link;
 pub mod list;
 #[allow(dead_code, clippy::print_literal)]
 pub mod log_alerts;
+pub mod login;
 pub mod logs;
 pub mod metrics;
 pub mod migrate;

@@ -173,6 +173,48 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
             BrainAction::Explain { process } => commands::brain::run_explain(paths, &process),
         },
 
+        // ---- Cloud login / connect (non-daemon) -----------------------------
+        Commands::Login => {
+            commands::login::run_login();
+            Ok(())
+        }
+        Commands::Logout => {
+            commands::login::run_logout();
+            Ok(())
+        }
+        Commands::Connect { name } => {
+            commands::connect::run_connect(name.as_deref());
+            Ok(())
+        }
+        Commands::Disconnect => {
+            commands::connect::run_disconnect();
+            Ok(())
+        }
+        Commands::CloudOpen => {
+            #[cfg(target_os = "macos")]
+            {
+                std::process::Command::new("open")
+                    .arg("https://app.mhostai.com")
+                    .spawn()
+                    .ok();
+            }
+            #[cfg(target_os = "linux")]
+            {
+                std::process::Command::new("xdg-open")
+                    .arg("https://app.mhostai.com")
+                    .spawn()
+                    .ok();
+            }
+            #[cfg(target_os = "windows")]
+            {
+                std::process::Command::new("cmd")
+                    .args(["/c", "start", "https://app.mhostai.com"])
+                    .spawn()
+                    .ok();
+            }
+            Ok(())
+        }
+
         // ---- Init (non-daemon, scans CWD for project files) ----------------
         Commands::Init => commands::init::run(),
 
@@ -511,7 +553,12 @@ async fn dispatch_daemon(
         }
         | Commands::Workspace { .. }
         | Commands::StatusPage { .. }
-        | Commands::Hooks { .. } => unreachable!(),
+        | Commands::Hooks { .. }
+        | Commands::Login
+        | Commands::Logout
+        | Commands::Connect { .. }
+        | Commands::Disconnect
+        | Commands::CloudOpen => unreachable!(),
     }
 }
 
