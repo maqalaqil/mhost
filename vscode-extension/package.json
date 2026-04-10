@@ -1,0 +1,29 @@
+{
+  "name": "mhost",
+  "displayName": "mhost - Process Manager",
+  "description": "Manage processes with mhost directly from VS Code",
+  "version": "0.1.0",
+  "publisher": "maqalaqil",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "icon": "icon.png",
+  "repository": { "type": "git", "url": "https://github.com/maqalaqil/mhost" },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [{ "id": "mhost", "title": "mhost", "icon": "icon.svg" }]
+    },
+    "views": {
+      "mhost": [{ "id": "mhostProcesses", "name": "Processes" }]
+    },
+    "commands": [
+      { "command": "mhost.refresh", "title": "mhost: Refresh" },
+      { "command": "mhost.start", "title": "mhost: Start Process" },
+      { "command": "mhost.stop", "title": "mhost: Stop Process" },
+      { "command": "mhost.restart", "title": "mhost: Restart Process" },
+      { "command": "mhost.logs", "title": "mhost: Show Logs" },
+      { "command": "mhost.scale", "title": "mhost: Scale Process" }
+    ]
+  }
+}

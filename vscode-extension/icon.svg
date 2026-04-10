@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Shield shape -->
+  <path d="M64 8 L112 28 L112 60 C112 88 92 110 64 120 C36 110 16 88 16 60 L16 28 Z"
+        fill="url(#shieldGrad)" stroke="#7c3aed" stroke-width="2" />
+  <!-- Heartbeat line -->
+  <polyline points="28,64 48,64 54,44 62,84 70,54 76,64 100,64"
+            fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
