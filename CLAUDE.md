@@ -217,3 +217,19 @@ cargo fmt --all --check                    # Format check
 
 ### Other
 `proxy`, `deploy <env>`, `rollback <env>`, `self-update`, `completion <shell>`
+
+## mhost Cloud Connection
+
+mhost CLI connects to the private **mhost-cloud** platform (github.com/maqalaqil/mhost-cloud).
+
+**Connection commands:** `mhost login`, `mhost connect`, `mhost disconnect`, `mhost logout`, `mhost cloud open`
+
+**Cloud API:** https://cloud-api-production-3af7.up.railway.app
+**Dashboard:** https://mhost-cloud-production-17b9.up.railway.app
+**WebSocket:** wss://cloud-relay-production.up.railway.app
+
+**Credentials:** `~/.mhost/cloud-auth.json` (api_token, server_id, ws_token)
+
+**How it works:** CLI uses device code flow for auth, registers server via REST API, daemon syncs metrics/events/logs via WebSocket relay.
+
+**Feature flags:** `--features api` (REST API), `--features cloud-native` (10 provider adapters), `--features full` (both)
