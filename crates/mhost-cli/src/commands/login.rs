@@ -2,7 +2,14 @@ use colored::Colorize;
 
 const CLOUD_API: &str = "https://api.mhostai.com";
 
-pub fn run_login() {
+pub async fn run_login() {
+    let result = tokio::task::spawn_blocking(run_login_blocking).await;
+    if let Err(e) = result {
+        eprintln!("  {} login task failed: {e}", "✖".red());
+    }
+}
+
+fn run_login_blocking() {
     println!("\n  {} mhost Cloud Login\n", "mhost".bold());
 
     // Step 1: Get device code from cloud API
@@ -36,7 +43,7 @@ pub fn run_login() {
                 // Step 2: Poll for approval
                 let client = reqwest::blocking::Client::new();
                 for _ in 0..300 {
-                    // 10 minutes max (2s × 300)
+                    // 10 minutes max (2s x 300)
                     std::thread::sleep(std::time::Duration::from_secs(2));
 
                     if let Ok(resp) = client
@@ -72,7 +79,14 @@ pub fn run_login() {
     }
 }
 
-pub fn run_logout() {
+pub async fn run_logout() {
+    let result = tokio::task::spawn_blocking(run_logout_blocking).await;
+    if let Err(e) = result {
+        eprintln!("  {} logout task failed: {e}", "✖".red());
+    }
+}
+
+fn run_logout_blocking() {
     let home = dirs::home_dir().unwrap();
     let auth_path = home.join(".mhost").join("cloud-auth.json");
     if auth_path.exists() {

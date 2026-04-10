@@ -1,6 +1,15 @@
 use colored::Colorize;
 
-pub fn run_connect(name: Option<&str>) {
+pub async fn run_connect(name: Option<&str>) {
+    let name_owned = name.map(|s| s.to_string());
+    let result =
+        tokio::task::spawn_blocking(move || run_connect_blocking(name_owned.as_deref())).await;
+    if let Err(e) = result {
+        eprintln!("  {} connect task failed: {e}", "✖".red());
+    }
+}
+
+fn run_connect_blocking(name: Option<&str>) {
     println!("\n  {} mhost Cloud Connect\n", "mhost".bold());
 
     // Load cloud auth
@@ -64,7 +73,7 @@ pub fn run_connect(name: Option<&str>) {
                     let server_id = data["server_id"].as_str().unwrap_or("");
                     let ws_token = data["ws_token"].as_str().unwrap_or("");
 
-                    // Build updated auth data with server info
+                    // Build updated auth data with server info (immutable approach)
                     let auth_data = serde_json::json!({
                         "api_token": auth["api_token"],
                         "api_url": auth["api_url"],
@@ -99,7 +108,14 @@ pub fn run_connect(name: Option<&str>) {
     }
 }
 
-pub fn run_disconnect() {
+pub async fn run_disconnect() {
+    let result = tokio::task::spawn_blocking(run_disconnect_blocking).await;
+    if let Err(e) = result {
+        eprintln!("  {} disconnect task failed: {e}", "✖".red());
+    }
+}
+
+fn run_disconnect_blocking() {
     let home = dirs::home_dir().unwrap();
     let auth_path = home.join(".mhost").join("cloud-auth.json");
     if auth_path.exists() {

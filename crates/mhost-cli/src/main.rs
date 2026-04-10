@@ -175,19 +175,19 @@ async fn dispatch(cli: Cli, paths: &MhostPaths) -> Result<(), String> {
 
         // ---- Cloud login / connect (non-daemon) -----------------------------
         Commands::Login => {
-            commands::login::run_login();
+            commands::login::run_login().await;
             Ok(())
         }
         Commands::Logout => {
-            commands::login::run_logout();
+            commands::login::run_logout().await;
             Ok(())
         }
         Commands::Connect { name } => {
-            commands::connect::run_connect(name.as_deref());
+            commands::connect::run_connect(name.as_deref()).await;
             Ok(())
         }
         Commands::Disconnect => {
-            commands::connect::run_disconnect();
+            commands::connect::run_disconnect().await;
             Ok(())
         }
         Commands::CloudOpen => {

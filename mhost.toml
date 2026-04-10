@@ -1,0 +1,28 @@
+# mhost.toml — generated from the 'express' template
+# Stack: Express.js
+
+[[apps]]
+name = "my-express"
+command = "node server.js"
+
+# Port this application listens on.
+port = 3000
+
+# Number of instances to run (1 = single, >1 = cluster mode).
+instances = 1
+
+# Restart limits.
+max_restarts = 15
+min_uptime_ms = 1000
+restart_delay_ms = 100
+
+# Health check configuration.
+[apps.health]
+url = "http://localhost:3000/health"
+interval_secs = 30
+timeout_secs = 5
+max_failures = 3
+
+# Environment variables.
+[apps.env]
+NODE_ENV = "production"

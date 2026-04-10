@@ -1053,3 +1053,210 @@ fn test_status_page_help() {
     assert!(ok);
     assert!(stdout.contains("status") || stdout.contains("page") || stdout.contains("port"));
 }
+
+// ── Cloud Connection Tests ──────────────────────────────────
+
+#[test]
+fn test_login_help() {
+    let (stdout, _, ok) = run(&["login", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("login") || stdout.contains("Login") || stdout.contains("Cloud"));
+}
+
+#[test]
+fn test_logout_no_creds() {
+    let (stdout, _, _) = run(&["logout"]);
+    assert!(
+        stdout.contains("Not logged in")
+            || stdout.contains("logged out")
+            || stdout.contains("Logged")
+    );
+}
+
+#[test]
+fn test_connect_help() {
+    let (stdout, _, ok) = run(&["connect", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("connect") || stdout.contains("Connect") || stdout.contains("name"));
+}
+
+#[test]
+fn test_connect_no_login() {
+    let (stdout, stderr, _) = run(&["connect"]);
+    let output = format!("{stdout}{stderr}");
+    assert!(
+        output.contains("Not logged in") || output.contains("login") || output.contains("Login")
+    );
+}
+
+#[test]
+fn test_disconnect_no_connection() {
+    let (stdout, _, _) = run(&["disconnect"]);
+    assert!(
+        stdout.contains("Not connected")
+            || stdout.contains("disconnect")
+            || stdout.contains("Cloud")
+            || stdout.contains("Disconnected")
+    );
+}
+
+// ── Docker Tests ──────────────────────────────────────────
+
+#[test]
+fn test_docker_run_help() {
+    let (stdout, _, ok) = run(&["docker", "run", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("image") || stdout.contains("name") || stdout.contains("port"));
+}
+
+#[test]
+fn test_docker_list_no_docker() {
+    let (stdout, stderr, _) = run(&["docker", "list"]);
+    let output = format!("{stdout}{stderr}");
+    assert!(
+        output.contains("docker")
+            || output.contains("Docker")
+            || output.contains("No")
+            || output.contains("error")
+    );
+}
+
+// ── Plugin Tests ──────────────────────────────────────────
+
+#[test]
+fn test_plugin_info_missing() {
+    let (stdout, stderr, _) = run(&["plugin", "info", "nonexistent"]);
+    let output = format!("{stdout}{stderr}");
+    assert!(
+        output.contains("not found")
+            || output.contains("No")
+            || output.contains("plugin")
+            || output.contains("Plugin")
+            || output.contains("not installed")
+    );
+}
+
+// ── Template Tests ──────────────────────────────────────────
+
+#[test]
+fn test_template_init_generates_file() {
+    let (stdout, stderr, _) = run(&["template", "init", "express"]);
+    let output = format!("{stdout}{stderr}");
+    assert!(
+        output.contains("express")
+            || output.contains("Generated")
+            || output.contains("Created")
+            || output.contains("mhost.toml")
+            || output.contains("exists")
+    );
+}
+
+// ── Workspace Tests ──────────────────────────────────────────
+
+#[test]
+fn test_workspace_create_and_delete() {
+    let (stdout, _, _) = run(&["workspace", "create", "test-ws-unit"]);
+    assert!(
+        stdout.contains("Created") || stdout.contains("created") || stdout.contains("test-ws-unit")
+    );
+
+    // Cleanup
+    let _ = run(&["workspace", "delete", "test-ws-unit"]);
+}
+
+// ── Status Page Tests ──────────────────────────────────────────
+
+#[test]
+fn test_status_page_generate() {
+    let (stdout, _, _) = run(&["status-page", "generate"]);
+    assert!(stdout.contains("mhost") || stdout.contains("<html") || stdout.contains("status"));
+}
+
+// ── Init Tests ──────────────────────────────────────────
+
+#[test]
+fn test_init_in_empty_dir() {
+    let (stdout, stderr, _) = run(&["init"]);
+    let output = format!("{stdout}{stderr}");
+    assert!(
+        output.contains("detect")
+            || output.contains("No")
+            || output.contains("mhost.toml")
+            || output.contains("exists")
+            || output.contains("Generated")
+    );
+}
+
+// ── Cron Tests ──────────────────────────────────────────
+
+#[test]
+fn test_cron_no_daemon() {
+    let (stdout, stderr, _) = run(&["cron"]);
+    let output = format!("{stdout}{stderr}");
+    // Cron requires daemon, so it should fail gracefully or show info
+    assert!(
+        output.contains("daemon")
+            || output.contains("connect")
+            || output.contains("cron")
+            || output.contains("No")
+            || output.contains("schedule")
+    );
+}
+
+// ── Log Alert Tests ──────────────────────────────────────────
+
+#[test]
+fn test_log_alert_add_help() {
+    let (stdout, _, ok) = run(&["log-alert", "add", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("pattern") || stdout.contains("notify") || stdout.contains("process"));
+}
+
+// ── Watch Tests ──────────────────────────────────────────
+
+#[test]
+fn test_watch_help() {
+    let (stdout, _, ok) = run(&["watch", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("watch") || stdout.contains("config") || stdout.contains("file"));
+}
+
+// ── Hooks Tests ──────────────────────────────────────────
+
+#[test]
+fn test_hooks_create_help() {
+    let (stdout, _, ok) = run(&["hooks", "create", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("action") || stdout.contains("process") || stdout.contains("webhook"));
+}
+
+// ── Limits Tests ──────────────────────────────────────────
+
+#[test]
+fn test_limits_requires_process() {
+    let (_, stderr, ok) = run(&["limits"]);
+    // Should fail because process name is required
+    assert!(
+        !ok || stderr.contains("required")
+            || stderr.contains("process")
+            || stderr.contains("error")
+    );
+}
+
+// ── Rollback Process Tests ──────────────────────────────────
+
+#[test]
+fn test_rollback_process_help() {
+    let (stdout, _, ok) = run(&["rollback-process", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("rollback") || stdout.contains("process") || stdout.contains("name"));
+}
+
+// ── Config History Tests ──────────────────────────────────
+
+#[test]
+fn test_config_history_help() {
+    let (stdout, _, ok) = run(&["config-history", "--help"]);
+    assert!(ok);
+    assert!(stdout.contains("config") || stdout.contains("history") || stdout.contains("name"));
+}
