@@ -614,7 +614,45 @@ pub async fn spawn_child_static(
                 .ok_or_else(|| "Empty command".to_string())?
                 .to_string();
             let rest: Vec<String> = parts.map(|s| s.to_string()).collect();
-            (prog, rest)
+
+            // Auto-detect interpreter from file extension (like PM2 does)
+            let ext = std::path::Path::new(&prog)
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("");
+            match ext {
+                "js" | "mjs" | "cjs" => {
+                    let mut args = vec![prog];
+                    args.extend(rest);
+                    ("node".to_string(), args)
+                }
+                "ts" | "mts" => {
+                    let mut args = vec!["tsx".to_string(), prog];
+                    args.extend(rest);
+                    ("npx".to_string(), args)
+                }
+                "py" => {
+                    let mut args = vec![prog];
+                    args.extend(rest);
+                    ("python3".to_string(), args)
+                }
+                "rb" => {
+                    let mut args = vec![prog];
+                    args.extend(rest);
+                    ("ruby".to_string(), args)
+                }
+                "sh" | "bash" => {
+                    let mut args = vec![prog];
+                    args.extend(rest);
+                    ("sh".to_string(), args)
+                }
+                "php" => {
+                    let mut args = vec![prog];
+                    args.extend(rest);
+                    ("php".to_string(), args)
+                }
+                _ => (prog, rest),
+            }
         };
 
     cmd_args.extend_from_slice(&config.args);
