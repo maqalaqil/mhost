@@ -24,8 +24,12 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Maher Al-Aqil"]
 license = "MIT"
+homepage = "https://mhostai.com"
 repository = "https://github.com/maqalaqil/mhost"
-description = "Advanced process manager — PM2 replacement written in Rust"
+documentation = "https://mhostai.com/docs.html"
+description = "PM2 alternative in Rust — AI-powered process manager with autonomous DevOps agent, self-healing brain, and cloud fleet management"
+keywords = ["process-manager", "pm2-alternative", "devops", "ai", "supervisor"]
+categories = ["command-line-utilities", "development-tools"]
 
 [workspace.dependencies]
 tokio = { version = "1", features = ["full"] }

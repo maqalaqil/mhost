@@ -1,12 +1,39 @@
 {
   "name": "@maqalaqil93/mhost",
   "version": "0.1.0",
-  "description": "Advanced process manager — PM2 replacement written in Rust",
+  "description": "PM2 alternative in Rust — AI-powered process manager with autonomous DevOps agent, self-healing brain, health probes, and cloud fleet management. Single 14MB binary. Free & open source (MIT).",
+  "keywords": [
+    "pm2",
+    "pm2-alternative",
+    "process-manager",
+    "process",
+    "supervisor",
+    "daemon",
+    "rust",
+    "ai",
+    "devops",
+    "ai-devops",
+    "autonomous",
+    "self-healing",
+    "monitoring",
+    "telemetry",
+    "node",
+    "deno",
+    "bun",
+    "deploy",
+    "cloud",
+    "fleet"
+  ],
+  "homepage": "https://mhostai.com",
+  "bugs": "https://github.com/maqalaqil/mhost/issues",
   "bin": { "mhost": "./bin/mhost" },
   "scripts": { "postinstall": "node install.js" },
   "os": ["darwin", "linux", "win32"],
   "cpu": ["x64", "arm64"],
   "repository": { "type": "git", "url": "https://github.com/maqalaqil/mhost" },
   "license": "MIT",
-  "author": "Maher Al-Aqil"
+  "author": {
+    "name": "Maher Al-Aqil",
+    "url": "https://mhostai.com"
+  }
 }

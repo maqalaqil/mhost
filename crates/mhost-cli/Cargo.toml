@@ -4,7 +4,13 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "CLI for mhost process manager"
+homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "mhost CLI — PM2 alternative in Rust with AI-powered DevOps agent. Single binary, autonomous, self-healing."
+readme = "../../README.md"
 
 [[bin]]
 name = "mhost"

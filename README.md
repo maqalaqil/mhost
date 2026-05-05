@@ -12,16 +12,19 @@
  ╚══╝╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚══════╝   ╚═╝
 ```
 
-**The process manager that PM2 should have been.**
+**The PM2 alternative that PM2 should have been.**
 
-Built in Rust. Single binary. Zero runtime dependencies.
+Built in Rust. Single binary. Zero runtime dependencies. Built-in AI agent.
+
+### 🌐 [mhostai.com](https://mhostai.com) · [Pricing](https://mhostai.com/pricing) · [Docs](https://mhostai.com/docs.html) · [Playground](https://mhostai.com/playground.html)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.82%2B-orange.svg)](https://www.rust-lang.org)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)](#)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/UKgZDUw9)
+[![npm](https://img.shields.io/npm/v/@maqalaqil93/mhost?label=npm)](https://www.npmjs.com/package/@maqalaqil93/mhost)
 
-[Installation](#installation) | [Quick Start](#quick-start) | [Config](#ecosystem-config) | [AI](#ai-intelligence) | [Notifications](#notifications) | [Commands](#all-commands) | [Discord](https://discord.gg/UKgZDUw9)
+[Website](https://mhostai.com) | [Installation](#installation) | [Quick Start](#quick-start) | [Config](#ecosystem-config) | [AI](#ai-intelligence) | [Notifications](#notifications) | [Commands](#all-commands) | [Discord](https://discord.gg/UKgZDUw9)
 
 </div>
 
