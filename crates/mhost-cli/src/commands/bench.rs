@@ -63,12 +63,8 @@ pub async fn run(url: &str, duration_secs: u64, concurrency: u32) -> Result<(), 
     let min_lat = min_latency_us.load(Ordering::Relaxed);
     let max_lat = max_latency_us.load(Ordering::Relaxed);
 
-    let avg_lat = if reqs > 0 { total_lat / reqs } else { 0 };
-    let rps = if duration_secs > 0 {
-        reqs / duration_secs
-    } else {
-        0
-    };
+    let avg_lat = total_lat.checked_div(reqs).unwrap_or(0);
+    let rps = reqs.checked_div(duration_secs).unwrap_or(0);
     let error_pct = if reqs > 0 {
         (errs as f64 / reqs as f64) * 100.0
     } else {
