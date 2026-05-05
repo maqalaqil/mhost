@@ -94,7 +94,8 @@ pub fn run_all(
     Ok(())
 }
 
-/// Tail log lines for a process (reads from file). Accepts name or ID prefix.
+/// Tail log lines for a process (reads from file). Accepts name, ID prefix,
+/// or numeric index (0-based, matching the order shown by `mhost list`).
 pub fn run(
     paths: &MhostPaths,
     name_or_id: &str,
@@ -102,6 +103,21 @@ pub fn run(
     err_stream: bool,
     grep: Option<&str>,
 ) -> Result<(), String> {
+    // PM2-style: if input is a pure integer, treat it as the index into the
+    // process list ordered by name (same order as `mhost list`).
+    if let Ok(idx) = name_or_id.parse::<usize>() {
+        if let Some(name) = resolve_name_by_index(paths, idx) {
+            let log_path = if err_stream {
+                paths.process_err_log(&name, 0)
+            } else {
+                paths.process_out_log(&name, 0)
+            };
+            if log_path.exists() {
+                return read_and_print_logs(log_path, name, lines, err_stream, grep, paths);
+            }
+        }
+    }
+
     // Try direct name first
     let log_path = if err_stream {
         paths.process_err_log(name_or_id, 0)
@@ -116,6 +132,18 @@ pub fn run(
         resolve_log_by_id(paths, name_or_id, err_stream)?
     };
 
+    read_and_print_logs(log_path, name, lines, err_stream, grep, paths)
+}
+
+/// Read and print log file contents (extracted from `run` for reuse).
+fn read_and_print_logs(
+    log_path: std::path::PathBuf,
+    name: String,
+    lines: usize,
+    err_stream: bool,
+    grep: Option<&str>,
+    paths: &MhostPaths,
+) -> Result<(), String> {
     let file = File::open(&log_path)
         .map_err(|e| format!("Cannot open log '{}': {e}", log_path.display()))?;
 
@@ -188,13 +216,38 @@ pub fn run(
     Ok(())
 }
 
-/// Follow mode — tail the log file in real-time.
+/// Resolve a numeric index (0-based) to a process name, using the same
+/// ordering as `mhost list` (ORDER BY name, instance).
+fn resolve_name_by_index(paths: &MhostPaths, index: usize) -> Option<String> {
+    let db_path = paths.db();
+    if !db_path.exists() {
+        return None;
+    }
+    let conn = rusqlite::Connection::open(&db_path).ok()?;
+    let mut stmt = conn
+        .prepare(
+            "SELECT name FROM processes ORDER BY name, instance LIMIT 1 OFFSET ?1",
+        )
+        .ok()?;
+    stmt.query_row([index as i64], |row| row.get::<_, String>(0))
+        .ok()
+}
+
+/// Follow mode — tail the log file in real-time. Accepts name or numeric index.
 pub fn follow(
     paths: &MhostPaths,
     name: &str,
     err_stream: bool,
     grep: Option<&str>,
 ) -> Result<(), String> {
+    // PM2-style: numeric index → resolve to process name
+    let resolved_name = name
+        .parse::<usize>()
+        .ok()
+        .and_then(|idx| resolve_name_by_index(paths, idx))
+        .unwrap_or_else(|| name.to_string());
+    let name = resolved_name.as_str();
+
     let log_path = if err_stream {
         paths.process_err_log(name, 0)
     } else {
