@@ -40,7 +40,7 @@ argon2 = { workspace = true }
 uuid = { workspace = true }
 rand = "0.8"
 reqwest = { workspace = true }
-tabled = "0.17"
+tabled = "0.20"
 clap_complete = "4"
 self_update = { version = "0.42", features = ["archive-tar", "archive-zip", "compression-flate2"] }
 
