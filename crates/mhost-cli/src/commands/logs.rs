@@ -225,9 +225,7 @@ fn resolve_name_by_index(paths: &MhostPaths, index: usize) -> Option<String> {
     }
     let conn = rusqlite::Connection::open(&db_path).ok()?;
     let mut stmt = conn
-        .prepare(
-            "SELECT name FROM processes ORDER BY name, instance LIMIT 1 OFFSET ?1",
-        )
+        .prepare("SELECT name FROM processes ORDER BY name, instance LIMIT 1 OFFSET ?1")
         .ok()?;
     stmt.query_row([index as i64], |row| row.get::<_, String>(0))
         .ok()
