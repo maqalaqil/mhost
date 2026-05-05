@@ -863,6 +863,7 @@ pub enum Commands {
     },
 
     /// Check for a newer mhost release and update if available.
+    #[command(alias = "update", alias = "upgrade")]
     SelfUpdate,
 
     /// Generate shell completion scripts.
