@@ -208,7 +208,7 @@ jobs:
           echo "=== Artifacts ==="
           ls -la
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.version.outputs.tag }}
           name: "mhost ${{ needs.version.outputs.tag }}"
