@@ -14,7 +14,7 @@ async-trait = "0.1"
 tracing = { workspace = true }
 lettre = { version = "0.11", features = ["smtp-transport", "tokio1", "tokio1-native-tls", "builder"] }
 hmac = "0.12"
-sha2 = "0.10"
+sha2 = "0.11"
 hex = "0.4"
 
 [dev-dependencies]

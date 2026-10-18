@@ -22,7 +22,7 @@ tower-http = { workspace = true }
 async-trait = "0.1"
 futures = "0.3"
 hmac = "0.12"
-sha2 = "0.10"
+sha2 = "0.11"
 hex = "0.4"
 rand = "0.8"
 
